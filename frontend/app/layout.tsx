@@ -1,8 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "MaiStorage Agentic RAG",
-  description: "An agentic RAG system with self-grading retrieval and citations",
+  title: "FDA Drug Information Assistant",
+  description:
+    "Agentic RAG over official FDA drug labels — cited answers, self-grading retrieval, and graceful refusal. Informational only, not medical advice.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

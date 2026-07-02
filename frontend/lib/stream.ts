@@ -1,14 +1,17 @@
 /**
- * SSE consumption via fetch + reader.  [M4]
- * streamChat(question, onToken, onDone): POST /api/chat, parse SSE lines
+ * SSE consumption + backend API client.
+ * FDA drug-information assistant: streaming answers, citations (drug + label
+ * section + source URL), agent trace, and chat sessions/history.
  */
 
 export interface Citation {
   marker: string;
-  source: string;
-  section: string;
+  source: string;        // drug name (FDA) or filename
+  section: string;       // label section slug, e.g. "warnings"
   chunk_id: string;
   text: string;
+  source_url?: string;   // DailyMed / FDA label URL
+  section_title?: string; // human-readable section, e.g. "Warnings"
 }
 
 export interface TraceStep {
@@ -17,18 +20,28 @@ export interface TraceStep {
   output: string;
 }
 
+export interface StoredMessage {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  citations: Citation[];
+  trace_id: string | null;
+  created_at: string | null;
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function streamChat(
   question: string,
   onToken: (text: string) => void,
   onDone: (citations: Citation[], traceId: string, refused: boolean) => void,
-  onError?: (message: string) => void
+  onError?: (message: string) => void,
+  sessionId?: string | null
 ): Promise<void> {
   const res = await fetch(`${API_BASE}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, session_id: sessionId ?? undefined }),
   });
 
   if (!res.ok) {
@@ -73,13 +86,40 @@ export async function fetchTrace(traceId: string): Promise<{ trace_id: string; s
   return res.json();
 }
 
-export async function triggerIngest(): Promise<any> {
-  const res = await fetch(`${API_BASE}/ingest`, { method: "POST" });
-  if (!res.ok) throw new Error(`Ingest failed: ${res.status}`);
+/** Trigger openFDA ingestion (accumulates + dedupes by label_id). */
+export async function triggerFdaIngest(): Promise<any> {
+  const res = await fetch(`${API_BASE}/ingest/fda`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) throw new Error(`FDA ingest failed: ${res.status}`);
   return res.json();
 }
 
 export async function fetchHealth(): Promise<any> {
   const res = await fetch(`${API_BASE}/health`);
   return res.json();
+}
+
+/** Create a new chat session; returns its id (or null if persistence is down). */
+export async function createSession(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/sessions`, { method: "POST" });
+    if (!res.ok) return null;
+    return (await res.json()).session_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Load a session's message history. */
+export async function fetchMessages(sessionId: string): Promise<StoredMessage[]> {
+  try {
+    const res = await fetch(`${API_BASE}/sessions/${sessionId}/messages`);
+    if (!res.ok) return [];
+    return (await res.json()).messages ?? [];
+  } catch {
+    return [];
+  }
 }

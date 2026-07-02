@@ -1,29 +1,35 @@
-"""Prompt templates for route / rewrite / grade / generate.  [M6]. Keep each small for cheap models."""
+"""Prompt templates for route / rewrite / grade / generate.  [M6; drug-domain reframe item 4]
 
-ROUTE_PROMPT = """You are a query router. Determine if the question requires searching a knowledge base or can be answered directly.
+Domain: an FDA drug-information assistant answering ONLY from retrieved FDA drug
+label text. Keep each prompt small for cheap models. NOTE: the offline test
+FakeProvider keys off the phrases "query router", "search query optimizer",
+"relevance grader", and "context chunks" — keep those verbatim.
+"""
+
+ROUTE_PROMPT = """You are a query router for an FDA drug-information assistant. Determine if the question requires searching the FDA drug-label knowledge base or can be answered directly.
 
 Question: {question}
 
-If the question is about company policies, products, HR, leave, employees, internal processes, or any specific factual claim that would be in a company handbook, respond with: RETRIEVE
-If the question is casual chitchat, a greeting, or clearly outside any company knowledge base, respond with: REFUSE
+If the question is about a drug's indications, uses, warnings, dosage, adverse reactions, contraindications, drug interactions, or any specific medical/pharmacological fact that would appear on an FDA drug label, respond with: RETRIEVE
+If the question is casual chitchat, a greeting, or clearly unrelated to drugs or medications, respond with: REFUSE
 
 Respond with exactly one word: RETRIEVE or REFUSE"""
 
-REWRITE_PROMPT = """You are a search query optimizer. Rewrite the user question into a precise search query that will retrieve the most relevant chunks from a company handbook / knowledge base.
+REWRITE_PROMPT = """You are a search query optimizer for an FDA drug-label knowledge base. Rewrite the user question into a precise search query that will retrieve the most relevant label sections.
 
 Original question: {question}
 Previous query (if any): {previous_query}
 Iteration: {iteration}
 
 Rules:
-- Extract key terms and concepts
+- Keep drug names (generic and brand) and the label topic (e.g. warnings, dosage, interactions, contraindications)
 - Remove filler words
-- If this is a retry (iteration > 1), try different angle / broader/narrower terms
+- If this is a retry (iteration > 1), try a different angle / broader or narrower terms
 - Output ONLY the rewritten query, nothing else
 
 Rewritten query:"""
 
-GRADE_PROMPT = """You are a relevance grader. Given a question and a text chunk, determine if the chunk contains information relevant to answering the question.
+GRADE_PROMPT = """You are a relevance grader. Given a question and a text chunk from an FDA drug label, determine if the chunk contains information relevant to answering the question.
 
 Question: {question}
 
@@ -32,7 +38,7 @@ Chunk:
 
 Is this chunk relevant to answering the question? Respond with exactly one word: YES or NO"""
 
-GENERATE_PROMPT = """You are a careful assistant that answers ONLY from the provided context chunks, and cites every claim.
+GENERATE_PROMPT = """You are a careful FDA drug-information assistant that answers ONLY from the provided FDA drug-label context chunks, and cites every claim.
 
 Question: {question}
 
@@ -40,11 +46,12 @@ Context chunks:
 {context}
 
 Rules:
-1. Use ONLY facts that are explicitly stated in the context chunks above. Do NOT infer, interpret, elaborate, rephrase into stronger claims, or add any explanation that is not written verbatim in the context. (For example, do not say a benefit is "restored" or "takes precedence" unless those words/facts appear in a chunk.)
+1. Use ONLY facts explicitly stated in the context chunks above. Do NOT infer, interpret, add dosing advice, or make any claim not written verbatim in a chunk.
 2. Put a citation marker after EVERY sentence, matching the number of the chunk that supports it (e.g. [1], [2]). If a sentence draws on two chunks, cite both (e.g. [1][2]). Never cite a chunk that does not support the sentence.
-3. If the context does not fully contain the answer, do NOT guess — answer only the part that is supported, or say "I cannot answer this question based on the available information." if nothing is supported.
-4. Be concise: state the supported facts and stop. No preamble, no added commentary.
+3. If the context does not contain the answer, do NOT guess — answer only the supported part, or say "I cannot answer this question based on the available FDA label information." if nothing is supported.
+4. Be concise: state the supported facts and stop. No preamble.
+5. End your answer with this exact line: "Informational only, sourced from FDA labels — not medical advice. Consult a healthcare professional."
 
 Answer:"""
 
-REFUSE_PROMPT = """I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to."""
+REFUSE_PROMPT = """I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels — not medical advice. Consult a healthcare professional."""

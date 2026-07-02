@@ -22,10 +22,12 @@ class ChatRequest(BaseModel):
 class Citation(BaseModel):
     """A single citation reference."""
     marker: str          # e.g. "[1]"
-    source: str          # e.g. "handbook.md"
-    section: str         # e.g. "leave-policy"
+    source: str          # e.g. "ibuprofen" (drug name) or "handbook.md"
+    section: str         # e.g. "warnings"
     chunk_id: str        # stable unique chunk identifier
     text: str            # the chunk text snippet
+    source_url: str = "" # e.g. DailyMed label URL (FDA labels)
+    section_title: str = ""  # human-readable section, e.g. "Warnings"
 
 
 class TraceStep(BaseModel):

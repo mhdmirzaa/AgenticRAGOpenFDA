@@ -93,12 +93,15 @@ async def retrieve_node(state: RagState) -> dict:
         retriever.ensure_index()
         merged = await retriever.retrieve(query, top_k=settings.top_k)
         for r in merged:
+            meta = r.metadata or {}
             candidates.append({
                 "chunk_id": r.chunk_id,
                 "text": r.text,
                 "source": r.source,
                 "section": r.section,
                 "score": r.rrf_score,
+                "source_url": meta.get("source_url", ""),
+                "section_title": meta.get("section_title", ""),
             })
         mode = "hybrid(dense+BM25)"
     else:
@@ -107,12 +110,15 @@ async def retrieve_node(state: RagState) -> dict:
         vs = get_vectorstore()
         results = vs.query(query_embedding, n_results=settings.top_k)
         for r in results:
+            meta = r.metadata or {}
             candidates.append({
                 "chunk_id": r.chunk_id,
                 "text": r.text,
                 "source": r.source,
                 "section": r.section,
                 "score": r.score,
+                "source_url": meta.get("source_url", ""),
+                "section_title": meta.get("section_title", ""),
             })
         mode = "dense"
 
@@ -170,11 +176,17 @@ async def rerank_node(state: RagState) -> dict:
             for c in candidates
         ]
         reranked = do_rerank(query, chunks, top_n=settings.rerank_top_n)
-        reranked_dicts = [
-            {"chunk_id": r.chunk_id, "text": r.text, "source": r.source,
-             "section": r.section, "score": r.score}
-            for r in reranked
-        ]
+        # Map back to the original candidate dicts to preserve their metadata
+        # (source_url, section_title) which RetrievedChunk conversion dropped.
+        by_id = {c["chunk_id"]: c for c in candidates}
+        reranked_dicts = []
+        for r in reranked:
+            base = dict(by_id.get(r.chunk_id, {}))
+            base.update({
+                "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
+                "section": r.section, "score": r.score,
+            })
+            reranked_dicts.append(base)
     except Exception:
         # Fallback: just take top_n by score
         reranked_dicts = sorted(
@@ -330,6 +342,8 @@ def _extract_citations(answer: str, graded_chunks: list[dict]) -> list[Citation]
             section=chunk["section"],
             chunk_id=chunk["chunk_id"],
             text=chunk["text"][:200],  # truncate for display
+            source_url=chunk.get("source_url", ""),
+            section_title=chunk.get("section_title", ""),
         ))
 
     return citations
