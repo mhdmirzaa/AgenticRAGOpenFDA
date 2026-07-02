@@ -187,9 +187,27 @@ async def run_agent_streaming(
     `history` (last-N prior messages) is injected into the generation prompt as
     conversation memory for follow-up questions.
     """
+    import time
+
     from app.agent.nodes import _extract_citations
     from app.agent.prompts import GENERATE_PROMPT, REFUSE_PROMPT
     from app.providers.base import get_provider
+    from app.observability import get_observer, estimate_tokens, estimate_cost
+
+    observer = get_observer()
+    lf_trace = observer.start_trace(
+        "chat", input=question, metadata={"hybrid": use_hybrid}
+    )
+
+    def _log_node_spans(state: RagState) -> None:
+        """Mirror the agent's decision trace into Langfuse (one span per node)."""
+        for step in state.get("trace", []):
+            node = getattr(step, "node", "")
+            lf_trace.span(
+                name=node,
+                input=getattr(step, "input", ""),
+                output=getattr(step, "output", ""),
+            )
 
     try:
         state = await _run_loop_to_decision(question, use_hybrid)
@@ -204,6 +222,9 @@ async def run_agent_streaming(
                 output="refused - insufficient relevant information",
             )]
             _persist_trace(state)
+            _log_node_spans(state)
+            lf_trace.update(output=REFUSE_PROMPT, metadata={"refused": True})
+            lf_trace.end()
             for word in REFUSE_PROMPT.split(" "):
                 yield {"type": "token", "text": word + " "}
             yield {"type": "done", "citations": [], "trace_id": trace_id,
@@ -222,9 +243,11 @@ async def run_agent_streaming(
 
         provider = get_provider()
         answer_parts: list[str] = []
+        _gen_start = time.perf_counter()
         async for token in provider.generate_stream(prompt):
             answer_parts.append(token)
             yield {"type": "token", "text": token}
+        _gen_latency_ms = round((time.perf_counter() - _gen_start) * 1000, 1)
 
         answer = "".join(answer_parts)
         citations = _extract_citations(answer, graded)
@@ -238,6 +261,27 @@ async def run_agent_streaming(
             output=f"answer_len={len(answer)}, citations={len(citations)}",
         )]
         _persist_trace(state)
+
+        # Observability: node spans + a generation span with token/cost/latency.
+        _log_node_spans(state)
+        _in_tok = estimate_tokens(prompt)
+        _out_tok = estimate_tokens(answer)
+        _model = get_settings().gen_model
+        lf_trace.span(
+            name="generate",
+            input=prompt,
+            output=answer,
+            metadata={
+                "chunk_ids": [c.get("chunk_id") for c in graded],
+                "tokens_in": _in_tok,
+                "tokens_out": _out_tok,
+                "cost_usd_est": estimate_cost(_model, _in_tok, _out_tok),
+                "latency_ms": _gen_latency_ms,
+                "model": _model,
+            },
+        )
+        lf_trace.update(output=answer, metadata={"citations": len(citations)})
+        lf_trace.end()
 
         yield {
             "type": "done",

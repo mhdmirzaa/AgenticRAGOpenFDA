@@ -17,6 +17,7 @@ dependencies = [
   "psycopg[binary]>=3.2",      # Postgres driver (item 2)
   "apscheduler>=3.10",         # in-process scheduler fallback (item 3)
   "redis>=5.0",                # optional cache backend (item 7)
+  "langfuse>=2.0,<3.0",        # optional observability (item 8)
 ]
 
 [project.optional-dependencies]

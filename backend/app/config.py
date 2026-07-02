@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     redis_url: str = ""
     cache_ttl_seconds: int = 3600
 
+    # Observability (item 8). Empty keys => tracing no-ops (degrades gracefully).
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    langfuse_host: str = ""
+
     # Retrieval params
     top_k: int = 8
     rerank_top_n: int = 4

@@ -1,0 +1,48 @@
+# Langfuse observability overlay (item 8).
+#   docker compose -f docker-compose.yml -f docker-compose.langfuse.yml up
+#
+# Self-hosted Langfuse v2 with its OWN Postgres (isolated from the app DB so the
+# two never couple). After first start:
+#   1. open http://localhost:3001 and create a project
+#   2. copy its public/secret keys into .env (LANGFUSE_PUBLIC_KEY / _SECRET_KEY)
+#   3. LANGFUSE_HOST is wired to http://langfuse:3000 for the backend below
+#   4. restart the backend
+# The backend degrades gracefully: with no keys, tracing is a clean no-op.
+services:
+  langfuse-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: langfuse
+    volumes: ["langfuse_pg_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  langfuse:
+    image: langfuse/langfuse:2
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    ports: ["3001:3000"]
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: change-me-langfuse-secret
+      SALT: change-me-langfuse-salt
+      TELEMETRY_ENABLED: "false"
+    restart: unless-stopped
+
+  backend:
+    environment:
+      LANGFUSE_HOST: http://langfuse:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+    depends_on:
+      - langfuse
+
+volumes:
+  langfuse_pg_data:
