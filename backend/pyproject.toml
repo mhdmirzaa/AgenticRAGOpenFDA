@@ -1,0 +1,23 @@
+[project]
+name = "maistorage-backend"
+version = "0.1.0"
+description = "MaiStorage — Agentic RAG backend (FastAPI + LangGraph + Chroma)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "langgraph>=0.2",
+  "chromadb>=0.5",
+  "httpx>=0.27",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.5",
+  "rank-bm25>=0.2",            # hybrid retrieval (bonus, M7)
+  "sentence-transformers>=3.0", # local reranker (bonus, M7)
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "respx>=0.21"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

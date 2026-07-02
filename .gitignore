@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+venv/
+node_modules/
+chroma_db/
+.env
+.next/
+chroma_db/
+backend/chroma_db/
+.env
+.env.local
+frontend/.next/
+frontend/node_modules/
+docs/metrics.md

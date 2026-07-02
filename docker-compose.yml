@@ -1,0 +1,13 @@
+# Full stack — [M8]. Chroma is embedded (in backend), so just backend + frontend.
+services:
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+    env_file: .env
+    volumes: ["./corpus:/corpus", "./backend/chroma_db:/app/chroma_db"]
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://localhost:8000
+    depends_on: [backend]

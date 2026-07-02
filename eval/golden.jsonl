@@ -1,0 +1,35 @@
+{"id":"q1","question":"How many annual leave days do full-time staff get?","expected_sources":["handbook.md#leave-policy"],"answer_contains":["18"]}
+{"id":"q2","question":"If a public holiday falls on my annual leave day, is that leave day deducted?","expected_sources":["handbook.md#leave-policy","handbook.md#public-holidays"],"answer_contains":["not deducted"]}
+{"id":"q3","question":"What is the capital of France?","expected_sources":[],"answer_contains":[]}
+{"id":"q4","question":"How many days of sick leave are employees entitled to?","expected_sources":["handbook.md#leave-policy"],"answer_contains":["14"]}
+{"id":"q5","question":"What is the maximum number of annual leave days that can be carried forward?","expected_sources":["handbook.md#leave-policy"],"answer_contains":["5"]}
+{"id":"q6","question":"How many public holidays does MaiStorage observe annually?","expected_sources":["handbook.md#public-holidays"],"answer_contains":["11"]}
+{"id":"q7","question":"What encryption standard does MaiVault use for data at rest?","expected_sources":["handbook.md#product-specifications"],"answer_contains":["AES-256"]}
+{"id":"q8","question":"What is the Recovery Point Objective for MaiVault hot tier?","expected_sources":["handbook.md#product-specifications"],"answer_contains":["15 minutes"]}
+{"id":"q9","question":"How many weeks of parental leave do primary caregivers get?","expected_sources":["handbook.md#leave-policy"],"answer_contains":["16"]}
+{"id":"q10","question":"Can I use annual leave during my probation period?","expected_sources":["handbook.md#leave-policy","handbook.md#frequently-asked-questions"],"answer_contains":["no","probation"]}
+{"id":"q11","question":"What is MaiSync's maximum file size per file?","expected_sources":["handbook.md#product-specifications"],"answer_contains":["50 GB"]}
+{"id":"q12","question":"What is the company's password minimum length requirement?","expected_sources":["handbook.md#it-security-policy"],"answer_contains":["12"]}
+{"id":"q13","question":"What are the standard working hours at MaiStorage?","expected_sources":["handbook.md#working-hours-and-arrangements"],"answer_contains":["9:00","6:00"]}
+{"id":"q14","question":"How much is the annual learning budget per employee?","expected_sources":["handbook.md#training-and-development"],"answer_contains":["2,000","2000"]}
+{"id":"q15","question":"What is the durability guarantee for MaiArchive?","expected_sources":["handbook.md#product-specifications"],"answer_contains":["99.999999999","11 nines"]}
+{"id":"q16","question":"If I work on a public holiday, what compensation do I get and can I also keep my leave day if I had leave approved?","expected_sources":["handbook.md#public-holidays","handbook.md#working-hours-and-arrangements"],"answer_contains":["1.5","replacement","not deducted"]}
+{"id":"q17","question":"What is the stock price of MaiStorage?","expected_sources":[],"answer_contains":[]}
+{"id":"q18","question":"How do I submit an expense reimbursement and what is the deadline?","expected_sources":["handbook.md#expense-reimbursement"],"answer_contains":["30 days","Finance"]}
+{"id":"q19","question":"What rating do I need to be eligible for promotion?","expected_sources":["handbook.md#performance-reviews"],"answer_contains":["4"]}
+{"id":"q20","question":"Who is the CEO of MaiStorage?","expected_sources":[],"answer_contains":[]}
+{"id":"q21","question":"What is the SKU model code for MaiVault Pro?","expected_sources":["handbook.md#product-skus-and-ordering-codes"],"answer_contains":["MV-8800"]}
+{"id":"q22","question":"Which product edition has the SKU code MS-4800?","expected_sources":["handbook.md#product-skus-and-ordering-codes"],"answer_contains":["Enterprise"]}
+{"id":"q23","question":"What is the SKU code for MaiArchive Glacier?","expected_sources":["handbook.md#product-skus-and-ordering-codes"],"answer_contains":["MA-3600"]}
+{"id":"q24","question":"What does error code ERR-5023 indicate?","expected_sources":["handbook.md#support-error-codes-and-troubleshooting"],"answer_contains":["quota"]}
+{"id":"q25","question":"Which error code means the API rate limit was throttled?","expected_sources":["handbook.md#support-error-codes-and-troubleshooting"],"answer_contains":["ERR-6011"]}
+{"id":"q26","question":"What does error ERR-7788 mean?","expected_sources":["handbook.md#support-error-codes-and-troubleshooting"],"answer_contains":["maximum"]}
+{"id":"q27","question":"Which TCP port does the secure MaiStorage API endpoint use?","expected_sources":["handbook.md#api-and-network-configuration"],"answer_contains":["8443"]}
+{"id":"q28","question":"What is the current version of the MaiStorage REST API?","expected_sources":["handbook.md#api-and-network-configuration"],"answer_contains":["v2.4"]}
+{"id":"q29","question":"How many annual leave days do full-time employees at the Kuala Lumpur office get?","expected_sources":["handbook.md#regional-office-variations"],"answer_contains":["16"]}
+{"id":"q30","question":"How many public holidays does the Bengaluru India office observe?","expected_sources":["handbook.md#regional-office-variations"],"answer_contains":["12"]}
+{"id":"q31","question":"What is the monthly uptime SLA for the MaiVault Hot tier?","expected_sources":["handbook.md#service-level-agreements"],"answer_contains":["99.99"]}
+{"id":"q32","question":"What is the first-response target for a P1 support incident?","expected_sources":["handbook.md#service-level-agreements"],"answer_contains":["15 min"]}
+{"id":"q33","question":"For MaiSync Enterprise, what is its SKU code and its uptime SLA?","expected_sources":["handbook.md#product-skus-and-ordering-codes","handbook.md#service-level-agreements"],"answer_contains":["MS-4800","99.95"]}
+{"id":"q34","question":"What is the SKU code for the MaiPrint product?","expected_sources":[],"answer_contains":[]}
+{"id":"q35","question":"What is the WiFi password at the Tokyo office?","expected_sources":[],"answer_contains":[]}

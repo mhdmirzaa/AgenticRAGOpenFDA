@@ -1,0 +1,1120 @@
+{
+  "aggregate": {
+    "mode": "optimized",
+    "total_questions": 35,
+    "successful": 35,
+    "avg_hit_at_1": 0.9142857142857143,
+    "avg_hit_at_3": 0.9714285714285714,
+    "avg_hit_at_5": 0.9714285714285714,
+    "avg_mrr": 0.9428571428571428,
+    "avg_citation_accuracy": 0.9714285714285714,
+    "avg_refusal_correctness": 0.9714285714285714,
+    "avg_answer_match": 0.9714285714285714,
+    "avg_faithfulness": 1.0,
+    "faithfulness_n": 29
+  },
+  "details": [
+    {
+      "id": "q1",
+      "question": "How many annual leave days do full-time staff get?",
+      "answer": "Full-time employees at the Singapore HQ are entitled to 18 days of paid annual leave per calendar year [2]. Full-time employees at the Kuala Lumpur office receive 16 days of annual leave [1]. Full-time employees at the Bengaluru office receive 21 days of annual leave [1]. Full-time employees at the Jakarta office receive 12 days of annual leave [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#regional-office-variations",
+        "handbook.md#leave-policy"
+      ],
+      "citations": [
+        {
+          "marker": "[2]",
+          "source": "handbook.md",
+          "section": "leave-policy",
+          "chunk_id": "handbook.md#leave-policy:9c19d464",
+          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+        },
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "regional-office-variations",
+          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
+          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#leave-policy"
+      ],
+      "answer_contains_terms": [
+        "18"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 0.5,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q2",
+      "question": "If a public holiday falls on my annual leave day, is that leave day deducted?",
+      "answer": "If a public holiday falls on a day that an employee has already been approved for annual leave, that annual leave day is not deducted from their entitlement. The public holiday takes precedence and the annual leave day is restored [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#public-holidays"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "public-holidays",
+          "chunk_id": "handbook.md#public-holidays:e86b0678",
+          "text": "## Public Holidays\n\nMaiStorage observes the following **11 public holidays** annually, in line with the national calendar:\n\n1. New Year's Day (January 1)\n2. Chinese New Year Day 1 (varies)\n3. Chinese "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#leave-policy",
+        "handbook.md#public-holidays"
+      ],
+      "answer_contains_terms": [
+        "not deducted"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q3",
+      "question": "What is the capital of France?",
+      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q4",
+      "question": "How many days of sick leave are employees entitled to?",
+      "answer": "Employees are entitled to 14 days of paid sick leave per year at the Singapore HQ and Kuala Lumpur office. The Bengaluru office employees are entitled to 12 days of sick leave. The Jakarta office sick leave entitlement is not specified.  [1][2]",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#regional-office-variations",
+        "handbook.md#leave-policy"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "regional-office-variations",
+          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
+          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+        },
+        {
+          "marker": "[2]",
+          "source": "handbook.md",
+          "section": "leave-policy",
+          "chunk_id": "handbook.md#leave-policy:9c19d464",
+          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#leave-policy"
+      ],
+      "answer_contains_terms": [
+        "14"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 0.5,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q5",
+      "question": "What is the maximum number of annual leave days that can be carried forward?",
+      "answer": "Unused annual leave may be carried forward up to a maximum of 5 days into the next calendar year [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#leave-policy"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "leave-policy",
+          "chunk_id": "handbook.md#leave-policy:9c19d464",
+          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#leave-policy"
+      ],
+      "answer_contains_terms": [
+        "5"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q6",
+      "question": "How many public holidays does MaiStorage observe annually?",
+      "answer": "MaiStorage observes 11 public holidays annually at the Singapore HQ. Other regional offices observe different numbers of public holidays: Kuala Lumpur office observes 15, Bengaluru office observes 12, and Jakarta office observes 16 public holidays per year [1][2].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#public-holidays",
+        "handbook.md#regional-office-variations"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "public-holidays",
+          "chunk_id": "handbook.md#public-holidays:e86b0678",
+          "text": "## Public Holidays\n\nMaiStorage observes the following **11 public holidays** annually, in line with the national calendar:\n\n1. New Year's Day (January 1)\n2. Chinese New Year Day 1 (varies)\n3. Chinese "
+        },
+        {
+          "marker": "[2]",
+          "source": "handbook.md",
+          "section": "regional-office-variations",
+          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
+          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#public-holidays"
+      ],
+      "answer_contains_terms": [
+        "11"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q7",
+      "question": "What encryption standard does MaiVault use for data at rest?",
+      "answer": "MaiVault uses AES-256 encryption for data at rest [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-specifications",
+          "chunk_id": "handbook.md#product-specifications:1b1a490d",
+          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "answer_contains_terms": [
+        "AES-256"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q8",
+      "question": "What is the Recovery Point Objective for MaiVault hot tier?",
+      "answer": "The Recovery Point Objective (RPO) for MaiVault hot tier is 15 minutes [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-specifications",
+          "chunk_id": "handbook.md#product-specifications:1b1a490d",
+          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "answer_contains_terms": [
+        "15 minutes"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q9",
+      "question": "How many weeks of parental leave do primary caregivers get?",
+      "answer": "Primary caregivers are entitled to 16 weeks of paid parental leave [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#leave-policy"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "leave-policy",
+          "chunk_id": "handbook.md#leave-policy:9c19d464",
+          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#leave-policy"
+      ],
+      "answer_contains_terms": [
+        "16"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q10",
+      "question": "Can I use annual leave during my probation period?",
+      "answer": "No, you cannot use annual leave during the probation period. Annual leave can only be used after completing the 3-month probation period, although leave accrues from your start date and will be available once probation ends [1][2][3].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#frequently-asked-questions",
+        "handbook.md#leave-policy",
+        "handbook.md#regional-office-variations"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "frequently-asked-questions",
+          "chunk_id": "handbook.md#frequently-asked-questions:9930bbe9",
+          "text": "## Frequently Asked Questions\n\n### Q: Can I use my annual leave during the probation period?\n**A:** No. Annual leave can only be used after completing the 3-month probation period. However, leave accr"
+        },
+        {
+          "marker": "[2]",
+          "source": "handbook.md",
+          "section": "leave-policy",
+          "chunk_id": "handbook.md#leave-policy:9c19d464",
+          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+        },
+        {
+          "marker": "[3]",
+          "source": "handbook.md",
+          "section": "regional-office-variations",
+          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
+          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#leave-policy",
+        "handbook.md#frequently-asked-questions"
+      ],
+      "answer_contains_terms": [
+        "no",
+        "probation"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q11",
+      "question": "What is MaiSync's maximum file size per file?",
+      "answer": "MaiSync's maximum file size per file is 50 GB per file [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-specifications",
+          "chunk_id": "handbook.md#product-specifications:1b1a490d",
+          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "answer_contains_terms": [
+        "50 GB"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q12",
+      "question": "What is the company's password minimum length requirement?",
+      "answer": "The company's password minimum length requirement is 12 characters with uppercase, lowercase, numbers, and symbols [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#it-security-policy"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "it-security-policy",
+          "chunk_id": "handbook.md#it-security-policy:920b6bd3",
+          "text": "## IT Security Policy\n\n### Password Requirements\n\nAll employees must adhere to the following password policy:\n- Minimum 12 characters with uppercase, lowercase, numbers, and symbols\n- Password rotatio"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#it-security-policy"
+      ],
+      "answer_contains_terms": [
+        "12"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q13",
+      "question": "What are the standard working hours at MaiStorage?",
+      "answer": "Standard working hours are Monday to Friday, 9:00 AM to 6:00 PM, with a 1-hour lunch break. This totals 40 hours per week [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#working-hours-and-arrangements"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "working-hours-and-arrangements",
+          "chunk_id": "handbook.md#working-hours-and-arrangements:aaa6a800",
+          "text": "## Working Hours and Arrangements\n\n### Standard Hours\n\nStandard working hours are Monday to Friday, 9:00 AM to 6:00 PM, with a 1-hour lunch break. This totals 40 hours per week.\n\n### Flexible Work Arr"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#working-hours-and-arrangements"
+      ],
+      "answer_contains_terms": [
+        "9:00",
+        "6:00"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q14",
+      "question": "How much is the annual learning budget per employee?",
+      "answer": "Each employee receives an annual learning budget of $2,000 SGD for professional development [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#training-and-development"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "training-and-development",
+          "chunk_id": "handbook.md#training-and-development:40532ff4",
+          "text": "## Training and Development\n\n### Learning Budget\n\nEach employee receives an annual learning budget of **$2,000 SGD** for professional development. This can be used for:\n- Online courses and certificat"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#training-and-development"
+      ],
+      "answer_contains_terms": [
+        "2,000",
+        "2000"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q15",
+      "question": "What is the durability guarantee for MaiArchive?",
+      "answer": "The durability guarantee for MaiArchive is 99.999999999% (11 nines) [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-specifications",
+          "chunk_id": "handbook.md#product-specifications:1b1a490d",
+          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-specifications"
+      ],
+      "answer_contains_terms": [
+        "99.999999999",
+        "11 nines"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q16",
+      "question": "If I work on a public holiday, what compensation do I get and can I also keep my leave day if I had leave approved?",
+      "answer": "If you work on a public holiday, you will receive either a replacement day off or payment at 1.5x your daily rate, at the manager's discretion [1]. If a public holiday falls on a day you have already been approved for annual leave, that annual leave day is not deducted from your entitlement; the public holiday takes precedence and the annual leave day is restored [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#public-holidays",
+        "handbook.md#working-hours-and-arrangements"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "public-holidays",
+          "chunk_id": "handbook.md#public-holidays:e86b0678",
+          "text": "## Public Holidays\n\nMaiStorage observes the following **11 public holidays** annually, in line with the national calendar:\n\n1. New Year's Day (January 1)\n2. Chinese New Year Day 1 (varies)\n3. Chinese "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#public-holidays",
+        "handbook.md#working-hours-and-arrangements"
+      ],
+      "answer_contains_terms": [
+        "1.5",
+        "replacement",
+        "not deducted"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q17",
+      "question": "What is the stock price of MaiStorage?",
+      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q18",
+      "question": "How do I submit an expense reimbursement and what is the deadline?",
+      "answer": "To submit an expense reimbursement, receipts must be submitted through the Finance portal. The deadline for submission is within 30 days of the expense. Late submissions may not be reimbursed [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#expense-reimbursement"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "expense-reimbursement",
+          "chunk_id": "handbook.md#expense-reimbursement:00d3ea7a",
+          "text": "## Expense Reimbursement\n\n### Travel Expenses\n\nBusiness travel must be pre-approved by department heads. Reimbursable expenses include:\n- Economy class flights (business class for flights over 8 hours"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#expense-reimbursement"
+      ],
+      "answer_contains_terms": [
+        "30 days",
+        "Finance"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q19",
+      "question": "What rating do I need to be eligible for promotion?",
+      "answer": "Employees rated 4 or above are eligible for promotion consideration [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#performance-reviews"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "performance-reviews",
+          "chunk_id": "handbook.md#performance-reviews:a793234f",
+          "text": "## Performance Reviews\n\nPerformance reviews are conducted twice per year:\n- **Mid-year review**: July (developmental focus)\n- **Year-end review**: December (formal rating + compensation discussion)\n\nR"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#performance-reviews"
+      ],
+      "answer_contains_terms": [
+        "4"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q20",
+      "question": "Who is the CEO of MaiStorage?",
+      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q21",
+      "question": "What is the SKU model code for MaiVault Pro?",
+      "answer": "The SKU model code for MaiVault Pro is MV-8800 [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-skus-and-ordering-codes"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-skus-and-ordering-codes",
+          "chunk_id": "handbook.md#product-skus-and-ordering-codes:48d6a29c",
+          "text": "## Product SKUs and Ordering Codes\n\nWhen placing an order through the procurement system, use the exact SKU (stock-keeping unit) model code for each product edition. Codes are case-sensitive.\n\n| Produ"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-skus-and-ordering-codes"
+      ],
+      "answer_contains_terms": [
+        "MV-8800"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q22",
+      "question": "Which product edition has the SKU code MS-4800?",
+      "answer": "The product edition with the SKU code MS-4800 is MaiSync Enterprise [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-skus-and-ordering-codes"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-skus-and-ordering-codes",
+          "chunk_id": "handbook.md#product-skus-and-ordering-codes:48d6a29c",
+          "text": "## Product SKUs and Ordering Codes\n\nWhen placing an order through the procurement system, use the exact SKU (stock-keeping unit) model code for each product edition. Codes are case-sensitive.\n\n| Produ"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-skus-and-ordering-codes"
+      ],
+      "answer_contains_terms": [
+        "Enterprise"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q23",
+      "question": "What is the SKU code for MaiArchive Glacier?",
+      "answer": "The SKU code for MaiArchive Glacier is MA-3600 [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#product-skus-and-ordering-codes"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "product-skus-and-ordering-codes",
+          "chunk_id": "handbook.md#product-skus-and-ordering-codes:48d6a29c",
+          "text": "## Product SKUs and Ordering Codes\n\nWhen placing an order through the procurement system, use the exact SKU (stock-keeping unit) model code for each product edition. Codes are case-sensitive.\n\n| Produ"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#product-skus-and-ordering-codes"
+      ],
+      "answer_contains_terms": [
+        "MA-3600"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q24",
+      "question": "What does error code ERR-5023 indicate?",
+      "answer": "Error code ERR-5023 indicates that the storage quota has been exceeded. The account has reached its provisioned capacity; upgrade the plan or free space [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#support-error-codes-and-troubleshooting"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "support-error-codes-and-troubleshooting",
+          "chunk_id": "handbook.md#support-error-codes-and-troubleshooting:d7c242ca",
+          "text": "## Support Error Codes and Troubleshooting\n\nThe MaiStorage API and desktop clients return standardized error codes. Common codes:\n\n- **ERR-4092** \u2014 Authentication token expired. Re-authenticate to obt"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#support-error-codes-and-troubleshooting"
+      ],
+      "answer_contains_terms": [
+        "quota"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q25",
+      "question": "Which error code means the API rate limit was throttled?",
+      "answer": "The error code that means the API rate limit was throttled is **ERR-6011** [1]. This corresponds to exceeding the allowed requests per minute, resulting in a throttled response [1][2].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#support-error-codes-and-troubleshooting",
+        "handbook.md#api-and-network-configuration"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "support-error-codes-and-troubleshooting",
+          "chunk_id": "handbook.md#support-error-codes-and-troubleshooting:d7c242ca",
+          "text": "## Support Error Codes and Troubleshooting\n\nThe MaiStorage API and desktop clients return standardized error codes. Common codes:\n\n- **ERR-4092** \u2014 Authentication token expired. Re-authenticate to obt"
+        },
+        {
+          "marker": "[2]",
+          "source": "handbook.md",
+          "section": "api-and-network-configuration",
+          "chunk_id": "handbook.md#api-and-network-configuration:c7d4774e",
+          "text": "## API and Network Configuration\n\nThe MaiStorage REST API is served from `https://api.maistorage.com/v2`.\n\n- **Current API version**: v2.4 (released 2025). Version v1.9 is deprecated and reaches end-o"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#support-error-codes-and-troubleshooting"
+      ],
+      "answer_contains_terms": [
+        "ERR-6011"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q26",
+      "question": "What does error ERR-7788 mean?",
+      "answer": "Error ERR-7788 means \"File exceeds the maximum permitted size for the product tier\" [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#support-error-codes-and-troubleshooting"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "support-error-codes-and-troubleshooting",
+          "chunk_id": "handbook.md#support-error-codes-and-troubleshooting:d7c242ca",
+          "text": "## Support Error Codes and Troubleshooting\n\nThe MaiStorage API and desktop clients return standardized error codes. Common codes:\n\n- **ERR-4092** \u2014 Authentication token expired. Re-authenticate to obt"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#support-error-codes-and-troubleshooting"
+      ],
+      "answer_contains_terms": [
+        "maximum"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q27",
+      "question": "Which TCP port does the secure MaiStorage API endpoint use?",
+      "answer": "The secure MaiStorage API endpoint uses TCP port 8443. [1]",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#api-and-network-configuration"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "api-and-network-configuration",
+          "chunk_id": "handbook.md#api-and-network-configuration:c7d4774e",
+          "text": "## API and Network Configuration\n\nThe MaiStorage REST API is served from `https://api.maistorage.com/v2`.\n\n- **Current API version**: v2.4 (released 2025). Version v1.9 is deprecated and reaches end-o"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#api-and-network-configuration"
+      ],
+      "answer_contains_terms": [
+        "8443"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q28",
+      "question": "What is the current version of the MaiStorage REST API?",
+      "answer": "The current version of the MaiStorage REST API is v2.4 (released 2025) [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#api-and-network-configuration"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "api-and-network-configuration",
+          "chunk_id": "handbook.md#api-and-network-configuration:c7d4774e",
+          "text": "## API and Network Configuration\n\nThe MaiStorage REST API is served from `https://api.maistorage.com/v2`.\n\n- **Current API version**: v2.4 (released 2025). Version v1.9 is deprecated and reaches end-o"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#api-and-network-configuration"
+      ],
+      "answer_contains_terms": [
+        "v2.4"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q29",
+      "question": "How many annual leave days do full-time employees at the Kuala Lumpur office get?",
+      "answer": "Full-time employees at the Kuala Lumpur office receive 16 days of annual leave per year [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#regional-office-variations",
+        "handbook.md#leave-policy"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "regional-office-variations",
+          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
+          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#regional-office-variations"
+      ],
+      "answer_contains_terms": [
+        "16"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q30",
+      "question": "How many public holidays does the Bengaluru India office observe?",
+      "answer": "The Bengaluru (India) office observes 12 public holidays per year [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#regional-office-variations"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "regional-office-variations",
+          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
+          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#regional-office-variations"
+      ],
+      "answer_contains_terms": [
+        "12"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q31",
+      "question": "What is the monthly uptime SLA for the MaiVault Hot tier?",
+      "answer": "The monthly uptime SLA for the MaiVault Hot tier is 99.99% [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#service-level-agreements"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "service-level-agreements",
+          "chunk_id": "handbook.md#service-level-agreements:396ca62c",
+          "text": "## Service Level Agreements\n\nMaiStorage publishes the following uptime and support commitments:\n\n| Service / tier | Monthly uptime SLA |\n|---|---|\n| MaiVault Hot tier | 99.99% |\n| MaiVault Warm tier |"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#service-level-agreements"
+      ],
+      "answer_contains_terms": [
+        "99.99"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q32",
+      "question": "What is the first-response target for a P1 support incident?",
+      "answer": "The first-response target for a P1 support incident is within 15 minutes, 24/7 [1].",
+      "refused": false,
+      "retrieved_sources": [
+        "handbook.md#service-level-agreements"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "handbook.md",
+          "section": "service-level-agreements",
+          "chunk_id": "handbook.md#service-level-agreements:396ca62c",
+          "text": "## Service Level Agreements\n\nMaiStorage publishes the following uptime and support commitments:\n\n| Service / tier | Monthly uptime SLA |\n|---|---|\n| MaiVault Hot tier | 99.99% |\n| MaiVault Warm tier |"
+        }
+      ],
+      "expected_sources": [
+        "handbook.md#service-level-agreements"
+      ],
+      "answer_contains_terms": [
+        "15 min"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q33",
+      "question": "For MaiSync Enterprise, what is its SKU code and its uptime SLA?",
+      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "handbook.md#product-skus-and-ordering-codes",
+        "handbook.md#service-level-agreements"
+      ],
+      "answer_contains_terms": [
+        "MS-4800",
+        "99.95"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 0.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q34",
+      "question": "What is the SKU code for the MaiPrint product?",
+      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q35",
+      "question": "What is the WiFi password at the Tokyo office?",
+      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    }
+  ]
+}
