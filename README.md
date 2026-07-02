@@ -1,144 +1,203 @@
-# MaiStorage — Agentic RAG System
+# FDA Drug-Info RAG — Production Agentic RAG
 
-An **Agentic Retrieval-Augmented Generation** system that goes beyond traditional RAG by adding an intelligent agent loop with self-grading, re-retrieval, citations, and graceful refusal.
+An **Agentic Retrieval-Augmented Generation** system that answers questions
+about FDA-approved drugs — indications, warnings, dosage, adverse reactions,
+contraindications, interactions — grounded **only** in official FDA drug-label
+text, with citations back to the exact label section, or a graceful refusal when
+the labels don't cover it.
+
+> ⚕️ **Informational only — not medical advice.** Answers are drawn solely from
+> FDA drug-label text and may be incomplete. Always consult a qualified
+> healthcare professional. This disclaimer is enforced in the UI and appended to
+> every generated answer.
+
+Built as a production stack adapted from the *production-agentic-rag-course*
+(which fetches arXiv papers) to a more serious domain: a drug-information
+assistant over the **openFDA API**.
 
 ## Architecture
 
 ```
-User Question → Route → Rewrite → Retrieve → Rerank → Grade → Decide → Generate/Refuse
-                                      ↑                           |
-                                      └── retry (max 3 iterations)┘
+                         ┌──────────────── Apache Airflow (or APScheduler) ───────────────┐
+                         │  every 15 min:  fetch → extract → dedupe → index → record       │
+                         └───────────────┬────────────────────────────────────────────────┘
+                                         ▼
+   openFDA /drug/label.json ──▶ parse prose sections ──▶ chunk (1/section) ──▶ embed ──▶ Chroma
+                                         │                                                  ▲
+                                         └── dedupe by label_id ──▶ Postgres (DrugLabel)    │
+                                                                                            │
+User question ─▶ Route ─▶ Rewrite ─▶ Retrieve ─▶ Rerank ─▶ Grade ─▶ Decide ─▶ Generate/Refuse
+                                        ▲   (dense + BM25 hybrid, Redis-cached)  │
+                                        └────────── retry (max 3 iterations) ────┘
+                                                                                  │
+        every step traced to Langfuse (nodes, chunk ids, prompt/response, tokens, cost, latency)
+        answers persisted to Postgres (sessions + messages + last-N memory)
 ```
 
-### Key Components
-- **Backend**: FastAPI + LangGraph + ChromaDB
-- **Frontend**: Next.js + TypeScript (primary streaming chat UI). An optional Streamlit app (`demo_app.py`) is provided as a no-Node fallback.
-- **LLM**: Provider-agnostic (Gemini/OpenAI/Groq/Ollama via config switch)
-- **Retrieval**: Hybrid (Dense + BM25) with cross-encoder reranking
-- **Evaluation**: Golden-set harness with Hit@k, MRR, citation accuracy
+### Stack
+- **Backend**: FastAPI + LangGraph agent + embedded ChromaDB
+- **Frontend**: Next.js + TypeScript (streaming, citations, trace panel, history)
+- **Data**: openFDA API (`/drug/label.json`, keyless)
+- **LLM**: OpenAI `gpt-4.1-mini`; embeddings `text-embedding-3-small`
+  (provider-agnostic layer also supports Gemini/Groq/Ollama/local)
+- **Retrieval**: Chroma dense + BM25 hybrid (RRF) + optional cross-encoder rerank
+- **Persistence**: PostgreSQL (drug labels + chat sessions/messages/memory)
+- **Orchestration**: Apache Airflow DAG (in-process APScheduler fallback)
+- **Caching**: Redis (query-embedding + retrieval cache), in-memory fallback
+- **Observability**: self-hosted Langfuse (per-request tracing)
 
-## Quick Start
+## Quick start (Docker — full stack)
 
-### 1. Install Dependencies
+```bash
+cp .env.example .env          # set OPENAI_API_KEY
+docker compose up             # backend :8000, frontend :3000, Postgres, Airflow :8080
+
+# add Redis and/or Langfuse (optional enhancements):
+docker compose -f docker-compose.yml -f docker-compose.redis.yml \
+               -f docker-compose.langfuse.yml up
+```
+
+Then open the UI at http://localhost:3000, click **Fetch FDA Labels** to build
+the index, and ask a question.
+
+## Quick start (local, no Docker)
+
 ```bash
 pip install -r requirements.txt
+cp .env.example .env          # set OPENAI_API_KEY
+
+# backend
+cd backend && uvicorn app.main:app --reload --port 8000
+
+# ingest FDA drug labels (accumulates, deduped by label_id)
+curl -X POST http://localhost:8000/ingest/fda
+
+# frontend
+cd frontend && npm install && npm run dev     # http://localhost:3000
 ```
 
-### 2. Configure Environment
-```bash
-cp .env.example .env
-# Edit .env and set your GEMINI_API_KEY (free tier: https://aistudio.google.com/)
-```
+## How the ingestion DAG works
 
-### 3. Run the Backend
-```bash
-cd backend
-uvicorn app.main:app --reload --port 8000
-```
+`airflow/dags/fda_ingestion_dag.py` runs on a configurable schedule
+(`FDA_DAG_SCHEDULE`, default `*/15 * * * *`):
 
-### 4. Ingest the Corpus
-```bash
-curl -X POST http://localhost:8000/ingest
-```
+`fetch_labels → extract_sections → dedupe → index → record`
 
-### 5. Run the Frontend
+- **fetch_labels** — pull the seed drugs from openFDA (throttled, keyless)
+- **extract_sections** — parse prose sections into per-section records
+- **dedupe** — drop any `label_id` already in Postgres
+- **index** — chunk (one per section) → embed → upsert into Chroma
+- **record** — write `DrugLabel` rows (UNIQUE `label_id` enforces DB-level dedupe)
 
-**Primary UI — Next.js + TypeScript** (the frontend specified by the PRD):
-```bash
-cd frontend
-npm install
-npm run dev            # http://localhost:3000
-```
-Streaming tokens, inline clickable citations, the agent trace panel, and a
-refusal state all render here.
+Idempotent: deterministic chunk ids + Chroma upsert + `label_id` dedupe mean
+re-runs never double-index. If Airflow can't run in an environment, the same job
+runs in-process via APScheduler (`ENABLE_SCHEDULER=1`, `SCHEDULE_MINUTES`).
 
-### Optional: Streamlit fallback (`demo_app.py`)
+## Caching & observability
 
-`demo_app.py` is an **optional, single-process demo fallback** — **not** the
-primary UI. It imports the same backend agent code in-process (so it always
-stays in sync) and needs **no Node.js / npm**. Use it only when:
-- Node isn't available or `npm install` fails on the demo machine, or
-- the browser can't reach `localhost:3000` (some managed environments block it).
+- **Redis cache** — query embeddings (keyed by normalized question) and
+  retrieval results (keyed by query+mode) are cached with a TTL. A repeated
+  question skips the embedding round-trip and vector search entirely
+  (~1129 ms → ~0.1 ms on the retrieval step; see `docs/metrics.md`). Empty
+  `REDIS_URL` → in-memory LRU. Stats on `/health`.
+- **Langfuse** — every chat request produces a trace: one span per agent node,
+  the retrieved chunk ids, the generation prompt + response, and estimated
+  tokens / cost / latency. Fully optional: with no keys (or an unreachable
+  server) tracing is a transparent no-op and never breaks a request.
 
-```bash
-pip install streamlit          # if not already installed
-streamlit run demo_app.py      # from the maistorage/ root
-```
-
-> The assessment names Streamlit/Gradio only as *examples* of a demo prototype;
-> this project's committed UI is Next.js. The Streamlit app exists purely as a
-> resilient backup for live demos.
-
-## API Endpoints
+## API endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | System health check |
-| `/ingest` | POST | Ingest corpus documents |
-| `/chat` | POST | Agentic RAG with SSE streaming |
-| `/trace/{id}` | GET | Agent decision trace |
-
-## Project Structure
-
-```
-maistorage/
-├── backend/
-│   ├── app/
-│   │   ├── agent/          # LangGraph agent (state, nodes, prompts, graph)
-│   │   ├── api/            # FastAPI endpoints (health, ingest, chat, trace)
-│   │   ├── ingestion/      # Document loading, chunking, indexing
-│   │   ├── providers/      # LLM providers (Gemini, Ollama, OpenAI, Groq)
-│   │   ├── retrieval/      # Vectorstore, hybrid search, reranker
-│   │   ├── config.py       # Settings and environment config
-│   │   ├── models.py       # Pydantic schemas
-│   │   └── main.py         # FastAPI app entry point
-│   └── tests/              # Unit and integration tests
-├── frontend/               # Next.js chat UI
-├── corpus/                 # Knowledge base documents
-├── eval/                   # Golden-set evaluation harness
-│   ├── golden.jsonl        # 20 test questions (single-hop, multi-hop, refusal)
-│   ├── metrics.py          # Hit@k, MRR, citation accuracy, refusal correctness
-│   └── run.py              # Evaluation runner
-├── demo_app.py             # OPTIONAL Streamlit fallback UI (not the primary frontend)
-├── docs/
-│   ├── PRD.md              # Product Requirements Document
-│   └── DEMO.md             # 15-20 min demo script
-└── .env.example            # Environment template
-```
-
-## Running Tests
-
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
-## Running Evaluation
-
-```bash
-cd eval
-python run.py --mode baseline
-python run.py --mode optimized
-```
+|---|---|---|
+| `/health` | GET | health, Chroma count, cache backend + stats |
+| `/ingest/fda` | POST | fetch openFDA labels, index (deduped by label_id) |
+| `/ingest` | POST | (legacy) rebuild index from `corpus/` |
+| `/chat` | POST | agentic RAG over SSE (optional `session_id` for memory) |
+| `/trace/{id}` | GET | agent decision trace |
+| `/sessions` | POST | create a chat session |
+| `/sessions/{id}/messages` | GET | conversation history |
 
 ## Traditional RAG vs Agentic RAG
 
-| Aspect | Traditional RAG | Agentic RAG |
-|--------|----------------|-------------|
-| Retrieval | Single pass | Multi-pass (up to 3) |
-| Query handling | Direct embedding | Rewrite + optimize |
-| Quality control | None | Grade each chunk |
-| Out-of-scope | Hallucinate | Graceful refusal |
-| Citations | Basic or none | Validated citations |
-| Transparency | Black box | Full decision trace |
+| Aspect | Traditional RAG | Agentic RAG (this system) |
+|---|---|---|
+| Retrieval | Single pass | Multi-pass (up to 3), self-correcting |
+| Query handling | Direct embedding | Route + rewrite/optimize |
+| Quality control | None | Grade every chunk before answering |
+| Out-of-scope | Hallucinate | Graceful, explicit refusal |
+| Citations | Basic or none | Validated against graded chunk ids |
+| Transparency | Black box | Full decision trace + Langfuse |
 
-## Milestones
+## Evaluation
 
-- **M1**: Infrastructure + LLM provider abstraction
-- **M2**: Ingestion pipeline (load, chunk, embed, index)
-- **M3**: Baseline RAG + SSE streaming
-- **M4**: Citations system with validation
-- **M5**: Golden-set evaluation harness (20 questions)
-- **M6**: Agentic loop with LangGraph
-- **M7**: Hybrid retrieval + cross-encoder reranking
-- **M8**: Frontend UI + trace panel + demo polish
+Real numbers (gpt-4.1-mini) in `docs/metrics.md`. Golden set `eval/golden.jsonl`
+(answerable, multi-hop across two drugs, unanswerable/refusal):
+
+```bash
+python -m eval.run --mode baseline
+python -m eval.run --mode optimized
+```
+
+Headline: Hit@3 0.941, MRR 0.873, faithfulness 0.929 → **1.000** and citation
+accuracy 0.941 → **0.971** under the optimized (hybrid) path. Retrieval Hit@k is
+saturated on this curated corpus — documented honestly, not faked.
+
+## Tests
+
+```bash
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 96 passed
+```
+
+## Adapted from the production course / what was skipped
+
+**Adapted:** the production architecture (external API ingestion → Postgres →
+scheduled DAG → vector store → agent → UI, plus caching and observability),
+retargeted from arXiv papers to openFDA drug labels.
+
+**Deliberately out of scope** (course had these; not needed here): OpenSearch
+(kept Chroma+BM25), Docling/PDF pipeline (label text is already prose), arXiv,
+Telegram bot, Jina embeddings.
+
+**Redis and Langfuse** are enhancements — the app runs and demos without them,
+and each degrades gracefully if absent.
+
+## Production upgrade path
+
+- Chroma → a managed vector DB (pgvector / Qdrant / Weaviate) for horizontal scale
+- Airflow on Celery/Kubernetes executor; expand the seed list / add openFDA paging
+- Real cross-encoder rerank (BAAI/bge-reranker-base) once the corpus de-saturates
+- Redis cluster + answer-level cache; per-tenant rate limiting
+- Langfuse dashboards + alerting on faithfulness / refusal regressions
+- Auth, PII scrubbing, and an audit trail on the medical disclaimer acceptance
+
+## Optional: Streamlit fallback (`demo_app.py`)
+
+A single-process, no-Node demo fallback that imports the same backend agent
+in-process. Use only if Node isn't available or the browser can't reach
+`localhost:3000`. The committed primary UI is Next.js.
+
+```bash
+pip install streamlit && streamlit run demo_app.py
+```
+
+## Project structure
+
+```
+maistorage/
+├── airflow/dags/            # openFDA ingestion DAG (production orchestrator)
+├── backend/
+│   ├── app/
+│   │   ├── agent/           # LangGraph agent (state, nodes, prompts, graph)
+│   │   ├── api/             # health, ingest, chat, trace, sessions
+│   │   ├── ingestion/       # openFDA fetch/parse + chunk + index
+│   │   ├── providers/       # LLM providers (OpenAI, Gemini, Groq, Ollama, local)
+│   │   ├── retrieval/       # vectorstore, hybrid search, reranker, cache (Redis)
+│   │   ├── db.py            # SQLAlchemy models + persistence helpers
+│   │   ├── scheduler.py     # APScheduler ingestion fallback
+│   │   └── observability.py # Langfuse tracing (graceful no-op)
+│   └── tests/               # 96 tests
+├── frontend/                # Next.js chat UI (streaming, citations, trace, history)
+├── eval/                    # golden-set harness (Hit@k, MRR, faithfulness, refusal)
+├── docker-compose*.yml      # full stack + redis/langfuse overlays
+└── docs/                    # PRD, metrics, demo script
+```

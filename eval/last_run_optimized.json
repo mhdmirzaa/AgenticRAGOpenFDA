@@ -1,49 +1,45 @@
 {
   "aggregate": {
     "mode": "optimized",
-    "total_questions": 35,
-    "successful": 35,
-    "avg_hit_at_1": 0.9142857142857143,
-    "avg_hit_at_3": 0.9714285714285714,
-    "avg_hit_at_5": 0.9714285714285714,
-    "avg_mrr": 0.9428571428571428,
-    "avg_citation_accuracy": 0.9714285714285714,
-    "avg_refusal_correctness": 0.9714285714285714,
-    "avg_answer_match": 0.9714285714285714,
+    "total_questions": 17,
+    "successful": 17,
+    "avg_hit_at_1": 0.8235294117647058,
+    "avg_hit_at_3": 0.9411764705882353,
+    "avg_hit_at_5": 0.9411764705882353,
+    "avg_mrr": 0.8725490196078431,
+    "avg_citation_accuracy": 0.9705882352941176,
+    "avg_refusal_correctness": 0.9411764705882353,
+    "avg_answer_match": 1.0,
     "avg_faithfulness": 1.0,
-    "faithfulness_n": 29
+    "faithfulness_n": 14
   },
   "details": [
     {
       "id": "q1",
-      "question": "How many annual leave days do full-time staff get?",
-      "answer": "Full-time employees at the Singapore HQ are entitled to 18 days of paid annual leave per calendar year [2]. Full-time employees at the Kuala Lumpur office receive 16 days of annual leave [1]. Full-time employees at the Bengaluru office receive 21 days of annual leave [1]. Full-time employees at the Jakarta office receive 12 days of annual leave [1].",
+      "question": "What is ibuprofen used for?",
+      "answer": "Ibuprofen temporarily relieves minor aches and pains due to headache, toothache, backache, menstrual cramps, the common cold, muscular aches, and minor pain of arthritis. It also temporarily reduces fever [2]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#regional-office-variations",
-        "handbook.md#leave-policy"
+        "ASPIRIN#indications-and-usage",
+        "IBUPROFEN#indications-and-usage",
+        "ACETAMINOPHEN#indications-and-usage"
       ],
       "citations": [
         {
           "marker": "[2]",
-          "source": "handbook.md",
-          "section": "leave-policy",
-          "chunk_id": "handbook.md#leave-policy:9c19d464",
-          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
-        },
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "regional-office-variations",
-          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
-          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+          "source": "IBUPROFEN",
+          "section": "indications-and-usage",
+          "chunk_id": "IBUPROFEN#indications-and-usage:f6e8f245",
+          "text": "## Indications And Usage\n\nUses temporarily relieves minor aches and pains due to: headache toothache backache menstrual cramps the common cold muscular aches minor pain of arthritis temporarily reduce",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
+          "section_title": "Indications And Usage"
         }
       ],
       "expected_sources": [
-        "handbook.md#leave-policy"
+        "IBUPROFEN#indications-and-usage"
       ],
       "answer_contains_terms": [
-        "18"
+        "pain"
       ],
       "hit_at_1": 0.0,
       "hit_at_3": 1.0,
@@ -56,28 +52,30 @@
     },
     {
       "id": "q2",
-      "question": "If a public holiday falls on my annual leave day, is that leave day deducted?",
-      "answer": "If a public holiday falls on a day that an employee has already been approved for annual leave, that annual leave day is not deducted from their entitlement. The public holiday takes precedence and the annual leave day is restored [1].",
+      "question": "What are the warnings for ibuprofen?",
+      "answer": "Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin, with symptoms including rash, facial swelling, asthma (wheezing), hives, skin reddening, shock, and blisters. If an allergic reaction occurs, stop use and seek medical help right away [1]. This product contains an NSAID, which may cause severe stomach bleeding. The chance is higher if you take more or for a longer time than directed, take a blood thinning (anticoagulant) or steroid drug, have had stomach ulcers or bleeding problems, have 3 or more alcoholic drinks every day while using this product, are age 60 or older, or take other drugs containing prescription or nonprescription NSAIDs [aspirin, ibuprofen, naproxen, or others] [1]. NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke, which can be fatal. The risk is higher if you use more than directed or for longer than directed [1]. Do not use if you have ever had an allergic reaction to any other pain reliever/fever reducer or right before or after heart surgery [1]. Ask a doctor before use if the stomach bleeding warning applies to you, you have a history of stomach problems such as heartburn, you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke, you are taking a diuretic, or you have problems or serious side effects from taking pain relievers or fever reducers [1]. Ask a doctor or pharmacist before use if you are under a doctor's care for any serious condition, taking aspirin for heart attack or stroke because ibuprofen may decrease this benefit of aspirin, or taking any other drug [1]. Take with food or milk if stomach upset occurs [1]. Stop use and ask a doctor if you experience signs of stomach bleeding such as feeling faint, having bloody or black stools, vomiting blood, or having stomach pain that does not get better [1]. Stop use and ask a doctor if you have symptoms of heart problems or stroke including chest pain, slurred speech, trouble breathing, leg swelling, or weakness in one part or side of the body [1]. Stop use and ask a doctor if pain gets worse or lasts more than 10 days, fever gets worse or lasts more than 3 days, redness or swelling is present in the painful area, or any new symptoms appear [1]. If pregnant or breast-feeding, ask a health professional before use. It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery [1]. Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#public-holidays"
+        "IBUPROFEN#warnings",
+        "ASPIRIN#warnings",
+        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning",
+        "MONTELUKAST SODIUM#boxed-warning"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "public-holidays",
-          "chunk_id": "handbook.md#public-holidays:e86b0678",
-          "text": "## Public Holidays\n\nMaiStorage observes the following **11 public holidays** annually, in line with the national calendar:\n\n1. New Year's Day (January 1)\n2. Chinese New Year Day 1 (varies)\n3. Chinese "
+          "source": "IBUPROFEN",
+          "section": "warnings",
+          "chunk_id": "IBUPROFEN#warnings:e36dad14",
+          "text": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shoc",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
+          "section_title": "Warnings"
         }
       ],
       "expected_sources": [
-        "handbook.md#leave-policy",
-        "handbook.md#public-holidays"
+        "IBUPROFEN#warnings"
       ],
-      "answer_contains_terms": [
-        "not deducted"
-      ],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -89,13 +87,65 @@
     },
     {
       "id": "q3",
-      "question": "What is the capital of France?",
-      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
-      "refused": true,
-      "retrieved_sources": [],
-      "citations": [],
-      "expected_sources": [],
-      "answer_contains_terms": [],
+      "question": "What is acetaminophen used to treat?",
+      "answer": "Acetaminophen temporarily relieves minor aches and pains due to headache, the common cold, backache, minor pain of arthritis, toothache, muscular aches, premenstrual and menstrual cramps. It also temporarily reduces fever [3]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "ASPIRIN#indications-and-usage",
+        "IBUPROFEN#indications-and-usage",
+        "ACETAMINOPHEN#indications-and-usage"
+      ],
+      "citations": [
+        {
+          "marker": "[3]",
+          "source": "ACETAMINOPHEN",
+          "section": "indications-and-usage",
+          "chunk_id": "ACETAMINOPHEN#indications-and-usage:715efa71",
+          "text": "## Indications And Usage\n\nUses temporarily relieves minor aches and pains due to: headache the common cold backache minor pain of arthritis toothache muscular aches premenstrual and menstrual cramps t",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0005aafa-08f8-4990-a54d-cc097195708f",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "ACETAMINOPHEN#indications-and-usage"
+      ],
+      "answer_contains_terms": [
+        "pain"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 0.3333333333333333,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q4",
+      "question": "What is aspirin indicated for?",
+      "answer": "Aspirin is indicated for the temporary relief of minor aches and pains or as recommended by your doctor. Because of its delayed action, this product will not provide fast relief of headaches or other symptoms needing immediate relief [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "ASPIRIN#indications-and-usage"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "ASPIRIN",
+          "section": "indications-and-usage",
+          "chunk_id": "ASPIRIN#indications-and-usage:55b73d87",
+          "text": "## Indications And Usage\n\nUses for the temporary relief of minor aches and pains or as recommended by your doctor. Because of its delayed action, this product will not provide fast relief of headaches",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0058175f-3474-40c3-a046-6cfaec86d84b",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "ASPIRIN#indications-and-usage"
+      ],
+      "answer_contains_terms": [
+        "pain"
+      ],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -103,70 +153,35 @@
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
-      "faithfulness": null
-    },
-    {
-      "id": "q4",
-      "question": "How many days of sick leave are employees entitled to?",
-      "answer": "Employees are entitled to 14 days of paid sick leave per year at the Singapore HQ and Kuala Lumpur office. The Bengaluru office employees are entitled to 12 days of sick leave. The Jakarta office sick leave entitlement is not specified.  [1][2]",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#regional-office-variations",
-        "handbook.md#leave-policy"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "regional-office-variations",
-          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
-          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
-        },
-        {
-          "marker": "[2]",
-          "source": "handbook.md",
-          "section": "leave-policy",
-          "chunk_id": "handbook.md#leave-policy:9c19d464",
-          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#leave-policy"
-      ],
-      "answer_contains_terms": [
-        "14"
-      ],
-      "hit_at_1": 0.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 0.5,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
       "faithfulness": 1.0
     },
     {
       "id": "q5",
-      "question": "What is the maximum number of annual leave days that can be carried forward?",
-      "answer": "Unused annual leave may be carried forward up to a maximum of 5 days into the next calendar year [1].",
+      "question": "What is the boxed warning for warfarin?",
+      "answer": "Warfarin sodium can cause major or fatal bleeding. Perform regular monitoring of INR in all treated patients. Drugs, dietary changes, and other factors affect INR levels achieved with warfarin sodium therapy. Instruct patients about prevention measures to minimize risk of bleeding and to report signs and symptoms of bleeding [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#leave-policy"
+        "WARFARIN SODIUM#boxed-warning",
+        "WARFARIN SODIUM#adverse-reactions",
+        "MONTELUKAST SODIUM#boxed-warning",
+        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "leave-policy",
-          "chunk_id": "handbook.md#leave-policy:9c19d464",
-          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+          "source": "WARFARIN SODIUM",
+          "section": "boxed-warning",
+          "chunk_id": "WARFARIN SODIUM#boxed-warning:1b550079",
+          "text": "## Boxed Warning\n\nWARNING: BLEEDING RISK Warfarin sodium can cause major or fatal bleeding [see Warnings and Precautions ( 5.1 )] . Perform regular monitoring of INR in all treated patients [see Dosag",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Boxed Warning"
         }
       ],
       "expected_sources": [
-        "handbook.md#leave-policy"
+        "WARFARIN SODIUM#boxed-warning"
       ],
       "answer_contains_terms": [
-        "5"
+        "bleeding"
       ],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
@@ -179,35 +194,27 @@
     },
     {
       "id": "q6",
-      "question": "How many public holidays does MaiStorage observe annually?",
-      "answer": "MaiStorage observes 11 public holidays annually at the Singapore HQ. Other regional offices observe different numbers of public holidays: Kuala Lumpur office observes 15, Bengaluru office observes 12, and Jakarta office observes 16 public holidays per year [1][2].",
+      "question": "What are the contraindications of warfarin?",
+      "answer": "Warfarin sodium is contraindicated in pregnancy except in pregnant women with mechanical heart valves [1]. It is contraindicated in patients with hemorrhagic tendencies or blood dyscrasias [1]. It is contraindicated in recent or contemplated surgery of the central nervous system or eye, or traumatic surgery resulting in large open surfaces [1]. It is contraindicated in bleeding tendencies associated with active ulceration or overt bleeding of the gastrointestinal, genitourinary, or respiratory tract, central nervous system hemorrhage, cerebral aneurysms, dissecting aorta, pericarditis and pericardial effusions, and bacterial endocarditis [1]. It is contraindicated in threatened abortion, eclampsia, and preeclampsia [1]. It is contraindicated in unsupervised patients with conditions associated with potential high level of non-compliance [1]. It is contraindicated in spinal puncture and other diagnostic or therapeutic procedures with potential for uncontrollable bleeding [1]. It is contraindicated in hypersensitivity to warfarin or any other components of the product [1]. It is contraindicated in major regional or lumbar block anesthesia [1]. It is contraindicated in malignant hypertension [1]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#public-holidays",
-        "handbook.md#regional-office-variations"
+        "WARFARIN SODIUM#contraindications"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "public-holidays",
-          "chunk_id": "handbook.md#public-holidays:e86b0678",
-          "text": "## Public Holidays\n\nMaiStorage observes the following **11 public holidays** annually, in line with the national calendar:\n\n1. New Year's Day (January 1)\n2. Chinese New Year Day 1 (varies)\n3. Chinese "
-        },
-        {
-          "marker": "[2]",
-          "source": "handbook.md",
-          "section": "regional-office-variations",
-          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
-          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+          "source": "WARFARIN SODIUM",
+          "section": "contraindications",
+          "chunk_id": "WARFARIN SODIUM#contraindications:feacb209",
+          "text": "4 CONTRAINDICATIONS Warfarin sodium is contraindicated in: Pregnancy Warfarin sodium is contraindicated in women who are pregnant except in pregnant women with mechanical heart valves, who are at high",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Contraindications"
         }
       ],
       "expected_sources": [
-        "handbook.md#public-holidays"
+        "WARFARIN SODIUM#contraindications"
       ],
-      "answer_contains_terms": [
-        "11"
-      ],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -219,26 +226,30 @@
     },
     {
       "id": "q7",
-      "question": "What encryption standard does MaiVault use for data at rest?",
-      "answer": "MaiVault uses AES-256 encryption for data at rest [1].",
+      "question": "What is the boxed warning for sertraline?",
+      "answer": "Antidepressants increased the risk compared to placebo of suicidal thinking and behavior (suicidality) in children, adolescents, and young adults in short-term studies of major depressive disorder (MDD) and other psychiatric disorders. Anyone considering the use of Sertraline hydrochloride or any other antidepressant in a child, adolescent, or young adult must balance this risk with the clinical need. Short-term studies did not show an increase in the risk of suicidality with antidepressants compared to placebo in adults beyond age 24; there was a reduction in risk with antidepressants compared to placebo in adults aged 65 and older. Patients of all ages who are started on antidepressant therapy should be monitored appropriately and observed closely for clinical worsening, suicidality, or unusual changes in behavior. Families and caregivers should be advised of the need for close observation and communication with the prescriber. Sertraline hydrochloride tablets are not approved for the treatment of major depressive disorder in pediatric patients [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#product-specifications"
+        "SERTRALINE HYDROCHLORIDE#boxed-warning",
+        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning",
+        "MONTELUKAST SODIUM#boxed-warning"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-specifications",
-          "chunk_id": "handbook.md#product-specifications:1b1a490d",
-          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+          "source": "SERTRALINE HYDROCHLORIDE",
+          "section": "boxed-warning",
+          "chunk_id": "SERTRALINE HYDROCHLORIDE#boxed-warning:81656f11",
+          "text": "## Boxed Warning\n\nBOXED WARNING Suicidality and Antidepressant Drugs Antidepressants increased the risk compared to placebo of suicidal thinking and behavior (suicidality) in children, adolescents, an",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00179766-980b-44b0-99d3-1fee2bb27e37",
+          "section_title": "Boxed Warning"
         }
       ],
       "expected_sources": [
-        "handbook.md#product-specifications"
+        "SERTRALINE HYDROCHLORIDE#boxed-warning"
       ],
       "answer_contains_terms": [
-        "AES-256"
+        "suicidal"
       ],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
@@ -251,26 +262,30 @@
     },
     {
       "id": "q8",
-      "question": "What is the Recovery Point Objective for MaiVault hot tier?",
-      "answer": "The Recovery Point Objective (RPO) for MaiVault hot tier is 15 minutes [1].",
+      "question": "What is the boxed warning for naproxen?",
+      "answer": "WARNING: RISK OF SERIOUS CARDIOVASCULAR AND GASTROINTESTINAL EVENTS. Nonsteroidal anti-inflammatory drugs (NSAIDs) cause an increased risk of serious cardiovascular thrombotic events, including myocardial infarction and stroke, which can be fatal. This risk may occur early in treatment and may increase with duration of use. Naproxen tablets and naproxen sodium tablets are contraindicated in the setting of coronary artery bypass graft (CABG) surgery. NSAIDs cause an increased risk of serious gastrointestinal (GI) adverse events including bleeding, ulceration, and perforation of the stomach or intestines, which can be fatal. These events can occur at any time during use and without warning symptoms. Elderly patients and patients with a prior history of peptic ulcer disease and/or GI bleeding are at greater risk for serious GI events [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#product-specifications"
+        "NAPROXEN#boxed-warning",
+        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning",
+        "MONTELUKAST SODIUM#boxed-warning"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-specifications",
-          "chunk_id": "handbook.md#product-specifications:1b1a490d",
-          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+          "source": "NAPROXEN",
+          "section": "boxed-warning",
+          "chunk_id": "NAPROXEN#boxed-warning:d421c076",
+          "text": "## Boxed Warning\n\nWARNING: RISK OF SERIOUS CARDIOVASCULAR AND GASTROINTESTINAL EVENTS Cardiovascular Thrombotic Events \u2022 Nonsteroidal anti-inflammatory drugs (NSAIDs) cause an increased risk of seriou",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=000155a8-709c-44e5-a75f-cd890f3a7caf",
+          "section_title": "Boxed Warning"
         }
       ],
       "expected_sources": [
-        "handbook.md#product-specifications"
+        "NAPROXEN#boxed-warning"
       ],
       "answer_contains_terms": [
-        "15 minutes"
+        "cardiovascular"
       ],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
@@ -283,27 +298,27 @@
     },
     {
       "id": "q9",
-      "question": "How many weeks of parental leave do primary caregivers get?",
-      "answer": "Primary caregivers are entitled to 16 weeks of paid parental leave [1].",
+      "question": "What are the contraindications for clopidogrel?",
+      "answer": "Clopidogrel is contraindicated in patients with active pathological bleeding, such as peptic ulcer or intracranial hemorrhage. Clopidogrel is also contraindicated in patients with hypersensitivity (e.g., anaphylaxis) to clopidogrel or any component of the product [1].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#leave-policy"
+        "CLOPIDOGREL BISULFATE#contraindications"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "leave-policy",
-          "chunk_id": "handbook.md#leave-policy:9c19d464",
-          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
+          "source": "CLOPIDOGREL BISULFATE",
+          "section": "contraindications",
+          "chunk_id": "CLOPIDOGREL BISULFATE#contraindications:8a4c95c7",
+          "text": "## Contraindications\n\n4 CONTRAINDICATIONS Active pathological bleeding, such as peptic ulcer or intracranial hemorrhage (4.1) Hypersensitivity to clopidogrel or any component of the product (4.2) 4.1 ",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0078fb3d-3595-4ae1-a059-1d5e81c879cf",
+          "section_title": "Contraindications"
         }
       ],
       "expected_sources": [
-        "handbook.md#leave-policy"
+        "CLOPIDOGREL BISULFATE#contraindications"
       ],
-      "answer_contains_terms": [
-        "16"
-      ],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -315,45 +330,27 @@
     },
     {
       "id": "q10",
-      "question": "Can I use annual leave during my probation period?",
-      "answer": "No, you cannot use annual leave during the probation period. Annual leave can only be used after completing the 3-month probation period, although leave accrues from your start date and will be available once probation ends [1][2][3].",
+      "question": "What is atorvastatin used for?",
+      "answer": "Atorvastatin calcium tablets are indicated to reduce the risk of myocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk factors for coronary heart disease (CHD) but without clinically evident CHD. They are also indicated to reduce the risk of MI and stroke in adults with type 2 diabetes mellitus with multiple risk factors for CHD but without clinically evident CHD. Additionally, they reduce the risk of non-fatal MI, fatal and non-fatal stroke, revascularization procedures, hospitalization for congestive heart failure, and angina in adults with clinically evident CHD. Atorvastatin is used as an adjunct to diet to reduce low-density lipoprotein cholesterol (LDL-C) in adults with primary hyperlipidemia, adults and pediatric patients aged 10 years and older with heterozygous familial hypercholesterolemia (HeFH), and as an adjunct to other LDL-C-lowering therapies or alone if such treatments are unavailable to reduce LDL-C in adults and pediatric patients aged 10 years and older with homozygous familial hypercholesterolemia (HoFH). It is also used as an adjunct to diet for the treatment of adults with primary dysbetalipoproteinemia and hypertriglyceridemia [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#frequently-asked-questions",
-        "handbook.md#leave-policy",
-        "handbook.md#regional-office-variations"
+        "ATORVASTATIN CALCIUM#indications-and-usage"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "frequently-asked-questions",
-          "chunk_id": "handbook.md#frequently-asked-questions:9930bbe9",
-          "text": "## Frequently Asked Questions\n\n### Q: Can I use my annual leave during the probation period?\n**A:** No. Annual leave can only be used after completing the 3-month probation period. However, leave accr"
-        },
-        {
-          "marker": "[2]",
-          "source": "handbook.md",
-          "section": "leave-policy",
-          "chunk_id": "handbook.md#leave-policy:9c19d464",
-          "text": "## Leave Policy\n\n### Annual Leave\n\nFull-time employees are entitled to **18 days** of paid annual leave per calendar year. Part-time employees receive annual leave on a pro-rata basis calculated from "
-        },
-        {
-          "marker": "[3]",
-          "source": "handbook.md",
-          "section": "regional-office-variations",
-          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
-          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
+          "source": "ATORVASTATIN CALCIUM",
+          "section": "indications-and-usage",
+          "chunk_id": "ATORVASTATIN CALCIUM#indications-and-usage:24d88061",
+          "text": "1 INDICATIONS AND USAGE Atorvastatin calcium tablets are indicated: To reduce the risk of: Myocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk fac",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00afce9b-48c9-487a-a738-e359c005c707",
+          "section_title": "Indications And Usage"
         }
       ],
       "expected_sources": [
-        "handbook.md#leave-policy",
-        "handbook.md#frequently-asked-questions"
+        "ATORVASTATIN CALCIUM#indications-and-usage"
       ],
-      "answer_contains_terms": [
-        "no",
-        "probation"
-      ],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -365,27 +362,30 @@
     },
     {
       "id": "q11",
-      "question": "What is MaiSync's maximum file size per file?",
-      "answer": "MaiSync's maximum file size per file is 50 GB per file [1].",
+      "question": "What drug interactions are listed for ciprofloxacin?",
+      "answer": "Specific drug interaction studies have not been conducted with ophthalmic ciprofloxacin. However, systemic administration of some quinolones has been shown to elevate plasma concentrations of theophylline, interfere with the metabolism of caffeine, enhance the effects of the oral anticoagulant warfarin and its derivatives, and has been associated with transient elevations in serum creatinine in patients receiving cyclosporine concomitantly [1]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#product-specifications"
+        "CIPROFLOXACIN#drug-interactions",
+        "AMOXICILLIN AND CLAVULANATE POTASSIUM#drug-interactions",
+        "WARFARIN SODIUM#drug-interactions",
+        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#drug-interactions"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-specifications",
-          "chunk_id": "handbook.md#product-specifications:1b1a490d",
-          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
+          "source": "CIPROFLOXACIN",
+          "section": "drug-interactions",
+          "chunk_id": "CIPROFLOXACIN#drug-interactions:aa94c433",
+          "text": "## Drug Interactions\n\nDrug Interactions: Specific drug interaction studies have not been conducted with ophthalmic ciprofloxacin. However, the systemic administration of some quinolones has been shown",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=05b2836d-cd3d-4d7f-970c-66ec2d788667",
+          "section_title": "Drug Interactions"
         }
       ],
       "expected_sources": [
-        "handbook.md#product-specifications"
+        "CIPROFLOXACIN#drug-interactions"
       ],
-      "answer_contains_terms": [
-        "50 GB"
-      ],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -397,27 +397,27 @@
     },
     {
       "id": "q12",
-      "question": "What is the company's password minimum length requirement?",
-      "answer": "The company's password minimum length requirement is 12 characters with uppercase, lowercase, numbers, and symbols [1].",
+      "question": "What is gabapentin indicated to treat?",
+      "answer": "Gabapentin Capsules, USP are indicated for the management of postherpetic neuralgia in adults. Gabapentin Capsules, USP are also indicated as adjunctive therapy in the treatment of partial onset seizures, with and without secondary generalization, in adults and pediatric patients 3 years and older with epilepsy [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#it-security-policy"
+        "GABAPENTIN#indications-and-usage"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "it-security-policy",
-          "chunk_id": "handbook.md#it-security-policy:920b6bd3",
-          "text": "## IT Security Policy\n\n### Password Requirements\n\nAll employees must adhere to the following password policy:\n- Minimum 12 characters with uppercase, lowercase, numbers, and symbols\n- Password rotatio"
+          "source": "GABAPENTIN",
+          "section": "indications-and-usage",
+          "chunk_id": "GABAPENTIN#indications-and-usage:ed9cb9bc",
+          "text": "## Indications And Usage\n\n1 INDICATIONS AND USAGE Gabapentin Capsules, USP are indicated for: Management of postherpetic neuralgia in adults Adjunctive therapy in the treatment of partial onset seizur",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=01b810b7-f4c8-4412-bbc5-b9220d8770d8",
+          "section_title": "Indications And Usage"
         }
       ],
       "expected_sources": [
-        "handbook.md#it-security-policy"
+        "GABAPENTIN#indications-and-usage"
       ],
-      "answer_contains_terms": [
-        "12"
-      ],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -429,27 +429,39 @@
     },
     {
       "id": "q13",
-      "question": "What are the standard working hours at MaiStorage?",
-      "answer": "Standard working hours are Monday to Friday, 9:00 AM to 6:00 PM, with a 1-hour lunch break. This totals 40 hours per week [1].",
+      "question": "Is there a bleeding risk if I take ibuprofen together with warfarin?",
+      "answer": "Concomitant use of ibuprofen, a non-steroidal anti-inflammatory agent, with warfarin increases the risk of bleeding. Ibuprofen is listed among drugs that can increase the risk of bleeding when used with warfarin, and patients should be closely monitored for bleeding risk [1]. Additionally, ibuprofen itself may cause severe stomach bleeding, and the chance is higher if taken with a blood thinning (anticoagulant) drug such as warfarin [2]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#working-hours-and-arrangements"
+        "WARFARIN SODIUM#drug-interactions",
+        "IBUPROFEN#warnings"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "working-hours-and-arrangements",
-          "chunk_id": "handbook.md#working-hours-and-arrangements:aaa6a800",
-          "text": "## Working Hours and Arrangements\n\n### Standard Hours\n\nStandard working hours are Monday to Friday, 9:00 AM to 6:00 PM, with a 1-hour lunch break. This totals 40 hours per week.\n\n### Flexible Work Arr"
+          "source": "WARFARIN SODIUM",
+          "section": "drug-interactions",
+          "chunk_id": "WARFARIN SODIUM#drug-interactions:f9e57619",
+          "text": "7 DRUG INTERACTIONS Concomitant use of drugs that increase bleeding risk, antibiotics, antifungals, botanical (herbal) products, and inhibitors and inducers of CYP2C9, 1A2, or 3A4. ( 7 ) Consult label",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Drug Interactions"
+        },
+        {
+          "marker": "[2]",
+          "source": "IBUPROFEN",
+          "section": "warnings",
+          "chunk_id": "IBUPROFEN#warnings:e36dad14",
+          "text": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shoc",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
+          "section_title": "Warnings"
         }
       ],
       "expected_sources": [
-        "handbook.md#working-hours-and-arrangements"
+        "IBUPROFEN#warnings",
+        "WARFARIN SODIUM#drug-interactions"
       ],
       "answer_contains_terms": [
-        "9:00",
-        "6:00"
+        "bleeding"
       ],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
@@ -462,61 +474,48 @@
     },
     {
       "id": "q14",
-      "question": "How much is the annual learning budget per employee?",
-      "answer": "Each employee receives an annual learning budget of $2,000 SGD for professional development [1].",
+      "question": "What boxed warnings do warfarin and clopidogrel carry?",
+      "answer": "The metabolism of clopidogrel to its active metabolite can be impaired by genetic variations in CYP2C19 [see Boxed Warning] [1]. Clopidogrel increases the risk of bleeding [1]. I cannot answer about warfarin based on the available FDA label information.\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "handbook.md#training-and-development"
+        "CLOPIDOGREL BISULFATE#warnings-and-cautions"
       ],
       "citations": [
         {
           "marker": "[1]",
-          "source": "handbook.md",
-          "section": "training-and-development",
-          "chunk_id": "handbook.md#training-and-development:40532ff4",
-          "text": "## Training and Development\n\n### Learning Budget\n\nEach employee receives an annual learning budget of **$2,000 SGD** for professional development. This can be used for:\n- Online courses and certificat"
+          "source": "CLOPIDOGREL BISULFATE",
+          "section": "warnings-and-cautions",
+          "chunk_id": "CLOPIDOGREL BISULFATE#warnings-and-cautions:b02d0fc3",
+          "text": "5 WARNINGS AND PRECAUTIONS CYP2C19 inhibitors: Avoid concomitant use of omeprazole or esomeprazole. (5.1) Bleeding: Clopidogrel increases risk of bleeding. (5.2) Discontinuation: Premature discontinua",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0078fb3d-3595-4ae1-a059-1d5e81c879cf",
+          "section_title": "Warnings And Cautions"
         }
       ],
       "expected_sources": [
-        "handbook.md#training-and-development"
+        "WARFARIN SODIUM#boxed-warning",
+        "CLOPIDOGREL BISULFATE#boxed-warning"
       ],
       "answer_contains_terms": [
-        "2,000",
-        "2000"
+        "bleeding"
       ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.5,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
       "faithfulness": 1.0
     },
     {
       "id": "q15",
-      "question": "What is the durability guarantee for MaiArchive?",
-      "answer": "The durability guarantee for MaiArchive is 99.999999999% (11 nines) [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#product-specifications"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-specifications",
-          "chunk_id": "handbook.md#product-specifications:1b1a490d",
-          "text": "## Product Specifications\n\n### MaiVault (Enterprise Backup)\n\nMaiVault provides automated, encrypted backup for enterprise data with the following specifications:\n\n- **Storage tiers**: Hot (SSD), Warm "
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#product-specifications"
-      ],
-      "answer_contains_terms": [
-        "99.999999999",
-        "11 nines"
-      ],
+      "question": "What is the capital of France?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -524,35 +523,17 @@
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
-      "faithfulness": 1.0
+      "faithfulness": null
     },
     {
       "id": "q16",
-      "question": "If I work on a public holiday, what compensation do I get and can I also keep my leave day if I had leave approved?",
-      "answer": "If you work on a public holiday, you will receive either a replacement day off or payment at 1.5x your daily rate, at the manager's discretion [1]. If a public holiday falls on a day you have already been approved for annual leave, that annual leave day is not deducted from your entitlement; the public holiday takes precedence and the annual leave day is restored [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#public-holidays",
-        "handbook.md#working-hours-and-arrangements"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "public-holidays",
-          "chunk_id": "handbook.md#public-holidays:e86b0678",
-          "text": "## Public Holidays\n\nMaiStorage observes the following **11 public holidays** annually, in line with the national calendar:\n\n1. New Year's Day (January 1)\n2. Chinese New Year Day 1 (varies)\n3. Chinese "
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#public-holidays",
-        "handbook.md#working-hours-and-arrangements"
-      ],
-      "answer_contains_terms": [
-        "1.5",
-        "replacement",
-        "not deducted"
-      ],
+      "question": "What is the retail price of ibuprofen at the pharmacy?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
       "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
@@ -560,14 +541,17 @@
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
-      "faithfulness": 1.0
+      "faithfulness": null
     },
     {
       "id": "q17",
-      "question": "What is the stock price of MaiStorage?",
-      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
-      "refused": true,
-      "retrieved_sources": [],
+      "question": "What is the recommended dosage of insulin glargine?",
+      "answer": "I cannot answer this question based on the available FDA label information. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#dosage-and-administration",
+        "GABAPENTIN#dosage-and-administration"
+      ],
       "citations": [],
       "expected_sources": [],
       "answer_contains_terms": [],
@@ -576,543 +560,7 @@
       "hit_at_5": 1.0,
       "mrr": 1.0,
       "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": null
-    },
-    {
-      "id": "q18",
-      "question": "How do I submit an expense reimbursement and what is the deadline?",
-      "answer": "To submit an expense reimbursement, receipts must be submitted through the Finance portal. The deadline for submission is within 30 days of the expense. Late submissions may not be reimbursed [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#expense-reimbursement"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "expense-reimbursement",
-          "chunk_id": "handbook.md#expense-reimbursement:00d3ea7a",
-          "text": "## Expense Reimbursement\n\n### Travel Expenses\n\nBusiness travel must be pre-approved by department heads. Reimbursable expenses include:\n- Economy class flights (business class for flights over 8 hours"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#expense-reimbursement"
-      ],
-      "answer_contains_terms": [
-        "30 days",
-        "Finance"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q19",
-      "question": "What rating do I need to be eligible for promotion?",
-      "answer": "Employees rated 4 or above are eligible for promotion consideration [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#performance-reviews"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "performance-reviews",
-          "chunk_id": "handbook.md#performance-reviews:a793234f",
-          "text": "## Performance Reviews\n\nPerformance reviews are conducted twice per year:\n- **Mid-year review**: July (developmental focus)\n- **Year-end review**: December (formal rating + compensation discussion)\n\nR"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#performance-reviews"
-      ],
-      "answer_contains_terms": [
-        "4"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q20",
-      "question": "Who is the CEO of MaiStorage?",
-      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
-      "refused": true,
-      "retrieved_sources": [],
-      "citations": [],
-      "expected_sources": [],
-      "answer_contains_terms": [],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": null
-    },
-    {
-      "id": "q21",
-      "question": "What is the SKU model code for MaiVault Pro?",
-      "answer": "The SKU model code for MaiVault Pro is MV-8800 [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#product-skus-and-ordering-codes"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-skus-and-ordering-codes",
-          "chunk_id": "handbook.md#product-skus-and-ordering-codes:48d6a29c",
-          "text": "## Product SKUs and Ordering Codes\n\nWhen placing an order through the procurement system, use the exact SKU (stock-keeping unit) model code for each product edition. Codes are case-sensitive.\n\n| Produ"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#product-skus-and-ordering-codes"
-      ],
-      "answer_contains_terms": [
-        "MV-8800"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q22",
-      "question": "Which product edition has the SKU code MS-4800?",
-      "answer": "The product edition with the SKU code MS-4800 is MaiSync Enterprise [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#product-skus-and-ordering-codes"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-skus-and-ordering-codes",
-          "chunk_id": "handbook.md#product-skus-and-ordering-codes:48d6a29c",
-          "text": "## Product SKUs and Ordering Codes\n\nWhen placing an order through the procurement system, use the exact SKU (stock-keeping unit) model code for each product edition. Codes are case-sensitive.\n\n| Produ"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#product-skus-and-ordering-codes"
-      ],
-      "answer_contains_terms": [
-        "Enterprise"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q23",
-      "question": "What is the SKU code for MaiArchive Glacier?",
-      "answer": "The SKU code for MaiArchive Glacier is MA-3600 [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#product-skus-and-ordering-codes"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "product-skus-and-ordering-codes",
-          "chunk_id": "handbook.md#product-skus-and-ordering-codes:48d6a29c",
-          "text": "## Product SKUs and Ordering Codes\n\nWhen placing an order through the procurement system, use the exact SKU (stock-keeping unit) model code for each product edition. Codes are case-sensitive.\n\n| Produ"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#product-skus-and-ordering-codes"
-      ],
-      "answer_contains_terms": [
-        "MA-3600"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q24",
-      "question": "What does error code ERR-5023 indicate?",
-      "answer": "Error code ERR-5023 indicates that the storage quota has been exceeded. The account has reached its provisioned capacity; upgrade the plan or free space [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#support-error-codes-and-troubleshooting"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "support-error-codes-and-troubleshooting",
-          "chunk_id": "handbook.md#support-error-codes-and-troubleshooting:d7c242ca",
-          "text": "## Support Error Codes and Troubleshooting\n\nThe MaiStorage API and desktop clients return standardized error codes. Common codes:\n\n- **ERR-4092** \u2014 Authentication token expired. Re-authenticate to obt"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#support-error-codes-and-troubleshooting"
-      ],
-      "answer_contains_terms": [
-        "quota"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q25",
-      "question": "Which error code means the API rate limit was throttled?",
-      "answer": "The error code that means the API rate limit was throttled is **ERR-6011** [1]. This corresponds to exceeding the allowed requests per minute, resulting in a throttled response [1][2].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#support-error-codes-and-troubleshooting",
-        "handbook.md#api-and-network-configuration"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "support-error-codes-and-troubleshooting",
-          "chunk_id": "handbook.md#support-error-codes-and-troubleshooting:d7c242ca",
-          "text": "## Support Error Codes and Troubleshooting\n\nThe MaiStorage API and desktop clients return standardized error codes. Common codes:\n\n- **ERR-4092** \u2014 Authentication token expired. Re-authenticate to obt"
-        },
-        {
-          "marker": "[2]",
-          "source": "handbook.md",
-          "section": "api-and-network-configuration",
-          "chunk_id": "handbook.md#api-and-network-configuration:c7d4774e",
-          "text": "## API and Network Configuration\n\nThe MaiStorage REST API is served from `https://api.maistorage.com/v2`.\n\n- **Current API version**: v2.4 (released 2025). Version v1.9 is deprecated and reaches end-o"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#support-error-codes-and-troubleshooting"
-      ],
-      "answer_contains_terms": [
-        "ERR-6011"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q26",
-      "question": "What does error ERR-7788 mean?",
-      "answer": "Error ERR-7788 means \"File exceeds the maximum permitted size for the product tier\" [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#support-error-codes-and-troubleshooting"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "support-error-codes-and-troubleshooting",
-          "chunk_id": "handbook.md#support-error-codes-and-troubleshooting:d7c242ca",
-          "text": "## Support Error Codes and Troubleshooting\n\nThe MaiStorage API and desktop clients return standardized error codes. Common codes:\n\n- **ERR-4092** \u2014 Authentication token expired. Re-authenticate to obt"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#support-error-codes-and-troubleshooting"
-      ],
-      "answer_contains_terms": [
-        "maximum"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q27",
-      "question": "Which TCP port does the secure MaiStorage API endpoint use?",
-      "answer": "The secure MaiStorage API endpoint uses TCP port 8443. [1]",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#api-and-network-configuration"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "api-and-network-configuration",
-          "chunk_id": "handbook.md#api-and-network-configuration:c7d4774e",
-          "text": "## API and Network Configuration\n\nThe MaiStorage REST API is served from `https://api.maistorage.com/v2`.\n\n- **Current API version**: v2.4 (released 2025). Version v1.9 is deprecated and reaches end-o"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#api-and-network-configuration"
-      ],
-      "answer_contains_terms": [
-        "8443"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q28",
-      "question": "What is the current version of the MaiStorage REST API?",
-      "answer": "The current version of the MaiStorage REST API is v2.4 (released 2025) [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#api-and-network-configuration"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "api-and-network-configuration",
-          "chunk_id": "handbook.md#api-and-network-configuration:c7d4774e",
-          "text": "## API and Network Configuration\n\nThe MaiStorage REST API is served from `https://api.maistorage.com/v2`.\n\n- **Current API version**: v2.4 (released 2025). Version v1.9 is deprecated and reaches end-o"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#api-and-network-configuration"
-      ],
-      "answer_contains_terms": [
-        "v2.4"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q29",
-      "question": "How many annual leave days do full-time employees at the Kuala Lumpur office get?",
-      "answer": "Full-time employees at the Kuala Lumpur office receive 16 days of annual leave per year [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#regional-office-variations",
-        "handbook.md#leave-policy"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "regional-office-variations",
-          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
-          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#regional-office-variations"
-      ],
-      "answer_contains_terms": [
-        "16"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q30",
-      "question": "How many public holidays does the Bengaluru India office observe?",
-      "answer": "The Bengaluru (India) office observes 12 public holidays per year [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#regional-office-variations"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "regional-office-variations",
-          "chunk_id": "handbook.md#regional-office-variations:f9c09a23",
-          "text": "## Regional Office Variations\n\nThe Leave Policy and Public Holidays sections above describe the **Singapore HQ** defaults (18 annual leave days, 11 public holidays). Other regional offices differ:\n\n- "
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#regional-office-variations"
-      ],
-      "answer_contains_terms": [
-        "12"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q31",
-      "question": "What is the monthly uptime SLA for the MaiVault Hot tier?",
-      "answer": "The monthly uptime SLA for the MaiVault Hot tier is 99.99% [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#service-level-agreements"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "service-level-agreements",
-          "chunk_id": "handbook.md#service-level-agreements:396ca62c",
-          "text": "## Service Level Agreements\n\nMaiStorage publishes the following uptime and support commitments:\n\n| Service / tier | Monthly uptime SLA |\n|---|---|\n| MaiVault Hot tier | 99.99% |\n| MaiVault Warm tier |"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#service-level-agreements"
-      ],
-      "answer_contains_terms": [
-        "99.99"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q32",
-      "question": "What is the first-response target for a P1 support incident?",
-      "answer": "The first-response target for a P1 support incident is within 15 minutes, 24/7 [1].",
-      "refused": false,
-      "retrieved_sources": [
-        "handbook.md#service-level-agreements"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "handbook.md",
-          "section": "service-level-agreements",
-          "chunk_id": "handbook.md#service-level-agreements:396ca62c",
-          "text": "## Service Level Agreements\n\nMaiStorage publishes the following uptime and support commitments:\n\n| Service / tier | Monthly uptime SLA |\n|---|---|\n| MaiVault Hot tier | 99.99% |\n| MaiVault Warm tier |"
-        }
-      ],
-      "expected_sources": [
-        "handbook.md#service-level-agreements"
-      ],
-      "answer_contains_terms": [
-        "15 min"
-      ],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": 1.0
-    },
-    {
-      "id": "q33",
-      "question": "For MaiSync Enterprise, what is its SKU code and its uptime SLA?",
-      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
-      "refused": true,
-      "retrieved_sources": [],
-      "citations": [],
-      "expected_sources": [
-        "handbook.md#product-skus-and-ordering-codes",
-        "handbook.md#service-level-agreements"
-      ],
-      "answer_contains_terms": [
-        "MS-4800",
-        "99.95"
-      ],
-      "hit_at_1": 0.0,
-      "hit_at_3": 0.0,
-      "hit_at_5": 0.0,
-      "mrr": 0.0,
-      "citation_accuracy": 0.0,
       "refusal_correctness": 0.0,
-      "answer_match": 0.0,
-      "faithfulness": null
-    },
-    {
-      "id": "q34",
-      "question": "What is the SKU code for the MaiPrint product?",
-      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
-      "refused": true,
-      "retrieved_sources": [],
-      "citations": [],
-      "expected_sources": [],
-      "answer_contains_terms": [],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
-      "answer_match": 1.0,
-      "faithfulness": null
-    },
-    {
-      "id": "q35",
-      "question": "What is the WiFi password at the Tokyo office?",
-      "answer": "I cannot answer this question based on the available information in our knowledge base. The question appears to be outside the scope of the documents I have access to.",
-      "refused": true,
-      "retrieved_sources": [],
-      "citations": [],
-      "expected_sources": [],
-      "answer_contains_terms": [],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
       "answer_match": 1.0,
       "faithfulness": null
     }
