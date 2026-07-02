@@ -16,6 +16,7 @@ class ChatRequest(BaseModel):
     """Incoming chat question."""
     question: str
     optimized: bool = True  # use hybrid+rerank retrieval (default on for the demo)
+    session_id: str | None = None  # optional: persist + load conversation memory
 
 
 class Citation(BaseModel):

@@ -160,14 +160,32 @@ async def _run_loop_to_decision(question: str, use_hybrid: bool) -> RagState:
             return state
 
 
+def _format_history(history: list[dict] | None) -> str:
+    """Render prior turns as a compact conversation-memory block (or empty)."""
+    if not history:
+        return ""
+    lines = []
+    for m in history:
+        role = "User" if m.get("role") == "user" else "Assistant"
+        content = (m.get("content") or "").strip()
+        if content:
+            lines.append(f"{role}: {content}")
+    if not lines:
+        return ""
+    return "Prior conversation (for context on follow-up questions only):\n" + "\n".join(lines) + "\n\n"
+
+
 async def run_agent_streaming(
-    question: str, use_hybrid: bool = False
+    question: str, use_hybrid: bool = False, history: list[dict] | None = None
 ) -> AsyncGenerator[dict, None]:
     """Run the agent and stream the answer. Yields type: token|done|error.
 
     The retrieval/grading loop runs to completion first (it must, before a
     grounded answer exists), then the FINAL generation LLM call is streamed
     token-by-token straight from the provider.
+
+    `history` (last-N prior messages) is injected into the generation prompt as
+    conversation memory for follow-up questions.
     """
     from app.agent.nodes import _extract_citations
     from app.agent.prompts import GENERATE_PROMPT, REFUSE_PROMPT
@@ -198,7 +216,7 @@ async def run_agent_streaming(
             f"[{i}] Source: {c['source']}#{c['section']}\n{c['text']}"
             for i, c in enumerate(graded, 1)
         ]
-        prompt = GENERATE_PROMPT.format(
+        prompt = _format_history(history) + GENERATE_PROMPT.format(
             question=question, context="\n\n---\n\n".join(context_parts)
         )
 

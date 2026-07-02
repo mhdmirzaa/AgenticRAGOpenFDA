@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     # Chroma vector DB
     chroma_path: str = "./chroma_db"
 
+    # PostgreSQL persistence (item 2). Defaults to a local sqlite file so the
+    # app + tests run with zero external services; docker-compose sets a
+    # postgresql+psycopg:// URL.
+    database_url: str = "sqlite:///./maistorage.db"
+
+    # last-N prior messages loaded as conversation memory
+    memory_window: int = 6
+
     # Retrieval params
     top_k: int = 8
     rerank_top_n: int = 4

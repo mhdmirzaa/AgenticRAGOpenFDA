@@ -13,6 +13,8 @@ dependencies = [
   "pydantic-settings>=2.5",
   "rank-bm25>=0.2",            # hybrid retrieval (bonus, M7)
   "sentence-transformers>=3.0", # local reranker (bonus, M7)
+  "sqlalchemy>=2.0",           # persistence (item 2)
+  "psycopg[binary]>=3.2",      # Postgres driver (item 2)
 ]
 
 [project.optional-dependencies]

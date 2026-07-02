@@ -263,12 +263,25 @@ async def run_fda_ingestion(
     *,
     limit: int = 1,
     known_label_ids: set[str] | frozenset[str] = frozenset(),
+    record_to_db: bool = True,
 ) -> dict:
-    """Full job: fetch -> parse -> dedupe -> chunk+embed+index.
+    """Full job: fetch -> parse -> dedupe -> chunk+embed+index -> record in DB.
 
     Shared by the /ingest/fda endpoint and the Airflow DAG (item 3).
+    Recording label metadata in Postgres is best-effort (degrades gracefully).
     """
     records = await fetch_drug_labels(drugs, limit=limit)
-    stats = await ingest_records(records, known_label_ids=known_label_ids)
+    fresh = dedupe_records(records, known_label_ids=known_label_ids)
+
+    stats = await ingest_records(fresh)  # already deduped -> known set empty
     stats["labels_fetched"] = len(records)
+    stats["skipped"] = len(records) - len(fresh)
+
+    if record_to_db and fresh:
+        try:
+            from app.db import record_labels
+            stats["labels_recorded"] = record_labels(fresh)
+        except Exception as e:  # persistence optional
+            logger.warning("DB label record skipped: %s", e)
+
     return stats

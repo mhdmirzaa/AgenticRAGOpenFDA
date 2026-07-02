@@ -12,3 +12,7 @@ backend/chroma_db/
 frontend/.next/
 frontend/node_modules/
 docs/metrics.md
+
+# local sqlite persistence
+*.db
+maistorage.db
