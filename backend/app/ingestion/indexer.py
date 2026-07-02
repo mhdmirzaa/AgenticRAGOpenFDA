@@ -34,11 +34,19 @@ async def index_chunks(chunks: list) -> int:
             all_ids.append(chunk.chunk_id)
             all_embeddings.append(embedding)
             all_documents.append(chunk.text)
-            all_metadatas.append({
+            meta = {
                 "source": chunk.source,
                 "section": chunk.section,
                 "chunk_id": chunk.chunk_id,
-            })
+            }
+            # Carry through optional source metadata (FDA labels: label_id,
+            # source_url, drug_name, brand_name) so citations can link out.
+            for key in ("label_id", "source_url", "drug_name",
+                        "brand_name", "section_title"):
+                val = chunk.metadata.get(key)
+                if val is not None and val != "":
+                    meta[key] = val
+            all_metadatas.append(meta)
 
     # Upsert to Chroma
     vs.add(

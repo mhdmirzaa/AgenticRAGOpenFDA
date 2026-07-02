@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     groq_api_key: str = ""
 
+    # openFDA is keyless by default; a key only raises rate limits.
+    openfda_api_key: str = ""
+
     # Chroma vector DB
     chroma_path: str = "./chroma_db"
 

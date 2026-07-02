@@ -45,7 +45,12 @@ def chunk_documents(documents: list) -> list[Chunk]:
         if not doc.content.strip():
             continue
 
+        # Doc-level metadata (e.g. label_id, source_url for FDA labels) rides
+        # along on every chunk so citations can point back to the exact source.
+        base_meta = dict(getattr(doc, "metadata", {}) or {})
+
         sections = _split_by_headings(doc.content, level=2)
+        doc_chunks: list[Chunk] = []
 
         for section_title, section_text in sections:
             if not section_text.strip():
@@ -55,7 +60,7 @@ def chunk_documents(documents: list) -> list[Chunk]:
 
             if len(section_text) <= TARGET_CHARS:
                 chunk_id = _make_chunk_id(doc.source, section_slug, 0)
-                all_chunks.append(Chunk(
+                doc_chunks.append(Chunk(
                     text=section_text.strip(),
                     source=doc.source,
                     section=section_slug,
@@ -63,10 +68,14 @@ def chunk_documents(documents: list) -> list[Chunk]:
                     metadata={"section_title": section_title},
                 ))
             else:
-                sub_chunks = _split_large_section(
+                doc_chunks.extend(_split_large_section(
                     section_text, doc.source, section_slug, section_title
-                )
-                all_chunks.extend(sub_chunks)
+                ))
+
+        for chunk in doc_chunks:
+            # base_meta first so chunk-specific keys (section_title) win.
+            chunk.metadata = {**base_meta, **chunk.metadata}
+        all_chunks.extend(doc_chunks)
 
     return all_chunks
 
