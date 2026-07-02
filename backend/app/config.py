@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     enable_scheduler: bool = False
     schedule_minutes: int = 15
 
+    # Caching (item 7). Empty REDIS_URL => in-memory LRU (degrades gracefully).
+    redis_url: str = ""
+    cache_ttl_seconds: int = 3600
+
     # Retrieval params
     top_k: int = 8
     rerank_top_n: int = 4

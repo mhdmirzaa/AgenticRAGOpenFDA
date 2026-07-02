@@ -85,42 +85,41 @@ async def retrieve_node(state: RagState) -> dict:
     settings = get_settings()
     query = state.get("query", state["question"])
     use_hybrid = state.get("use_hybrid", False)
+    mode = "hybrid(dense+BM25)" if use_hybrid else "dense"
 
-    candidates: list[dict] = []
-    if use_hybrid:
-        from app.retrieval.hybrid import get_hybrid_retriever
-        retriever = get_hybrid_retriever()
-        retriever.ensure_index()
-        merged = await retriever.retrieve(query, top_k=settings.top_k)
-        for r in merged:
-            meta = r.metadata or {}
-            candidates.append({
-                "chunk_id": r.chunk_id,
-                "text": r.text,
-                "source": r.source,
-                "section": r.section,
-                "score": r.rrf_score,
-                "source_url": meta.get("source_url", ""),
-                "section_title": meta.get("section_title", ""),
-            })
-        mode = "hybrid(dense+BM25)"
-    else:
-        from app.retrieval.cache import cached_embed
-        query_embedding = await cached_embed(query)
-        vs = get_vectorstore()
-        results = vs.query(query_embedding, n_results=settings.top_k)
-        for r in results:
-            meta = r.metadata or {}
-            candidates.append({
-                "chunk_id": r.chunk_id,
-                "text": r.text,
-                "source": r.source,
-                "section": r.section,
-                "score": r.score,
-                "source_url": meta.get("source_url", ""),
-                "section_title": meta.get("section_title", ""),
-            })
-        mode = "dense"
+    async def _compute() -> list[dict]:
+        out: list[dict] = []
+        if use_hybrid:
+            from app.retrieval.hybrid import get_hybrid_retriever
+            retriever = get_hybrid_retriever()
+            retriever.ensure_index()
+            merged = await retriever.retrieve(query, top_k=settings.top_k)
+            for r in merged:
+                meta = r.metadata or {}
+                out.append({
+                    "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
+                    "section": r.section, "score": r.rrf_score,
+                    "source_url": meta.get("source_url", ""),
+                    "section_title": meta.get("section_title", ""),
+                })
+        else:
+            from app.retrieval.cache import cached_embed
+            query_embedding = await cached_embed(query)
+            vs = get_vectorstore()
+            results = vs.query(query_embedding, n_results=settings.top_k)
+            for r in results:
+                meta = r.metadata or {}
+                out.append({
+                    "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
+                    "section": r.section, "score": r.score,
+                    "source_url": meta.get("source_url", ""),
+                    "section_title": meta.get("section_title", ""),
+                })
+        return out
+
+    # Retrieval-results cache (item 7): repeated (mode, query) skips embed+search.
+    from app.retrieval.cache import cached_retrieval
+    candidates = await cached_retrieval(query, mode, _compute)
 
     trace_step = TraceStep(
         node="retrieve",

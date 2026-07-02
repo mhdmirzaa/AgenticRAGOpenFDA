@@ -30,10 +30,11 @@ async def health_check():
         status["chroma"] = {"reachable": False, "error": str(e)}
         status["status"] = "degraded"
 
-    # Embedding cache stats (FR-8 performance visibility)
+    # Cache stats + active backend (redis|memory) — performance visibility.
     try:
         from app.retrieval.cache import cache_stats
         status["embedding_cache"] = cache_stats()
+        status["cache_backend"] = status["embedding_cache"].get("backend")
     except Exception:
         pass
 

@@ -1,0 +1,24 @@
+# Redis caching overlay (item 7).
+#   docker compose -f docker-compose.yml -f docker-compose.redis.yml up
+# Adds a Redis service and points the backend's cache at it. If this overlay is
+# omitted the backend transparently uses its in-memory LRU cache.
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    volumes: ["redis_data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis_data:
