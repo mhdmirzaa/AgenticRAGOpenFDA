@@ -16,3 +16,6 @@ docs/metrics.md
 # local sqlite persistence
 *.db
 maistorage.db
+
+# local machine compose overrides (port remaps etc.)
+docker-compose.override.yml

@@ -4,6 +4,5 @@ WORKDIR /app
 COPY pyproject.toml .
 RUN pip install --no-cache-dir -e . --break-system-packages || pip install --no-cache-dir .
 COPY app ./app
-COPY corpus ../corpus
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

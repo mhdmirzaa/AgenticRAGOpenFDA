@@ -28,10 +28,12 @@ x-airflow-common: &airflow-common
     EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-small}
     OPENFDA_API_KEY: ${OPENFDA_API_KEY:-}
     FDA_DAG_SCHEDULE: ${FDA_DAG_SCHEDULE:-*/15 * * * *}
+    # Only the deps the ingestion DAG needs (fetch/parse/chunk/embed/index).
+    # Do NOT add sqlalchemy>=2 / psycopg3 here — Airflow 2.9 pins SQLAlchemy 1.4
+    # and upgrading it breaks Airflow's ORM. The DAG's optional `record` task
+    # imports app.db lazily and degrades gracefully if that mismatch bites.
     _PIP_ADDITIONAL_REQUIREMENTS: >-
-      httpx>=0.27 chromadb>=0.5 rank-bm25>=0.2 sqlalchemy>=2.0
-      psycopg[binary]>=3.2 langgraph>=0.2 pydantic>=2.9 pydantic-settings>=2.5
-      sentence-transformers>=3.0
+      httpx>=0.27 chromadb>=0.5 pydantic>=2.9 pydantic-settings>=2.5
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./backend:/opt/airflow/backend
