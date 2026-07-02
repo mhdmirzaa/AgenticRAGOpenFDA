@@ -1,13 +1,126 @@
-# Full stack — [M8]. Chroma is embedded (in backend), so just backend + frontend.
+# Full production stack — FDA Drug-Info RAG.
+#
+# Services:
+#   postgres          app persistence (drug labels + chat sessions/messages)
+#   backend           FastAPI + LangGraph agent + embedded Chroma
+#   frontend          Next.js UI
+#   airflow-postgres  Airflow metadata DB (isolated from the app DB)
+#   airflow-init      one-shot: db migrate + create admin user
+#   airflow-webserver + airflow-scheduler  orchestrate the ingestion DAG
+#
+# Redis (item 7) and Langfuse (item 8) are layered on via their own compose
+# files: `docker compose -f docker-compose.yml -f docker-compose.redis.yml ... up`.
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.3-python3.11
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+    # our ingestion job needs the backend app + its runtime deps
+    PYTHONPATH: /opt/airflow/backend
+    CHROMA_PATH: /opt/airflow/chroma_db
+    DATABASE_URL: postgresql+psycopg://app:app@postgres:5432/maistorage
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+    GEN_MODEL: ${GEN_MODEL:-gpt-4.1-mini}
+    EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-small}
+    OPENFDA_API_KEY: ${OPENFDA_API_KEY:-}
+    FDA_DAG_SCHEDULE: ${FDA_DAG_SCHEDULE:-*/15 * * * *}
+    _PIP_ADDITIONAL_REQUIREMENTS: >-
+      httpx>=0.27 chromadb>=0.5 rank-bm25>=0.2 sqlalchemy>=2.0
+      psycopg[binary]>=3.2 langgraph>=0.2 pydantic>=2.9 pydantic-settings>=2.5
+      sentence-transformers>=3.0
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./backend:/opt/airflow/backend
+    - chroma_data:/opt/airflow/chroma_db
+  depends_on:
+    airflow-postgres:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: maistorage
+    ports: ["5432:5432"]
+    volumes: ["pg_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d maistorage"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build: ./backend
     ports: ["8000:8000"]
     env_file: .env
-    volumes: ["./corpus:/corpus", "./backend/chroma_db:/app/chroma_db"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://app:app@postgres:5432/maistorage
+      CHROMA_PATH: /app/chroma_db
+    volumes:
+      - ./corpus:/corpus
+      - chroma_data:/app/chroma_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   frontend:
     build: ./frontend
     ports: ["3000:3000"]
     environment:
       - NEXT_PUBLIC_API_BASE=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on: [backend]
+
+  airflow-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes: ["airflow_pg_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate &&
+        airflow users create --username admin --password admin \
+          --firstname admin --lastname admin --role Admin --email admin@example.com || true
+    restart: "no"
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports: ["8080:8080"]
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  pg_data:
+  airflow_pg_data:
+  chroma_data:
