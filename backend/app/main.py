@@ -68,8 +68,20 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Chroma check failed: {e}")
     
+    # Optional in-process ingestion scheduler (APScheduler fallback for Airflow).
+    try:
+        from app.scheduler import start_scheduler
+        start_scheduler()
+    except Exception as e:
+        logger.warning(f"Scheduler start skipped: {e}")
+
     yield
-    
+
+    try:
+        from app.scheduler import shutdown_scheduler
+        shutdown_scheduler()
+    except Exception:
+        pass
     logger.info("Shutting down MaiStorage")
 
 

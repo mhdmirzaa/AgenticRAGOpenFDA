@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     # last-N prior messages loaded as conversation memory
     memory_window: int = 6
 
+    # Orchestration (item 3). Airflow is the production orchestrator; the
+    # in-process APScheduler is the runnable fallback. Off by default.
+    enable_scheduler: bool = False
+    schedule_minutes: int = 15
+
     # Retrieval params
     top_k: int = 8
     rerank_top_n: int = 4

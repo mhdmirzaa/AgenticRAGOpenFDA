@@ -64,6 +64,28 @@ class DrugLabelRecord:
     sections: dict[str, str] = field(default_factory=dict)
 
 
+def record_to_dict(record: DrugLabelRecord) -> dict:
+    """Serialize a record (JSON-safe) for Airflow XCom passing between tasks."""
+    return {
+        "label_id": record.label_id,
+        "drug_name": record.drug_name,
+        "brand_name": record.brand_name,
+        "source_url": record.source_url,
+        "sections": record.sections,
+    }
+
+
+def record_from_dict(data: dict) -> DrugLabelRecord:
+    """Rebuild a record from its serialized form."""
+    return DrugLabelRecord(
+        label_id=data["label_id"],
+        drug_name=data.get("drug_name", ""),
+        brand_name=data.get("brand_name", ""),
+        source_url=data.get("source_url", ""),
+        sections=data.get("sections", {}),
+    )
+
+
 def _first(value) -> str:
     """openFDA fields are usually lists; take the first non-empty string."""
     if isinstance(value, list):
