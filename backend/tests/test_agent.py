@@ -138,3 +138,54 @@ class TestAgentGraphStructure:
         graph = build_graph()
         compiled = graph.compile()
         assert compiled is not None
+
+
+class TestContextualize:
+    """Follow-up questions resolve coreferences against conversation memory."""
+
+    class _CtxProvider:
+        """Records the contextualize prompt and returns a fixed standalone Q."""
+        def __init__(self, standalone):
+            self.standalone = standalone
+            self.seen_prompt = None
+
+        async def complete(self, prompt):
+            self.seen_prompt = prompt
+            return self.standalone
+
+    def _run(self, question, history, provider):
+        import asyncio
+        from app.providers import base as provider_base
+        from app.agent import graph as graph_mod
+        provider_base._provider_instance = provider
+        try:
+            return asyncio.run(graph_mod._contextualize(question, history))
+        finally:
+            provider_base.reset_provider()
+
+    def test_no_history_returns_question_unchanged_without_llm(self):
+        """No history -> no LLM call, question passes through verbatim."""
+        prov = self._CtxProvider("SHOULD NOT BE USED")
+        out = self._run("What are the warnings for it?", None, prov)
+        assert out == "What are the warnings for it?"
+        assert prov.seen_prompt is None  # no LLM call made
+
+    def test_history_resolves_coreference(self):
+        """A follow-up with history is rewritten to a standalone question."""
+        history = [
+            {"role": "user", "content": "What are the warnings for ibuprofen?"},
+            {"role": "assistant", "content": "Ibuprofen may cause ... [1]"},
+        ]
+        prov = self._CtxProvider("What is the dosage for ibuprofen?")
+        out = self._run("what about its dosage?", history, prov)
+        assert out == "What is the dosage for ibuprofen?"
+        assert "ibuprofen" in prov.seen_prompt.lower()  # history reached prompt
+
+    def test_llm_failure_degrades_to_original(self):
+        """A provider error must not break the request — fall back to original."""
+        class _Boom:
+            async def complete(self, prompt):
+                raise RuntimeError("provider down")
+        history = [{"role": "user", "content": "tell me about ibuprofen"}]
+        out = self._run("what about it?", history, _Boom())
+        assert out == "what about it?"

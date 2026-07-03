@@ -28,6 +28,8 @@ x-airflow-common: &airflow-common
     EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-small}
     OPENFDA_API_KEY: ${OPENFDA_API_KEY:-}
     FDA_DAG_SCHEDULE: ${FDA_DAG_SCHEDULE:-*/15 * * * *}
+    # The DAG delegates all Chroma/Postgres WRITES to the backend (single writer).
+    BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
     # Only the deps the ingestion DAG needs (fetch/parse/chunk/embed/index).
     # Do NOT add sqlalchemy>=2 / psycopg3 here — Airflow 2.9 pins SQLAlchemy 1.4
     # and upgrading it breaks Airflow's ORM. The DAG's optional `record` task

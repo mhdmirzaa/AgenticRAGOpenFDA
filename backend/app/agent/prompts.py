@@ -15,6 +15,20 @@ If the question is casual chitchat, a greeting, or clearly unrelated to drugs or
 
 Respond with exactly one word: RETRIEVE or REFUSE"""
 
+CONTEXTUALIZE_PROMPT = """Given the prior conversation and a follow-up question, rewrite the follow-up into a fully standalone question that needs no prior context. Resolve pronouns and references (e.g. "it", "that drug", "the same one") to the explicit drug name or topic from the conversation.
+
+Prior conversation:
+{history}
+
+Follow-up question: {question}
+
+Rules:
+- If the follow-up is already standalone, return it unchanged.
+- Only use drug names/topics that actually appear in the prior conversation.
+- Output ONLY the standalone question, nothing else.
+
+Standalone question:"""
+
 REWRITE_PROMPT = """You are a search query optimizer for an FDA drug-label knowledge base. Rewrite the user question into a precise search query that will retrieve the most relevant label sections.
 
 Original question: {question}

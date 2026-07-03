@@ -1,111 +1,109 @@
-# MaiStorage — Agentic RAG · Product Requirements Document
+# MaiStorage — Agentic RAG (Production Stack) · Product Requirements Document
 
-**Version:** 1.0
+**Version:** 2.0 (production / openFDA)
 **Assessment:** Question 1 — Build an Agentic RAG that retrieves chunks correctly
-**Author:** (you)
-**Status:** Ready to build
+**Status:** In build on branch `production-stack` (finished handbook Q1 preserved on `working-demo-backup`)
 
 ---
 
 ## 0. TL;DR
 
-MaiStorage is a **near-zero-cost Agentic RAG system** with a **provider-agnostic LLM layer**. It answers questions grounded in a document corpus using a LangGraph agent loop that retrieves, grades its own evidence, re-retrieves when needed, and answers with citations — or refuses when it can't. It ships with a Next.js chat UI, a FastAPI streaming backend, a golden-set test harness with before/after retrieval metrics, and covers **both** bonus criteria (citations + optimized retrieval).
+MaiStorage is an **agentic RAG drug-information assistant**. It ingests official **FDA drug-label
+text** from the **openFDA API** (keyless), on an **Apache Airflow** schedule, into **Chroma + BM25
+hybrid** retrieval. A **LangGraph** agent routes, rewrites, retrieves, reranks, **grades its own
+evidence**, re-retrieves up to a hard cap, then answers **with validated citations to the exact
+label section** or **refuses**. **PostgreSQL** persists label metadata + chat sessions/memory;
+**Redis** caches for performance; **Langfuse** provides end-to-end observability. A **Next.js +
+TypeScript** UI streams answers with citations, a retrieval-trace panel, chat history, and a
+medical disclaimer.
 
-**Locked stack:** LangGraph · Chroma · **provider-agnostic LLM (default: Google Gemini Flash free tier; fallback: Ollama local for a true $0/offline path)** · FastAPI · Next.js + TypeScript.
+**Stack:** openFDA · Airflow · Chroma+BM25 · LangGraph · PostgreSQL · Redis · Langfuse · FastAPI ·
+Next.js + TypeScript · OpenAI gpt-4.1-mini + text-embedding-3-small · Docker Compose.
 
-**LLM provider is a config switch** (`LLM_PROVIDER=gemini|openai|groq|ollama`). Best value for this project is Gemini Flash-Lite/Flash on the free tier (hosted speed + quality at effectively $0, no card), with Ollama kept as the offline fallback so the "fully local, private" story is still available and the demo survives a room with no internet. Embeddings default to Google `text-embedding-005` (~$0.006/1M) or local `nomic-embed-text` ($0) — both negligible.
+**Architecture note:** modeled on the jamwithai/production-agentic-rag-course blueprint (arXiv +
+Airflow + Postgres + OpenSearch + Ollama + Gradio), adapted to a healthcare domain and this
+stack: openFDA instead of arXiv, Chroma+BM25 instead of OpenSearch, OpenAI instead of Ollama,
+Next.js instead of Gradio, plus Redis + Langfuse + an agentic (grade/re-retrieve/refuse) loop.
 
 ---
 
 ## 1. Objectives
 
-### 1.1 Required (from the brief)
-- Build an agentic RAG that **retrieves the correct chunks**.
-- Deliver a **working prototype** (demoable).
-- Discuss **thought process and implementation flow**.
-- Investigate **agentic RAG as a system**.
-- Investigate **traditional RAG vs. agentic RAG**.
-- Build **test cases to assure quality**.
+### 1.1 Required (Q1)
+- Agentic RAG that **retrieves the correct label sections**.
+- **Working prototype** (Next.js UI, demoable).
+- **Discussion** of thought process + implementation flow.
+- **Investigation** of agentic RAG as a system.
+- **Traditional vs agentic RAG** comparison.
+- **Test cases** to assure quality.
 
 ### 1.2 Bonus (both targeted)
-- **Citation handling** — every answer cites its source chunks.
-- **Optimized retrieval** — improve accuracy (hybrid + rerank) and performance (cache, async, warm-up).
+- **Citations** — answers cite the exact FDA label section, validated against graded chunks.
+- **Optimized retrieval** — accuracy (hybrid + rerank) AND performance (Redis caching, async,
+  warm-up), each measured before/after.
 
 ### 1.3 Non-goals
-- No auth/authz.
-- No multi-tenant or cloud-scale deployment.
-- No expensive flagship models — the LLM layer is deliberately cheap/free-tier (near-$0), with a true $0 offline fallback (Ollama).
+- No auth/authz. No multi-tenant scale-out.
+- Not clinical software — informational only; a medical disclaimer is shown and answers come
+  solely from retrieved FDA label text.
 
 ---
 
-## 2. Why these choices (design rationale)
+## 2. Design rationale
 
 | Decision | Choice | Why |
 |---|---|---|
-| Question | Q1 Agentic RAG | Max technical depth + richest discussion surface; failure mode (retrieval) is engineerable via a golden set |
-| Orchestration | **LangGraph** | Brief rewards a visible agent loop (grade/re-retrieve); LangGraph models this as an inspectable state graph |
-| Vector DB | **Chroma** | Fully local, `pip install`, no server/Docker layer — least demo friction |
-| LLM (generation) | **Provider-agnostic** — default Gemini Flash (free tier); fallback Ollama Llama 3.1 8B | Best value for a graded demo: hosted speed/quality at ~$0 via free tier, with a true $0 offline fallback. Total project cost < $1 either way, so optimize for demo smoothness + a fallback, not sticker price |
-| Embeddings | **Google `text-embedding-005`** (~$0.006/1M) or local `nomic-embed-text` ($0) | Negligible cost either way; same model must be used for indexing + querying |
-| Frontend | **Next.js + TS** | Plays to existing strength; far more polished demo than Streamlit |
-| Corpus | Synthetic company handbook | Every answer known → golden set is trivially correct; clean structure → good chunking; multi-hop questions plantable |
+| Data source | **openFDA API** (`/drug/label.json`) | Keyless like arXiv; rich prose label sections chunk well; serious, impressive domain |
+| Orchestration | **Apache Airflow** | Scheduled, retrying, idempotent ingestion (course pattern) |
+| Vector store | **Chroma + BM25 hybrid** | Kept from prior build; hybrid = accuracy bonus; avoids an OpenSearch migration |
+| DB | **PostgreSQL** | Production-grade persistence for labels + chat memory |
+| Cache | **Redis** | Performance bonus; survives restarts; shared cache |
+| Observability | **Langfuse** | Per-request tracing (nodes/tokens/latency/cost); strong demo artifact |
+| LLM | **OpenAI gpt-4.1-mini** | Reliable instruction-following for cite/refuse; cheap |
+| Embeddings | **text-embedding-3-small** | Standard, cheap; same model index + query |
+| Frontend | **Next.js + TypeScript** | Primary stack; polished custom UI beats Gradio/Streamlit |
+| Agent | **LangGraph** | Explicit grade/re-retrieve/refuse loop = the Q1 "agentic" core |
 
 ---
 
-## 3. Traditional RAG vs. Agentic RAG (required investigation)
+## 3. Traditional RAG vs Agentic RAG (required investigation)
 
-Traditional RAG is a **fixed linear pipeline**: embed query → retrieve top-k → stuff prompt → generate. Fast and simple, but brittle: if the first retrieval misses, the answer is wrong and there is no recovery path.
+Traditional RAG is a fixed line: embed query → retrieve top-k → stuff prompt → generate. Fast but
+brittle — a bad first retrieval yields a wrong answer with no recovery.
 
-Agentic RAG wraps retrieval in a **reasoning loop**. The agent decides whether to retrieve, rewrites weak queries, retrieves iteratively, **grades** whether the evidence actually answers the question, and only then generates — or refuses.
+Agentic RAG wraps retrieval in a reasoning loop that rewrites weak queries, retrieves iteratively,
+**grades** whether evidence is sufficient, and answers or **refuses**.
 
-| Dimension | Traditional RAG | Agentic RAG |
+| Dimension | Traditional RAG | Agentic RAG (this project) |
 |---|---|---|
-| Control flow | Fixed linear pipeline | Dynamic graph with branching |
-| Query handling | Used as-is | Rewritten / decomposed |
-| Retrieval | Single top-k pass | Iterative, can re-retrieve |
-| Quality control | None | Relevance grading of chunks |
-| Failure mode | Hallucinates / wrong answer | Retries, refines, or refuses |
-| Multi-hop | Weak | Handles via decomposition |
-| Cost / latency | Low | Higher (more LLM calls) |
-| Best for | Simple FAQ lookup | Complex, ambiguous, multi-step |
+| Control flow | Fixed pipeline | Dynamic graph, branching |
+| Query handling | As-is | Rewritten as needed |
+| Retrieval | Single pass | Iterative, re-retrieves (cap) |
+| Quality control | None | Per-chunk relevance grading |
+| Failure mode | Hallucinates | Refuses cleanly |
+| Best for | Simple FAQ | Ambiguous/multi-hop; safety-sensitive domains |
 
 ---
 
 ## 4. Architecture
 
 ```
-                    ┌─────────────────────┐
-                    │  Next.js + TS UI    │  chat · streaming · citations · trace
-                    └──────────┬──────────┘
-                               │  SSE
-                    ┌──────────▼──────────┐
-                    │   FastAPI backend   │  /ingest /chat /trace /health
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │  LangGraph agent    │  route→rewrite→retrieve→rerank→grade→decide→generate
-                    └──────────┬──────────┘
-                       ┌───────┴────────┐
-              ┌────────▼──────┐  ┌──────▼────────┐
-              │   Chroma      │  │  LLM provider │
-              │ (vectors)     │  │ gemini/ollama │
-              └───────────────┘  └───────────────┘
+openFDA API (/drug/label.json, keyless)
+        │
+   Apache Airflow DAG (scheduled, idempotent, dedupe by label_id)
+        │  fetch -> extract sections -> chunk -> embed -> index
+        ▼
+   Chroma (dense) + BM25 (keyword)      PostgreSQL (labels + sessions + messages)
+        │                                        ▲
+        ▼                                        │
+   LangGraph agent: route -> rewrite -> retrieve -> rerank -> grade -> decide -> {generate | loop | refuse}
+        │            (Redis cache on embed/retrieve)      (cap=3; only graded chunks generate)
+        ▼
+   FastAPI  ── /chat (SSE) · /ingest · /trace/{id} · /sessions · /health
+        │           (every request traced to Langfuse: nodes, tokens, latency, cost)
+        ▼
+   Next.js + TypeScript UI (streaming · citations · trace panel · history · medical disclaimer)
 ```
-
-### 4.1 Ingestion flow
-1. Load documents (md/txt/pdf) from `corpus/`.
-2. Token-aware chunking (~512 tokens, ~64 overlap), respecting structure (no mid-table/section splits).
-3. Embed each chunk via the configured provider (Google `text-embedding-005`, or local `nomic-embed-text`).
-4. Upsert vectors + metadata (`source`, `section`, `chunk_id`) into Chroma.
-
-### 4.2 Agentic retrieval flow (LangGraph nodes)
-1. **route** — does this need retrieval, or answer directly?
-2. **rewrite** — sharpen a vague query into a search query.
-3. **retrieve** — hybrid (dense + keyword) candidates from Chroma.
-4. **rerank** — local reranker re-orders; keep top-n.
-5. **grade** — are these chunks sufficient? (yes/no per chunk)
-6. **decide** — sufficient → generate; else loop to rewrite/retrieve (**cap 2–3**).
-7. **generate** — answer with inline citations, or refuse.
 
 ---
 
@@ -113,25 +111,29 @@ Agentic RAG wraps retrieval in a **reasoning loop**. The agent decides whether t
 
 | ID | Requirement | Priority |
 |---|---|---|
-| FR-1 | Ingest corpus → searchable Chroma index | Must |
-| FR-2 | Accept NL question via chat UI | Must |
-| FR-3 | Run agentic loop to fetch correct chunks | Must |
+| FR-1 | Ingest openFDA drug labels → Chroma index (dedupe by label_id) | Must |
+| FR-2 | Accept NL question via Next.js chat UI | Must |
+| FR-3 | Agentic loop fetches correct label sections | Must |
 | FR-4 | Stream answer token-by-token (SSE) | Must |
-| FR-5 | Attach citations (source + section) to answers | Must (bonus) |
-| FR-6 | Grade chunks; re-retrieve when insufficient | Must |
-| FR-7 | Hybrid search + reranking | Should (bonus) |
-| FR-8 | Cache embeddings/results | Should (bonus) |
-| FR-9 | Expose retrieval trace (what/why) | Should |
-| FR-10 | Refuse gracefully when evidence insufficient | Must |
+| FR-5 | Citations to exact label section, validated vs graded chunks | Must (bonus) |
+| FR-6 | Grade chunks; re-retrieve when insufficient; hard cap 3 | Must |
+| FR-7 | Hybrid (dense+BM25) + reranking | Should (bonus) |
+| FR-8 | Redis caching (embeddings/retrieval/answers) | Should (bonus perf) |
+| FR-9 | Retrieval trace via /trace/{id} + Langfuse | Should |
+| FR-10 | Refuse when labels don't cover the question | Must |
+| FR-11 | Airflow DAG: scheduled, retrying, idempotent ingestion | Should |
+| FR-12 | Postgres persistence: labels + chat sessions/memory | Should |
+| FR-13 | Medical disclaimer in UI + answers | Must (domain) |
 
 ---
 
 ## 6. Non-functional requirements
-- **Cost:** near-$0 (Gemini free tier or local Ollama); total project spend < $1; open-source infra throughout.
-- **Performance:** first token within a few seconds on 16GB; streamed thereafter.
-- **Reproducibility:** one-command startup; committed golden set.
-- **Transparency:** agent decisions inspectable (trace endpoint).
-- **Portability:** runs offline; no network at inference time.
+- **Cost:** near-$0 — openFDA keyless; only OpenAI usage (cents); Redis/Langfuse/Postgres self-hosted.
+- **Performance:** fast first token (streaming + warm-up + Redis cache).
+- **Reproducibility:** `docker compose up`; committed golden set with seeded stable drugs.
+- **Transparency:** per-request trace (endpoint + Langfuse).
+- **Safety:** answers only from retrieved FDA text; disclaimer; refuse rather than guess.
+- **Resilience:** app runs even if Langfuse is disabled/unreachable (instrumentation degrades gracefully).
 
 ---
 
@@ -139,10 +141,12 @@ Agentic RAG wraps retrieval in a **reasoning loop**. The agent decides whether t
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/ingest` | Index documents into Chroma |
-| POST | `/chat` | Submit question; stream agentic answer (SSE) |
-| GET | `/trace/{id}` | Retrieval trace for an answer |
-| GET | `/health` | Service + model health |
+| POST | /ingest | Trigger openFDA ingestion into Chroma |
+| POST | /chat | Submit question; stream agentic answer (SSE) |
+| GET | /trace/{id} | Retrieval trace for an answer |
+| POST | /sessions | Create a chat session |
+| GET | /sessions/{id}/messages | Chat history |
+| GET | /health | Service + model + cache status |
 
 ---
 
@@ -150,32 +154,38 @@ Agentic RAG wraps retrieval in a **reasoning loop**. The agent decides whether t
 
 | Level | Tests | How |
 |---|---|---|
-| Unit | chunking, embed calls, Chroma upsert/query | pytest, mocked models |
-| Retrieval | correct chunks for known queries | golden set; Hit@k / MRR |
-| Agent | routing, grading, re-retrieve decisions | scripted queries assert path |
-| E2E | question → cited answer | expected facts + citations |
-| Regression | no metric drop after changes | re-run golden set, compare |
+| Unit | section extraction, chunking, embed calls, dedupe | pytest, mocked API/embeddings |
+| Retrieval | correct label sections for known drug questions | golden set; Hit@k / MRR (section-level) |
+| Agent | grading, re-retrieve, refusal, loop cap | scripted queries assert path |
+| E2E | question → cited answer over openFDA data | expected facts + citations |
+| Production | Airflow DAG dedupes; Postgres persists + memory; Redis cache hits; Langfuse trace (and app works if off) | integration tests |
 
-**Metrics:** Hit@k, MRR, faithfulness (LLM-as-judge, local), citation accuracy.
+**Metrics:** Hit@k, MRR (accuracy); Redis cold-vs-warm latency (performance); faithfulness +
+citation accuracy + refusal correctness (answer quality, via gpt-4.1-mini).
 
-**Golden set:** ~15–30 committed `question → expected-source` pairs over the synthetic corpus. Backbone of retrieval + regression tests, and the source of the **before/after optimization table** (baseline vs. hybrid+rerank).
+**Golden set:** seeded stable drugs (e.g. ibuprofen, amoxicillin, warfarin) so questions are
+reproducible; includes multi-hop (interactions) and unanswerable (refusal) cases.
 
 ---
 
-## 9. Milestones (de-risked — always demo-safe from M3)
+## 9. Milestones (de-risked; demo-safe early)
 
-| # | Milestone | Output | Demo-safe? |
-|---|---|---|---|
-| M1 | Infra + scaffold | LLM provider config (Gemini key or Ollama), Chroma, repo | — |
-| M2 | Ingestion | corpus chunked, embedded, indexed | — |
-| M3 | Baseline RAG + streaming | single-pass cited answers, SSE | ✅ |
-| M4 | Citations | inline citations rendered in UI | ✅ (bonus 1) |
-| M5 | Golden set + metrics | Hit@k/MRR harness | ✅ (test deliverable) |
-| M6 | Agentic loop | grade + re-retrieve + refuse | ✅ (core) |
-| M7 | Optimize | hybrid + rerank; before/after table | ✅ (bonus 2) |
-| M8 | Frontend polish + trace | trace view, dry run, slides | ✅ |
+| # | Milestone | Demo-safe? |
+|---|---|---|
+| M1 | openFDA ingestion + section extraction + dedupe | — |
+| M2 | Baseline retrieve + generate + SSE streaming | ✅ |
+| M3 | Citations (validated) + Next.js UI + disclaimer | ✅ (bonus 1) |
+| M4 | Golden set + accuracy metrics | ✅ (test deliverable) |
+| M5 | Agentic loop (grade/re-retrieve/refuse) + trace | ✅ (core) |
+| M6 | Hybrid + rerank; before/after accuracy | ✅ (bonus 2a) |
+| M7 | PostgreSQL persistence + chat memory | ✅ |
+| M8 | Redis caching + before/after latency | ✅ (bonus 2b) |
+| M9 | Airflow DAG (scheduled, idempotent) | ✅ |
+| M10 | Langfuse observability (graceful if off) | ✅ |
+| M11 | Dockerize all + demo docs | ✅ |
 
-Cross into "demo-safe" at M3 and **stay** there — every later stage is additive. If time runs out, you still have a working, cited, measurable RAG.
+Fallback: if a production layer (Airflow/Redis/Langfuse) can't finish, the core RAG + openFDA +
+Postgres + UI is still a complete, demoable system. Drop enhancements before dropping a working demo.
 
 ---
 
@@ -183,30 +193,30 @@ Cross into "demo-safe" at M3 and **stay** there — every later stage is additiv
 
 | Risk | Mitigation |
 |---|---|
-| Chosen LLM too weak on hard Qs | Provider is a config switch — escalate Ollama 8B → Gemini Flash → Gemini Pro in one line; strong retrieval + grading carries most of the quality anyway |
-| Agent loop latency | Cap iterations, cache, async, stream, pre-warm |
-| Optimization complexity | Bonus only; ship baseline (M3) first, layer after |
-| Demo machine pressure | Pre-warm models, pre-index, rehearse |
-| Wrong chunk live | Demo only golden-verified questions |
+| Full stack too large for timeline | Priority order; enhancements (Redis/Langfuse) optional; `working-demo-backup` preserved |
+| Airflow setup friction | Fall back to a scheduled background fetch; document Airflow as the production orchestrator |
+| Langfuse self-host heavy (own DB) | Isolate it; app must run if Langfuse is off |
+| News/data churn breaks golden set | Seed stable drugs so golden questions stay valid |
+| Medical domain risk | Disclaimer; answer only from retrieved FDA text; refuse when uncovered |
 
 ---
 
 ## 11. Acceptance criteria
-- Correct chunks retrieved for the golden set (Hit@k meets target).
-- End-to-end streamed, cited answers in the UI.
-- Agent demonstrably re-retrieves or refuses when evidence is insufficient.
-- Test suite runs and reports retrieval + answer-quality metrics.
-- Both bonuses demonstrable (citations + before/after optimization table).
-- Full demo fits 15–20 minutes.
+- Correct label sections retrieved on the golden set (Hit@k target met).
+- End-to-end streamed, cited answers in the Next.js UI.
+- Agent re-retrieves or refuses when evidence is insufficient.
+- Tests pass; accuracy AND performance before/after numbers are real.
+- Both bonuses demonstrable (validated citations; hybrid+rerank + Redis latency delta).
+- Production layers work (Airflow/Postgres/Redis/Langfuse) OR are cleanly documented as the
+  upgrade path if a fallback was used.
+- Full demo fits 15-20 minutes.
 
 ---
 
-## 12. Demo script (15–20 min)
-
-| Time | Segment | Content |
-|---|---|---|
-| 0–2 | Framing | Problem + traditional-vs-agentic in one slide |
-| 2–5 | Architecture | Ingestion + agent-loop diagram |
-| 5–12 | Live demo | Easy + hard/multi-hop Qs; streaming + citations + trace; show a refusal |
-| 12–16 | Quality | Test suite + before/after metrics table |
-| 16–20 | Discussion | Design choices, trade-offs, Q&A |
+## 12. Demo script (15-20 min)
+1. Framing + traditional-vs-agentic (2 min).
+2. Architecture walk incl. Airflow/Postgres/Redis/Langfuse (3 min).
+3. Live demo: easy drug Q, multi-hop interaction Q, and a refusal; show streaming + citations +
+   trace panel + Langfuse dashboard (7 min).
+4. Quality: test suite + accuracy and Redis latency before/after tables (4 min).
+5. Discussion: design choices, production considerations, Q&A (4 min).

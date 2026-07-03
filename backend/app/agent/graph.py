@@ -130,18 +130,47 @@ async def run_agent(question: str, use_hybrid: bool = False) -> RagState:
     return final_state
 
 
-async def _run_loop_to_decision(question: str, use_hybrid: bool) -> RagState:
+async def _contextualize(question: str, history: list[dict] | None) -> str:
+    """Resolve coreferences in a follow-up against prior turns.
+
+    Turns "what are the warnings for it?" into a standalone question ("...for
+    ibuprofen?") so route/rewrite/retrieve see an explicit query. No history ->
+    the question is returned unchanged (and no LLM call is made). Any failure
+    degrades to the original question so memory never breaks a request.
+    """
+    hist_block = _format_history(history)
+    if not hist_block:
+        return question
+    from app.agent.prompts import CONTEXTUALIZE_PROMPT
+    try:
+        provider = get_provider()
+        standalone = await provider.complete(
+            CONTEXTUALIZE_PROMPT.format(history=hist_block, question=question)
+        )
+        standalone = standalone.strip().strip('"').strip("'")
+        return standalone or question
+    except Exception:
+        return question
+
+
+async def _run_loop_to_decision(
+    question: str, use_hybrid: bool, history: list[dict] | None = None
+) -> RagState:
     """Run route -> (rewrite -> retrieve -> rerank -> grade -> decide) loop.
 
     Reuses the exact node functions and decision helpers the compiled graph
     uses (no duplicated logic), stopping just before generate/refuse so the
     final generation can be streamed token-by-token.
+
+    When `history` is present, the question is first contextualized (coreference
+    resolution) so follow-up questions retrieve against the right drug.
     """
     from app.agent.nodes import (
         route_node, rewrite_node, retrieve_node,
         rerank_node, grade_node, decide_node,
     )
 
+    question = await _contextualize(question, history)
     state: RagState = _initial_state(question, use_hybrid)
     state.update(await route_node(state))
     if _route_decision(state) == "refuse":
@@ -210,7 +239,10 @@ async def run_agent_streaming(
             )
 
     try:
-        state = await _run_loop_to_decision(question, use_hybrid)
+        state = await _run_loop_to_decision(question, use_hybrid, history)
+        # The loop may have contextualized a follow-up into a standalone
+        # question; use that resolved form for generation + memory too.
+        question = state.get("question", question)
         trace_id = state.get("trace_id", "")
 
         if state.get("_next") == "refuse":
