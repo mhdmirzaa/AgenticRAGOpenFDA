@@ -41,14 +41,116 @@ LABEL_SECTIONS: list[str] = [
     "drug_interactions",
 ]
 
-# Curated seed list of well-known drugs (stable/reproducible demo corpus).
-SEED_DRUGS: list[str] = [
+# Original evergreen core (24 drugs). KEEP THIS BLOCK STABLE + FIRST: the golden
+# set's original questions target these, so growth must stay additive and never
+# reorder or drop them. [GROW_AND_REMEASURE item 1]
+SEED_CORE: list[str] = [
     "ibuprofen", "acetaminophen", "aspirin", "amoxicillin", "azithromycin",
     "warfarin", "metformin", "lisinopril", "atorvastatin", "omeprazole",
     "amlodipine", "metoprolol", "losartan", "gabapentin", "sertraline",
     "hydrochlorothiazide", "prednisone", "albuterol", "ciprofloxacin",
     "levothyroxine", "simvastatin", "clopidogrel", "montelukast", "naproxen",
 ]
+
+# Additive growth to ~300 well-known generics (un-saturates retrieval so the
+# golden-set metrics become meaningful). Names are queried against openFDA
+# `openfda.generic_name`; a name that doesn't resolve is simply skipped, so the
+# indexed label count is "~300" not exactly len(SEED_DRUGS). Grouped by class
+# only for readability. [GROW_AND_REMEASURE item 1]
+SEED_EXPANSION: list[str] = [
+    # --- acid / GI ---
+    "pantoprazole", "esomeprazole", "lansoprazole", "rabeprazole", "dexlansoprazole",
+    "famotidine", "cimetidine", "nizatidine", "sucralfate", "misoprostol",
+    "dicyclomine", "hyoscyamine", "ondansetron", "granisetron", "promethazine",
+    "metoclopramide", "prochlorperazine", "meclizine", "dimenhydrinate",
+    "loperamide", "bisacodyl", "docusate", "polyethylene glycol", "lactulose",
+    "linaclotide", "lubiprostone", "mesalamine", "sulfasalazine", "dicyclomine",
+    # --- allergy / respiratory ---
+    "cetirizine", "levocetirizine", "loratadine", "desloratadine", "fexofenadine",
+    "diphenhydramine", "hydroxyzine", "pseudoephedrine", "guaifenesin",
+    "dextromethorphan", "azelastine", "fluticasone", "budesonide", "mometasone",
+    "triamcinolone", "beclomethasone", "ciclesonide", "ipratropium", "tiotropium",
+    "umeclidinium", "salmeterol", "formoterol", "roflumilast", "theophylline",
+    "cromolyn", "omalizumab", "mepolizumab", "benralizumab",
+    # --- antibiotics / antivirals / antifungals ---
+    "cephalexin", "cefdinir", "cefuroxime", "ceftriaxone", "cefixime",
+    "doxycycline", "minocycline", "tetracycline", "clindamycin", "metronidazole",
+    "levofloxacin", "moxifloxacin", "nitrofurantoin", "trimethoprim",
+    "sulfamethoxazole", "penicillin", "ampicillin", "clarithromycin",
+    "erythromycin", "linezolid", "vancomycin", "gentamicin", "tobramycin",
+    "fluconazole", "ketoconazole", "itraconazole", "terbinafine", "nystatin",
+    "acyclovir", "valacyclovir", "famciclovir", "oseltamivir", "amantadine",
+    # --- cardiovascular ---
+    "ramipril", "enalapril", "benazepril", "captopril", "quinapril", "fosinopril",
+    "valsartan", "olmesartan", "telmisartan", "irbesartan", "candesartan",
+    "carvedilol", "atenolol", "bisoprolol", "nebivolol", "propranolol",
+    "labetalol", "nadolol", "diltiazem", "verapamil", "nifedipine", "felodipine",
+    "nicardipine", "isosorbide mononitrate", "isosorbide dinitrate",
+    "nitroglycerin", "digoxin", "amiodarone", "sotalol", "flecainide",
+    "dofetilide", "hydralazine", "clonidine", "doxazosin", "prazosin",
+    "spironolactone", "furosemide", "bumetanide", "torsemide", "chlorthalidone",
+    "indapamide", "eplerenone",
+    # --- lipids ---
+    "rosuvastatin", "pravastatin", "lovastatin", "pitavastatin", "ezetimibe",
+    "fenofibrate", "gemfibrozil", "cholestyramine", "colesevelam", "evolocumab",
+    # --- diabetes / endocrine ---
+    "glipizide", "glyburide", "glimepiride", "pioglitazone", "sitagliptin",
+    "saxagliptin", "linagliptin", "empagliflozin", "dapagliflozin",
+    "canagliflozin", "liraglutide", "dulaglutide", "semaglutide", "exenatide",
+    "insulin glargine", "insulin lispro", "insulin aspart", "repaglinide",
+    "acarbose", "liothyronine", "methimazole", "propylthiouracil", "cinacalcet",
+    # --- anticoagulant / antiplatelet ---
+    "rivaroxaban", "apixaban", "dabigatran", "edoxaban", "enoxaparin", "heparin",
+    "fondaparinux", "ticagrelor", "prasugrel", "dipyridamole", "cilostazol",
+    # --- CNS / psych ---
+    "duloxetine", "venlafaxine", "desvenlafaxine", "fluoxetine", "paroxetine",
+    "citalopram", "escitalopram", "bupropion", "mirtazapine", "trazodone",
+    "amitriptyline", "nortriptyline", "imipramine", "doxepin", "vortioxetine",
+    "buspirone", "alprazolam", "lorazepam", "clonazepam", "diazepam",
+    "temazepam", "zolpidem", "eszopiclone", "quetiapine", "olanzapine",
+    "risperidone", "aripiprazole", "ziprasidone", "paliperidone", "lurasidone",
+    "clozapine", "haloperidol", "lithium", "divalproex", "lamotrigine",
+    "levetiracetam", "topiramate", "oxcarbazepine", "carbamazepine", "phenytoin",
+    "pregabalin", "lacosamide", "zonisamide", "phenobarbital",
+    # --- pain / musculoskeletal ---
+    "tramadol", "hydrocodone", "oxycodone", "morphine", "codeine", "fentanyl",
+    "methadone", "buprenorphine", "tapentadol", "hydromorphone", "tizanidine",
+    "cyclobenzaprine", "baclofen", "methocarbamol", "carisoprodol", "metaxalone",
+    "meloxicam", "celecoxib", "diclofenac", "indomethacin", "ketorolac",
+    "etodolac", "nabumetone", "piroxicam", "sulindac", "allopurinol",
+    "colchicine", "febuxostat",
+    # --- bone / immunology / oncology-adjacent ---
+    "alendronate", "risedronate", "ibandronate", "zoledronic acid", "raloxifene",
+    "denosumab", "teriparatide", "methotrexate", "hydroxychloroquine",
+    "leflunomide", "azathioprine", "mycophenolate", "tacrolimus", "cyclosporine",
+    "adalimumab", "etanercept", "infliximab", "tamoxifen", "anastrozole",
+    "letrozole", "exemestane",
+    # --- urology / other ---
+    "tamsulosin", "finasteride", "dutasteride", "sildenafil", "tadalafil",
+    "oxybutynin", "solifenacin", "phenazopyridine", "estradiol", "progesterone",
+    "medroxyprogesterone", "norethindrone", "testosterone", "ferrous sulfate",
+    "folic acid", "cyanocobalamin", "cholecalciferol", "potassium chloride",
+    "varenicline", "naltrexone", "acamprosate", "disulfiram", "ivermectin",
+    "mebendazole", "albendazole",
+]
+
+
+def _build_seed_drugs() -> list[str]:
+    """Core-first, additive, de-duplicated seed list (order-stable)."""
+    seen: set[str] = set()
+    out: list[str] = []
+    for name in [*SEED_CORE, *SEED_EXPANSION]:
+        key = name.lower().strip()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(name)
+    return out
+
+
+# Curated seed list of well-known drugs (stable/reproducible demo corpus, grown
+# to ~300 for GROW_AND_REMEASURE — the original 24 stay first + intact).
+SEED_DRUGS: list[str] = _build_seed_drugs()
 
 # Polite throttle between openFDA requests (limit is 240/min keyless).
 _REQUEST_DELAY_S = 0.3
