@@ -22,12 +22,19 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 
-def _rrf_merge(bm25_ids, knn_ids, k: int = 60):
-    """Reciprocal Rank Fusion over two ranked id lists -> {id: fused_score}."""
+def _rrf_merge(bm25_ids, knn_ids, k: int = 60,
+               bm25_weight: float = 1.0, knn_weight: float = 1.0):
+    """Weighted Reciprocal Rank Fusion over two ranked id lists -> {id: score}.
+
+    Each list contributes `weight / (k + rank + 1)` per id. Default weights are
+    1.0/1.0 (classic RRF); the hybrid searcher passes a dense-favored pair so a
+    strong dense hit isn't demoted by a lexical-only match. A doc appearing in
+    BOTH lists still accumulates from each, so agreement is rewarded.
+    """
     scores: dict[str, float] = {}
-    for ranked in (bm25_ids, knn_ids):
+    for ranked, weight in ((bm25_ids, bm25_weight), (knn_ids, knn_weight)):
         for rank, cid in enumerate(ranked):
-            scores[cid] = scores.get(cid, 0.0) + 1.0 / (k + rank + 1)
+            scores[cid] = scores.get(cid, 0.0) + weight / (k + rank + 1)
     return scores
 
 
@@ -150,16 +157,36 @@ class OpenSearchStore:
         except Exception as e:
             logger.warning("OpenSearch hybrid search failed: %s", e)
             return []
+        settings = get_settings()
         by_id = {c["chunk_id"]: c for c in bm25}
         for c in knn:
             by_id.setdefault(c["chunk_id"], c)
-        fused = _rrf_merge([c["chunk_id"] for c in bm25],
-                           [c["chunk_id"] for c in knn])
-        ranked = sorted(fused.items(), key=lambda kv: kv[1], reverse=True)
+        fused = _rrf_merge(
+            [c["chunk_id"] for c in bm25],
+            [c["chunk_id"] for c in knn],
+            bm25_weight=settings.rrf_bm25_weight,
+            knn_weight=settings.rrf_dense_weight,
+        )
+        ranked_ids = [cid for cid, _ in
+                      sorted(fused.items(), key=lambda kv: kv[1], reverse=True)]
+        top_ids = ranked_ids[:top_k]
+
+        # Dense-anchor guard: never let fusion drop the single strongest dense
+        # hit. On a saturated corpus dense already places the right section at
+        # top-1; this guarantees it survives into the reranked pool, so the
+        # optimized path can't fall below the dense-only baseline on recall.
+        if knn:
+            dense_top = knn[0]["chunk_id"]
+            if dense_top not in top_ids:
+                if len(top_ids) >= top_k and top_ids:
+                    top_ids[-1] = dense_top
+                else:
+                    top_ids.append(dense_top)
+
         out = []
-        for cid, score in ranked[:top_k]:
+        for cid in top_ids:
             c = dict(by_id.get(cid, {}))
-            c["score"] = score
+            c["score"] = fused.get(cid, 0.0)
             out.append(c)
         return out
 

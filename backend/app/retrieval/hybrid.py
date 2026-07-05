@@ -111,7 +111,18 @@ def _reciprocal_rank_fusion(
     top_k: int = 8,
     k: int = 60,
 ) -> list[HybridCandidate]:
-    """Merge dense and keyword results using Reciprocal Rank Fusion."""
+    """Merge dense and keyword results using weighted Reciprocal Rank Fusion.
+
+    Mirrors the OpenSearch store: dense (the stronger signal) is weighted above
+    keyword, and the single strongest dense hit is anchored so fusion can never
+    drop it below the returned top_k. Keeps the two backends behaviorally
+    consistent (ENHANCE item 2).
+    """
+    from app.config import get_settings
+    settings = get_settings()
+    dense_w = settings.rrf_dense_weight
+    kw_w = settings.rrf_bm25_weight
+
     candidates: dict[str, HybridCandidate] = {}
 
     # Process dense results
@@ -126,7 +137,7 @@ def _reciprocal_rank_fusion(
                 metadata=chunk.metadata,
             )
         candidates[cid].dense_rank = rank + 1
-        candidates[cid].rrf_score += 1.0 / (k + rank + 1)
+        candidates[cid].rrf_score += dense_w / (k + rank + 1)
 
     # Process keyword results
     for rank, chunk in enumerate(keyword):
@@ -140,11 +151,23 @@ def _reciprocal_rank_fusion(
                 metadata=chunk.metadata,
             )
         candidates[cid].keyword_rank = rank + 1
-        candidates[cid].rrf_score += 1.0 / (k + rank + 1)
+        candidates[cid].rrf_score += kw_w / (k + rank + 1)
 
-    # Sort by fused score and return top_k
+    # Sort by fused score and return top_k.
     merged = sorted(candidates.values(), key=lambda c: c.rrf_score, reverse=True)
-    return merged[:top_k]
+    top = merged[:top_k]
+
+    # Dense-anchor guard: guarantee the strongest dense hit is in the pool.
+    if dense:
+        dense_top_id = dense[0].chunk_id
+        if dense_top_id not in {c.chunk_id for c in top}:
+            anchor = candidates.get(dense_top_id)
+            if anchor is not None:
+                if len(top) >= top_k and top:
+                    top[-1] = anchor
+                else:
+                    top.append(anchor)
+    return top
 
 
 _hybrid_instance: HybridRetriever | None = None

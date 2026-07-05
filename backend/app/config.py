@@ -84,6 +84,16 @@ class Settings(BaseSettings):
     rerank_top_n: int = 4
     max_iters: int = 3  # agent loop hard cap
 
+    # Hybrid RRF fusion weights (ENHANCE item 2: retrieval robustness).
+    # With the strong text-embedding-3-large model, dense is the more reliable
+    # signal on this clean, curated corpus, so fusion favors it and BM25 only
+    # adds lexical recall — a doc that is dense-unique at a rank outranks a
+    # BM25-unique doc at the same rank. Combined with the dense-anchor guard
+    # (the single strongest dense hit is never dropped by fusion), this keeps
+    # the optimized path from scoring below the dense-only baseline.
+    rrf_dense_weight: float = 1.0
+    rrf_bm25_weight: float = 0.5
+
     # Corpus path
     corpus_path: str = str(Path(__file__).resolve().parent.parent.parent / "corpus")
 
