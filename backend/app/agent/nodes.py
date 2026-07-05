@@ -21,6 +21,7 @@ from app.agent.prompts import (
     GUARDRAIL_REFUSE_CARING,
     GUARDRAIL_REFUSE_NEUTRAL,
     GUARDRAIL_REFUSE_ADVICE,
+    GENERATION_UNAVAILABLE_MESSAGE,
 )
 from app.config import get_settings
 from app.models import Citation, TraceStep
@@ -124,10 +125,15 @@ async def route_node(state: RagState) -> dict:
     question = state["question"]
 
     prompt = ROUTE_PROMPT.format(question=question)
-    response = await provider.complete(prompt)
-    decision = response.strip().upper()
-
-    needs_retrieval = "RETRIEVE" in decision
+    try:
+        response = await provider.complete(prompt)
+        decision = response.strip().upper()
+        needs_retrieval = "RETRIEVE" in decision
+    except Exception as e:
+        # LLM timeout/outage on the router must not 500 the request: default to
+        # attempting retrieval (the safe degrade — the loop can still refuse).
+        decision = f"error: {e} -> defaulting to RETRIEVE"
+        needs_retrieval = True
 
     trace_step = TraceStep(
         node="route",
@@ -155,8 +161,15 @@ async def rewrite_node(state: RagState) -> dict:
         previous_query=previous_query,
         iteration=iteration,
     )
-    rewritten = await provider.complete(prompt)
-    rewritten = rewritten.strip().strip('"').strip("'")
+    try:
+        rewritten = await provider.complete(prompt)
+        rewritten = rewritten.strip().strip('"').strip("'")
+    except Exception:
+        # A rewrite failure must not break retrieval: fall back to the previous
+        # query, or the raw question on the first pass.
+        rewritten = previous_query or question
+    if not rewritten:
+        rewritten = previous_query or question
 
     trace_step = TraceStep(
         node="rewrite",
@@ -224,13 +237,24 @@ async def retrieve_node(state: RagState) -> dict:
         return out
 
     # Retrieval-results cache (item 7): repeated (mode, query) skips embed+search.
+    # Resilience (item 5): an embedding-API or store outage must not crash the
+    # turn — it degrades to zero candidates, which the loop turns into a clean
+    # refusal rather than a 500 / raw error.
     from app.retrieval.cache import cached_retrieval
-    candidates = await cached_retrieval(query, mode, _compute)
+    retrieval_error = None
+    try:
+        candidates = await cached_retrieval(query, mode, _compute)
+    except Exception as e:  # noqa: BLE001 - degrade to empty, never crash
+        candidates = []
+        retrieval_error = e
 
+    output = (f"found {len(candidates)} candidates: "
+              f"{[c['chunk_id'] for c in candidates]}") if retrieval_error is None \
+        else f"retrieval unavailable ({retrieval_error}); degraded to 0 candidates"
     trace_step = TraceStep(
         node="retrieve",
         input=f"query={query}, top_k={settings.top_k}, mode={mode}",
-        output=f"found {len(candidates)} candidates: {[c['chunk_id'] for c in candidates]}",
+        output=output,
     )
 
     return {
@@ -324,10 +348,18 @@ async def grade_node(state: RagState) -> dict:
             question=question,
             chunk_text=chunk["text"][:1500],
         )
-        response = await provider.complete(prompt)
-        is_relevant = "YES" in response.strip().upper()
+        try:
+            response = await provider.complete(prompt)
+            is_relevant = "YES" in response.strip().upper()
+            label = "YES" if is_relevant else "NO"
+        except Exception:
+            # A grader failure fails the chunk CLOSED (excluded): we never
+            # generate from evidence we couldn't verify. If every grade fails,
+            # the empty set drives a clean refusal.
+            is_relevant = False
+            label = "ERR"
 
-        grade_details.append(f"{chunk['chunk_id']}={'YES' if is_relevant else 'NO'}")
+        grade_details.append(f"{chunk['chunk_id']}={label}")
 
         if is_relevant:
             graded.append(chunk)
@@ -388,7 +420,22 @@ async def generate_node(state: RagState) -> dict:
     context = "\n\n---\n\n".join(context_parts)
 
     prompt = GENERATE_PROMPT.format(question=question, context=context)
-    answer = await provider.complete(prompt)
+    try:
+        answer = await provider.complete(prompt)
+    except Exception as e:
+        # Generation LLM outage: degrade to a clean, disclaimer-bearing decline
+        # (refused=True) instead of surfacing a raw 500 to the user.
+        trace_step = TraceStep(
+            node="generate",
+            input=f"question={question}, chunks={len(graded)}",
+            output=f"generation failed ({e}) -> graceful refusal",
+        )
+        return {
+            "answer": GENERATION_UNAVAILABLE_MESSAGE,
+            "citations": [],
+            "refused": True,
+            "trace": state.get("trace", []) + [trace_step],
+        }
 
     # Extract and validate citations
     citations = _extract_citations(answer, graded)

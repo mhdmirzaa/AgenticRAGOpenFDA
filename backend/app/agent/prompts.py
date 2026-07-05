@@ -75,6 +75,10 @@ Answer:"""
 
 REFUSE_PROMPT = """I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels — not medical advice. Consult a healthcare professional."""
 
+# Shown when the generation model is briefly unavailable (timeout/outage). A
+# clean, disclaimer-bearing decline instead of a raw error. [ENHANCE item 5]
+GENERATION_UNAVAILABLE_MESSAGE = """I'm having trouble composing an answer right now — the language service is temporarily unavailable. Please try again in a moment. Informational only, sourced from FDA labels — not medical advice. Consult a healthcare professional."""
+
 # --------------------------------------------------------------------------- #
 # Safety guardrail (medical domain, first node).  [PRD v3.0 §2b, M4a]
 # The guardrail decides whether a question should be answered AT ALL, before any

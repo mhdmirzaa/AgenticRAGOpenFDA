@@ -7,8 +7,11 @@ Expose run_agent(question) and run_agent_streaming(question).
 
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import AsyncGenerator
+
+logger = logging.getLogger(__name__)
 
 from langgraph.graph import StateGraph, END
 
@@ -402,9 +405,25 @@ async def run_agent_streaming(
         provider = get_provider()
         answer_parts: list[str] = []
         _gen_start = time.perf_counter()
-        async for token in provider.generate_stream(prompt):
-            answer_parts.append(token)
-            yield {"type": "token", "text": token}
+        try:
+            async for token in provider.generate_stream(prompt):
+                answer_parts.append(token)
+                yield {"type": "token", "text": token}
+        except Exception as gen_err:  # noqa: BLE001
+            # Generation outage mid-stream: if nothing was emitted yet, degrade
+            # to a clean spoken refusal + a refused `done` (never a raw error).
+            logger.warning("generation stream failed: %s", gen_err)
+            if not answer_parts:
+                from app.agent.prompts import GENERATION_UNAVAILABLE_MESSAGE
+                for word in GENERATION_UNAVAILABLE_MESSAGE.split(" "):
+                    yield {"type": "token", "text": word + " "}
+                lf_trace.update(output="generation-unavailable",
+                                metadata={"refused": True, "error": str(gen_err)})
+                lf_trace.end()
+                yield {"type": "done", "citations": [], "trace_id": trace_id,
+                       "refused": True, "blocked": False}
+                return
+            # Partial answer already streamed: stop cleanly and finalize below.
         _gen_latency_ms = round((time.perf_counter() - _gen_start) * 1000, 1)
 
         answer = "".join(answer_parts)
@@ -451,4 +470,8 @@ async def run_agent_streaming(
         }
 
     except Exception as e:
-        yield {"type": "error", "message": str(e)}
+        # Last-resort guard: log the raw error, surface a friendly message only.
+        logger.exception("chat stream failed")
+        yield {"type": "error",
+               "message": "Something went wrong while answering. "
+                          "Please try again in a moment."}
