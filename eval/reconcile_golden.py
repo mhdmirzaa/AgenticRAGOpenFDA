@@ -84,11 +84,21 @@ def reconcile(dry_run: bool = False) -> int:
             drug, _, section = src.partition("#")
             head = drug.split()[0] if drug else ""
             cands = _candidate_sources(client, index, head) if head else []
-            # Prefer a candidate that actually has the requested section.
-            chosen = next(
-                (c for c in cands if _source_has_section(client, index, c, section)),
-                cands[0] if cands else None,
-            )
+            # Prefer the PUREST single-ingredient match that has the requested
+            # section: exact head first, then no comma (avoid combo products like
+            # "ACETAMINOPHEN, DEXTROMETHORPHAN ..."), then fewest words, then
+            # shortest. Falls back to any candidate if none carries the section.
+            head_u = head.upper()
+            with_section = [c for c in cands
+                            if _source_has_section(client, index, c, section)]
+            pool = with_section or cands
+
+            def _rank(c: str):
+                cu = c.upper()
+                return (0 if cu == head_u else 1, cu.count(","),
+                        len(cu.split()), len(cu))
+
+            chosen = min(pool, key=_rank) if pool else None
             if chosen is None:
                 unresolved.append((r["id"], src))
                 new_sources.append(src)  # leave as-is -> honest miss in eval
