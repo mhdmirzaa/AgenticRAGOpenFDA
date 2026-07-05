@@ -14,4 +14,37 @@
 {"id":"q14","question":"What boxed warnings do warfarin and clopidogrel carry?","expected_sources":["WARFARIN SODIUM#boxed-warning","CLOPIDOGREL BISULFATE#boxed-warning"],"answer_contains":["bleeding"]}
 {"id":"q15","question":"What is the capital of France?","expected_sources":[],"answer_contains":[]}
 {"id":"q16","question":"What is the retail price of ibuprofen at the pharmacy?","expected_sources":[],"answer_contains":[]}
-{"id":"q17","question":"What is the recommended dosage of insulin glargine?","expected_sources":[],"answer_contains":[]}
+{"id":"q17","question":"What is the recommended dosage of pembrolizumab?","expected_sources":[],"answer_contains":[]}
+{"id":"q18","question":"What is the boxed warning for metformin?","expected_sources":["METFORMIN#boxed-warning"],"answer_contains":["lactic acidosis"]}
+{"id":"q19","question":"What is metformin used to treat?","expected_sources":["METFORMIN#indications-and-usage"],"answer_contains":[]}
+{"id":"q20","question":"What is the boxed warning for lisinopril?","expected_sources":["LISINOPRIL#boxed-warning"],"answer_contains":["pregnancy"]}
+{"id":"q21","question":"What is the boxed warning for losartan?","expected_sources":["LOSARTAN POTASSIUM#boxed-warning"],"answer_contains":["pregnancy"]}
+{"id":"q22","question":"What is the boxed warning for levofloxacin?","expected_sources":["LEVOFLOXACIN#boxed-warning"],"answer_contains":["tendon"]}
+{"id":"q23","question":"What is the boxed warning for duloxetine?","expected_sources":["DULOXETINE#boxed-warning"],"answer_contains":["suicidal"]}
+{"id":"q24","question":"What is the boxed warning for fluoxetine?","expected_sources":["FLUOXETINE#boxed-warning"],"answer_contains":["suicidal"]}
+{"id":"q25","question":"What is the boxed warning for bupropion?","expected_sources":["BUPROPION HYDROCHLORIDE#boxed-warning"],"answer_contains":["suicidal"]}
+{"id":"q26","question":"What is the boxed warning for tramadol?","expected_sources":["TRAMADOL HYDROCHLORIDE#boxed-warning"],"answer_contains":["addiction"]}
+{"id":"q27","question":"What is the boxed warning for oxycodone?","expected_sources":["OXYCODONE HYDROCHLORIDE#boxed-warning"],"answer_contains":["addiction"]}
+{"id":"q28","question":"What is the boxed warning for fentanyl?","expected_sources":["FENTANYL#boxed-warning"],"answer_contains":["respiratory depression"]}
+{"id":"q29","question":"What is the boxed warning for pioglitazone?","expected_sources":["PIOGLITAZONE#boxed-warning"],"answer_contains":["heart failure"]}
+{"id":"q30","question":"What is the boxed warning for amiodarone?","expected_sources":["AMIODARONE HYDROCHLORIDE#boxed-warning"],"answer_contains":["pulmonary"]}
+{"id":"q31","question":"What is the boxed warning for lamotrigine?","expected_sources":["LAMOTRIGINE#boxed-warning"],"answer_contains":["rash"]}
+{"id":"q32","question":"What is the boxed warning for carbamazepine?","expected_sources":["CARBAMAZEPINE#boxed-warning"],"answer_contains":[]}
+{"id":"q33","question":"What is the boxed warning for methotrexate?","expected_sources":["METHOTREXATE#boxed-warning"],"answer_contains":[]}
+{"id":"q34","question":"What is the boxed warning for quetiapine?","expected_sources":["QUETIAPINE FUMARATE#boxed-warning"],"answer_contains":["dementia"]}
+{"id":"q35","question":"What is the boxed warning for olanzapine?","expected_sources":["OLANZAPINE#boxed-warning"],"answer_contains":["dementia"]}
+{"id":"q36","question":"What is pantoprazole used for?","expected_sources":["PANTOPRAZOLE SODIUM#indications-and-usage"],"answer_contains":[]}
+{"id":"q37","question":"What is cephalexin used to treat?","expected_sources":["CEPHALEXIN#indications-and-usage"],"answer_contains":[]}
+{"id":"q38","question":"What are the contraindications for doxycycline?","expected_sources":["DOXYCYCLINE#contraindications"],"answer_contains":[]}
+{"id":"q39","question":"What drug interactions are listed for spironolactone?","expected_sources":["SPIRONOLACTONE#drug-interactions"],"answer_contains":[]}
+{"id":"q40","question":"What are the adverse reactions of tamsulosin?","expected_sources":["TAMSULOSIN HYDROCHLORIDE#adverse-reactions"],"answer_contains":[]}
+{"id":"q41","question":"What is allopurinol used for?","expected_sources":["ALLOPURINOL#indications-and-usage"],"answer_contains":[]}
+{"id":"q42","question":"What is furosemide indicated for?","expected_sources":["FUROSEMIDE#indications-and-usage"],"answer_contains":[]}
+{"id":"q43","question":"What are the contraindications for sildenafil?","expected_sources":["SILDENAFIL#contraindications"],"answer_contains":["nitrate"]}
+{"id":"q44","question":"What are the contraindications for metoprolol?","expected_sources":["METOPROLOL SUCCINATE#contraindications"],"answer_contains":[]}
+{"id":"q45","question":"Do warfarin and aspirin together increase the risk of bleeding?","expected_sources":["WARFARIN SODIUM#drug-interactions","ASPIRIN#warnings"],"answer_contains":["bleeding"]}
+{"id":"q46","question":"Is it dangerous to combine sildenafil with nitroglycerin?","expected_sources":["SILDENAFIL#contraindications","NITROGLYCERIN#drug-interactions"],"answer_contains":[]}
+{"id":"q47","question":"Can taking lisinopril together with potassium chloride cause problems?","expected_sources":["LISINOPRIL#drug-interactions","POTASSIUM CHLORIDE#warnings"],"answer_contains":["potassium"]}
+{"id":"q48","question":"Is there a serotonin risk taking tramadol with sertraline?","expected_sources":["TRAMADOL HYDROCHLORIDE#warnings","SERTRALINE HYDROCHLORIDE#warnings"],"answer_contains":["serotonin"]}
+{"id":"q49","question":"What are the warnings for trastuzumab?","expected_sources":[],"answer_contains":[]}
+{"id":"q50","question":"How much does a one-month supply of atorvastatin cost?","expected_sources":[],"answer_contains":[]}
