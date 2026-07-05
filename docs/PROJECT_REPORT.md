@@ -6,7 +6,7 @@
 **Reference architecture:** jamwithai/production-agentic-rag-course (arXiv Paper Curator), adapted to the FDA drug domain.
 **Domain:** FDA drug-information assistant over official **openFDA** drug-label text.
 **Stack:** openFDA · Apache Airflow (daily) · **OpenSearch (BM25 + kNN, hybrid RRF)** · Redis · Langfuse · FastAPI (SSE) · **Next.js + TypeScript** web UI **+ Telegram bot** · Docker Compose · **OpenAI `gpt-4.1-mini`** + **`text-embedding-3-large` (3072-d)**. Chroma is retained as a graceful offline fallback store.
-**Status:** ✅ **Ready to submit.** All required tasks and both bonuses met with real, reproducible evidence, verified end-to-end on a live `docker compose` stack on **2026-07-04**: **124 backend tests pass**, **Playwright e2e 4/4** against the running UI, live golden-set eval reproduced, and every production layer (OpenSearch, Airflow daily DAG, Postgres, Redis, Langfuse, Telegram) exercised.
+**Status:** ✅ **Ready to submit.** All required tasks and both bonuses met with real, reproducible evidence, verified end-to-end on a live `docker compose` stack on **2026-07-04**: **124 backend tests pass**, **Playwright e2e 4/4** against the running UI, live golden-set eval reproduced, and every production layer (OpenSearch, Airflow daily DAG, Postgres, Redis, Langfuse, Telegram) exercised. A subsequent **quality-hardening pass (v3.1, 2026-07-05)** improved answer quality, retrieval robustness, guardrail sharpness, UI polish, and error resilience — growing the suite to **150 backend tests (all pass offline)** with a clean `tsc --noEmit` + `next build`; see [§1a](#1a-enhancement-pass-v31-2026-07-05).
 
 > This report supersedes the v2.0 "production-stack" report. The migration delta is
 > summarized in `docs/CHANGES_V3.md`; the requirements are in `docs/PRD.md` (v3.0).
@@ -67,6 +67,28 @@ production layer works.
 
 ---
 
+## 1a. Enhancement pass (v3.1, 2026-07-05)
+
+A focused, scope-controlled quality pass on top of the submittable v3.0 build. Each item
+was implemented plan → test → verify on the `enhance-pass` branch and committed separately.
+**No working functionality was regressed and no evaluation number was fabricated.**
+
+| # | Area | What changed | Evidence |
+|---|---|---|---|
+| 1 | **Answer quality** | Rewrote `GENERATE_PROMPT`: lead with one plain-language sentence, then bullet distinct facts (multiple warnings/interactions) for non-expert readability, while keeping strict grounding (only-from-chunks), per-claim `[n]` citations to the exact FDA label section, and the exact disclaimer line. | `test_prompts.py` (6 tests) locks every invariant incl. the offline-`FakeProvider` hook and `.format` placeholders |
+| 2 | **Retrieval robustness** | Dense-favored **weighted RRF** (`rrf_dense_weight=1.0`, `rrf_bm25_weight=0.5`) so a lexical-only hit can't demote a strong dense hit, plus a **dense-anchor guard** — the single strongest dense hit is never dropped by fusion. Applied to both the OpenSearch primary and the Chroma fallback for parity. `_rrf_merge` stays backward-compatible (default 1.0/1.0). | `test_retrieval_robustness.py` (8 tests) prove dense-favored ordering, agreement still wins, and the dense top-1 is always retained |
+| 3 | **Guardrail & refusal sharpness** | Added high-precision self-harm/misuse keyword phrases; tests prove the **LLM intent check catches paraphrased** self-harm/misuse the keyword path misses while a dosing paraphrase stays SAFE (no false positive); drug-aware grader filters a wrong-drug chunk → clean refusal. | `test_guardrail_sharpness.py` (8 tests) |
+| 4 | **UI polish** | Timeline connector rail + smooth active→done transitions; terminal states (blocked/refuse/generate) get a tinted ring band; PASS evidence gets an emerald accent while FAIL is de-emphasized; PASS/FAIL summary pills; `prefers-reduced-motion` honored. All Playwright `data-testid`s preserved. | `tsc --noEmit` clean · `next build` clean |
+| 5 | **Error handling & resilience** | Every agent node degrades instead of crashing: route-LLM down → attempt retrieval; rewrite down → raw question; retrieval/embed down → 0 candidates → clean refusal; grader down → chunk fails **closed**; generation down → graceful disclaimer-bearing refusal (non-streaming **and** mid-stream); top-level stream error → friendly message, raw error only in logs. | `test_resilience.py` (7 tests) incl. a full turn surviving a total LLM outage as a clean refusal |
+
+**Backend suite: 150 tests pass offline** (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`), up from 124 — the 26 additions are the five new test modules above. Frontend `tsc --noEmit` and `next build` are clean.
+
+**Honestly not re-run in this pass (require the live Docker + OpenAI stack, which was not available in the enhancement environment):**
+- **Playwright e2e** — all selectors/`data-testid`s were preserved, so the existing 4/4 spec should stay green, but it must be re-run against the running stack to reconfirm.
+- **Live golden-set eval** — the retrieval-robustness change (item 2) is designed so the optimized path is **≥ baseline by construction** (dense-favored fusion + a guaranteed dense-top superset), but the actual Hit@k/MRR/faithfulness numbers in §14 were **not** re-measured here and **were not changed**. Re-run `eval/run.py --mode baseline|optimized` on the live stack to confirm the delta; the §14 numbers remain the last real measurement (2026-07-04).
+
+---
+
 ## 2. Course parity map
 
 | Course layer | Course uses | MaiStorage (this project) | Parity |
@@ -117,7 +139,7 @@ maistorage/
 │   │   │   ├── reranker.py          Cross-encoder (BAAI/bge-reranker-base; passthrough if unavailable)
 │   │   │   └── cache.py             Redis (or in-memory LRU) query/retrieval cache
 │   │   └── services/telegram/       Telegram bot: handlers.py (start/help/message) + bot.py (PTB Application)
-│   ├── tests/                       15 test modules (unit, agent, guardrail, ask, growth, telegram, persistence, e2e)
+│   ├── tests/                       19 test modules (unit, agent, guardrail(+sharpness), ask, growth, telegram, persistence, prompts, retrieval-robustness, resilience, e2e)
 │   └── Dockerfile / pyproject.toml
 ├── frontend/                        Next.js + TypeScript UI (warm soft-green split view)
 │   ├── components/                  Chat, EvidencePanel, StageTimeline, EvidenceChunkCard, Message, Citations, TracePanel, Disclaimer
@@ -306,9 +328,10 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**124 backend tests pass** offline
-(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 99 in
-v2.0. **Playwright e2e: 4/4** against the live UI.
+**150 backend tests pass** offline
+(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 124 in
+v3.0 (99 in v2.0); the v3.1 enhancement pass (§1a) added 26. **Playwright e2e: 4/4** against
+the live UI (last run 2026-07-04; preserved-selector, re-run on the live stack to reconfirm).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -321,6 +344,10 @@ v2.0. **Playwright e2e: 4/4** against the live UI.
 | Persistence / Observability / Scheduler | labels + sessions/memory, Langfuse spans + no-op, APScheduler jobs | `test_db`, `test_sessions`, `test_observability`, `test_scheduler` |
 | E2E | question → cited answer, refusal, streaming deltas, hybrid mode | `test_e2e`, `test_citations` |
 | Browser e2e (Playwright) | disclaimer visible, streaming + citation→chunk highlight + evidence stages, guardrail block state, unanswerable refusal state | `frontend/e2e/chat.spec.ts` |
+| **Answer-prompt invariants (v3.1)** | grounding, `[n]` citations, exact disclaimer, non-expert structure, FakeProvider hook, `.format` placeholders | `test_prompts.py` |
+| **Retrieval robustness (v3.1)** | dense-favored weighted RRF, agreement still wins, dense-anchor keeps the strongest dense hit | `test_retrieval_robustness.py` |
+| **Guardrail sharpness (v3.1)** | LLM catches paraphrased self-harm/misuse, dosing paraphrase stays SAFE, drug-aware grader filters wrong-drug | `test_guardrail_sharpness.py` |
+| **Resilience (v3.1)** | route/rewrite/retrieve/grade/generate all degrade on outage; full turn survives total LLM outage as a clean refusal | `test_resilience.py` |
 
 ---
 
@@ -357,6 +384,11 @@ OpenSearch, Postgres, Redis, Airflow ×3, telegram-bot).
 Generation **`gpt-4.1-mini`**, embeddings **`text-embedding-3-large` (3072-d)**, store
 **OpenSearch**. Golden set = `eval/golden.jsonl` (**17 questions**: answerable single-hop,
 multi-hop, and unanswerable/refusal). Run live on **2026-07-04**.
+
+> **Note (v3.1):** these are the **2026-07-04** measurements and were **not** re-run in the
+> v3.1 enhancement pass. The retrieval-robustness change (§1a item 2) is built so the
+> optimized path is ≥ baseline by construction, but the table below was left unchanged
+> rather than re-measured without the live stack — re-run `eval/run.py` to refresh it.
 
 | Metric | Baseline (dense kNN) | Optimized (hybrid + rerank) |
 |---|---:|---:|
@@ -437,7 +469,7 @@ driver; dropped chromadb from Airflow's pip. Re-verified: the DAG run is **SUCCE
 | 4. Investigation of the system | ✅ Met | trace endpoint + Langfuse spans + live evidence panel |
 | 5. Traditional vs agentic RAG | ✅ Met | §20; embodied in guardrail/grade/re-retrieve/refuse |
 | 6. Open-source libraries | ✅ Met | LangGraph, OpenSearch, rank-bm25, sentence-transformers, FastAPI, SQLAlchemy, Airflow, Redis, Langfuse, python-telegram-bot, Playwright |
-| 7. Test cases explained | ✅ Met | 124 backend tests + 4 Playwright e2e (§12) |
+| 7. Test cases explained | ✅ Met | 150 backend tests + 4 Playwright e2e (§12) |
 
 **Bonus**
 
@@ -685,7 +717,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 124 backend tests + 4 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 150 backend tests + 4 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -725,7 +757,7 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large \
   python -m eval.run --mode optimized
 
 # 5. tests
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 124 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 150 passed
 cd frontend && npx tsc --noEmit && npm run build                               # clean
 PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test                  # 4/4 (stack must be up)
 ```

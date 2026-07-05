@@ -37,7 +37,7 @@ maistorage/
 │   │   │   ├── reranker.py           Cross-encoder (BAAI/bge-reranker-base; passthrough if unavailable)
 │   │   │   └── cache.py              Redis (or in-memory LRU) query/retrieval cache
 │   │   └── services/telegram/        Telegram bot: handlers.py (start/help/message) + bot.py (PTB Application)
-│   ├── tests/                        15 test modules (unit, agent, guardrail, ask, growth, telegram, persistence, e2e)
+│   ├── tests/                        19 test modules (unit, agent, guardrail(+sharpness), ask, growth, telegram, persistence, prompts, retrieval-robustness, resilience, e2e)
 │   └── Dockerfile / pyproject.toml
 │
 ├── frontend/                         Next.js + TypeScript UI (warm soft-green split view)
