@@ -38,12 +38,14 @@ export default function EvidenceChunkCard({
       data-grade={chunk.grade}
       data-highlighted={highlighted ? "true" : "false"}
       style={{ animationDelay: `${Math.min(index, 6) * 45}ms` }}
-      className={`animate-fade-in-up rounded-xl border p-3 transition-shadow ${
+      className={`animate-fade-in-up rounded-xl border border-l-4 p-3 transition-shadow ${
         flash ? "animate-highlight-flash" : ""
       } ${
         highlighted
-          ? "border-sage-400 ring-2 ring-sage-400/70 dark:border-sage-500"
-          : "border-sage-100 dark:border-sage-800"
+          ? "border-sage-400 border-l-sage-500 ring-2 ring-sage-400/70 dark:border-sage-500"
+          : pass
+          ? "border-sage-100 border-l-emerald-400 dark:border-sage-800 dark:border-l-emerald-500/70"
+          : "border-sage-100 border-l-sage-200 opacity-70 dark:border-sage-800 dark:border-l-sage-700"
       } bg-white dark:bg-sage-900`}
     >
       <div className="flex items-start justify-between gap-2">

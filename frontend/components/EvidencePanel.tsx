@@ -79,12 +79,16 @@ export default function EvidencePanel({
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-sage-500 dark:text-sage-400">
                     Graded evidence
                   </h3>
-                  <span className="text-xs text-sage-500 dark:text-sage-400">
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                       {passCount} passed
                     </span>
-                    {failCount > 0 && <> · {failCount} filtered</>}
-                  </span>
+                    {failCount > 0 && (
+                      <span className="rounded-full bg-sage-100 px-2 py-0.5 text-[11px] font-medium text-sage-500 dark:bg-sage-800 dark:text-sage-400">
+                        {failCount} filtered
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {chunks.map((chunk, i) => (

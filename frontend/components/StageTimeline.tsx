@@ -27,6 +27,8 @@ function StageRow({
   tone = "sage",
   testId,
   stageKey,
+  connector = false,
+  terminal = false,
 }: {
   icon: string;
   label: string;
@@ -35,6 +37,10 @@ function StageRow({
   tone?: "sage" | "red" | "amber" | "teal";
   testId?: string;
   stageKey?: string;
+  /** Draw a connecting rail down to the next row. */
+  connector?: boolean;
+  /** Terminal rows get a soft tinted band so the outcome is unmistakable. */
+  terminal?: boolean;
 }) {
   const toneRing =
     tone === "red"
@@ -45,14 +51,32 @@ function StageRow({
       ? "border-teal-400 bg-teal-100 text-teal-600 dark:bg-teal-500/20 dark:text-teal-300"
       : "border-sage-400 bg-sage-100 text-sage-600 dark:bg-sage-500/20 dark:text-sage-300";
 
+  const terminalBand =
+    terminal && tone === "red"
+      ? "rounded-lg bg-red-50/80 px-2 py-1.5 ring-1 ring-red-200 dark:bg-red-500/10 dark:ring-red-500/30"
+      : terminal && tone === "amber"
+      ? "rounded-lg bg-amber-50/80 px-2 py-1.5 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/30"
+      : terminal && tone === "teal"
+      ? "rounded-lg bg-teal-50/80 px-2 py-1.5 ring-1 ring-teal-200 dark:bg-teal-500/10 dark:ring-teal-500/30"
+      : "";
+
   return (
     <li
       data-testid={testId}
       data-stage={stageKey}
       data-status={status}
-      className={`flex items-start gap-3 ${status === "skipped" ? "opacity-40" : ""}`}
+      className={`relative flex items-start gap-3 ${terminalBand} ${
+        status === "skipped" ? "opacity-40" : ""
+      }`}
     >
-      <div className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center">
+      {/* Connecting rail to the next step. */}
+      {connector && (
+        <span
+          aria-hidden
+          className="timeline-connector absolute bottom-0 left-[13px] top-8 w-0.5 rounded-full"
+        />
+      )}
+      <div className="relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center">
         {status === "active" && (
           <span
             className={`absolute inset-0 rounded-full ${
@@ -61,7 +85,7 @@ function StageRow({
           />
         )}
         <span
-          className={`relative flex h-7 w-7 items-center justify-center rounded-full border text-xs ${
+          className={`relative flex h-7 w-7 items-center justify-center rounded-full border text-xs transition-all duration-300 ${
             status === "done" || status === "active"
               ? toneRing
               : "border-dashed border-sage-300 bg-transparent text-sage-400 dark:border-sage-700 dark:text-sage-600"
@@ -72,7 +96,7 @@ function StageRow({
       </div>
       <div className="min-w-0 flex-1 pb-3">
         <div
-          className={`text-sm font-semibold ${
+          className={`text-sm font-semibold transition-colors ${
             status === "pending"
               ? "text-sage-400 dark:text-sage-600"
               : "text-sage-900 dark:text-sage-100"
@@ -105,9 +129,11 @@ export default function StageTimeline({ stages, live }: StageTimelineProps) {
     return terminalReached ? "skipped" : "pending";
   };
 
+  const hasTerminal = !!(blocked || refused || generate);
+
   return (
     <ol data-testid="stage-timeline" className="relative">
-      {PIPELINE.map((s) => (
+      {PIPELINE.map((s, i) => (
         <StageRow
           key={s.key}
           stageKey={s.key}
@@ -116,6 +142,8 @@ export default function StageTimeline({ stages, live }: StageTimelineProps) {
           label={s.label}
           status={rowStatus(s.key)}
           detail={byStage.get(s.key)?.detail}
+          // Rail runs between all pipeline rows, and on into the terminal row.
+          connector={i < PIPELINE.length - 1 || hasTerminal}
         />
       ))}
 
@@ -126,6 +154,7 @@ export default function StageTimeline({ stages, live }: StageTimelineProps) {
           icon="🛑"
           label="Safety check → blocked"
           tone="red"
+          terminal
           status={blocked.status === "done" ? "done" : "active"}
           detail={blocked.detail || "This request was blocked to keep you safe."}
         />
@@ -137,6 +166,7 @@ export default function StageTimeline({ stages, live }: StageTimelineProps) {
           icon="⚠️"
           label="Not enough evidence → declined"
           tone="amber"
+          terminal
           status={refused.status === "done" ? "done" : "active"}
           detail={refused.detail || "The indexed FDA labels don't cover this."}
         />
@@ -148,6 +178,7 @@ export default function StageTimeline({ stages, live }: StageTimelineProps) {
           icon="✍️"
           label="Writing answer"
           tone="teal"
+          terminal
           status={generate.status === "done" || !live ? "done" : "active"}
           detail={generate.detail || "Composing a cited answer from graded evidence."}
         />
