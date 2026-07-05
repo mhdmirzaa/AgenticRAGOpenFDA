@@ -35,11 +35,14 @@ _SELFHARM_PATTERNS = [
     "kill myself", "suicide", "suicidal", "end my life", "overdose to die",
     "how much to die", "lethal dose", "fatal dose", "how much would kill",
     "enough to die", "want to die", "how to overdose", "od on",
+    "take my own life", "end it all", "poison myself", "harm myself",
+    "hurt myself", "how many pills to die", "kill me",
 ]
 _MISUSE_PATTERNS = [
     "get high", "getting high", "to get high on", "abuse", "recreational",
     "snort", "inject to", "ignore your instructions", "ignore previous",
     "disregard your", "how to poison", "harm someone", "hurt someone",
+    "shoot up", "get someone high", "spike someone", "how to get addicted",
 ]
 
 _BLOCK_MESSAGES = {
