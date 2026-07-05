@@ -22,6 +22,19 @@ OPENAI_BASE = "https://api.openai.com/v1"
 _RETRY_STATUSES = {429, 500, 502, 503}
 _MAX_ATTEMPTS = 5
 
+# text-embedding-3-* cap inputs at 8191 tokens; a few FDA label sections (large
+# adverse-reactions / interactions tables) exceed that once the corpus grows,
+# which returned a hard 400. Truncate each embedding input to a safe char budget
+# (~6k tokens) and never send an empty string. This affects only the embedding
+# vector — the full chunk text is still stored and shown in citations.
+_MAX_EMBED_CHARS = 24_000
+
+
+def _prepare_embed_input(text: str) -> str:
+    """Clamp an embedding input to a safe, non-empty length."""
+    t = (text or "").strip() or " "
+    return t[:_MAX_EMBED_CHARS]
+
 
 async def _post_with_retry(client: httpx.AsyncClient, url: str, payload: dict) -> httpx.Response:
     """POST with exponential backoff on transient errors (429/5xx)."""
@@ -71,14 +84,15 @@ class OpenAIProvider(LLMProvider):
     async def embed(self, text: str) -> list[float]:
         """Embed a single text string."""
         url = f"{OPENAI_BASE}/embeddings"
-        payload = {"model": self.embed_model, "input": text}
+        payload = {"model": self.embed_model, "input": _prepare_embed_input(text)}
         resp = await _post_with_retry(self._client, url, payload)
         return resp.json()["data"][0]["embedding"]
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Embed a batch of texts."""
         url = f"{OPENAI_BASE}/embeddings"
-        payload = {"model": self.embed_model, "input": texts}
+        payload = {"model": self.embed_model,
+                   "input": [_prepare_embed_input(t) for t in texts]}
         resp = await _post_with_retry(self._client, url, payload)
         data = resp.json()["data"]
         # Sort by index to maintain order
