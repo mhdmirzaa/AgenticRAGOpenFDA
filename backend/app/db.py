@@ -56,6 +56,15 @@ class DrugLabel(Base):
     indexed_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
+class KV(Base):
+    """Tiny key/value store for ingestion state (e.g. the growth watermark)."""
+    __tablename__ = "kv_store"
+
+    key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
 class ChatSession(Base):
     """A chat session (table `sessions`)."""
     __tablename__ = "sessions"
@@ -157,6 +166,26 @@ def get_known_label_ids() -> set[str]:
     """All label ids already recorded (feeds ingestion dedupe)."""
     with _session() as s:
         return {row[0] for row in s.execute(select(DrugLabel.label_id)).all()}
+
+
+# ------------------------------------------------------------- KV / watermark
+def get_kv(key: str, default: str = "") -> str:
+    """Read a small ingestion-state value (e.g. the growth watermark)."""
+    with _session() as s:
+        row = s.get(KV, key)
+        return row.value if row is not None else default
+
+
+def set_kv(key: str, value: str) -> None:
+    """Upsert a small ingestion-state value."""
+    with _session() as s:
+        row = s.get(KV, key)
+        if row is None:
+            s.add(KV(key=key, value=value, updated_at=_utcnow()))
+        else:
+            row.value = value
+            row.updated_at = _utcnow()
+        s.commit()
 
 
 # ---------------------------------------------------------------- chat helpers

@@ -4,15 +4,19 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   streamChat,
   triggerFdaIngest,
-  fetchHealth,
+  growCorpus,
+  fetchCorpusCount,
   createSession,
   fetchMessages,
   Citation,
+  EvidenceChunk,
+  StageEvent,
 } from "@/lib/stream";
 import Message from "./Message";
 import Citations from "./Citations";
 import TracePanel from "./TracePanel";
 import Disclaimer from "./Disclaimer";
+import EvidencePanel from "./EvidencePanel";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -20,6 +24,7 @@ interface ChatMessage {
   citations?: Citation[];
   traceId?: string;
   isRefusal?: boolean;
+  isBlocked?: boolean;
 }
 
 const SESSION_KEY = "maistorage_session_id";
@@ -34,19 +39,26 @@ export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [status, setStatus] = useState<string>("Checking...");
+  const [statusText, setStatusText] = useState<string | null>(null);
+  const [corpusCount, setCorpusCount] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Current-turn live evidence state (drives the right-hand panel).
+  const [stages, setStages] = useState<StageEvent[]>([]);
+  const [evidence, setEvidence] = useState<EvidenceChunk[]>([]);
+  const [highlightedChunkId, setHighlightedChunkId] = useState<string | null>(null);
+  const [highlightNonce, setHighlightNonce] = useState(0);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Backend health / index status.
-  useEffect(() => {
-    fetchHealth()
-      .then((h) => {
-        const chromaDocs = h.chroma?.documents ?? 0;
-        setStatus(chromaDocs > 0 ? `Ready (${chromaDocs} label chunks)` : "No labels indexed");
-      })
-      .catch(() => setStatus("Backend offline"));
+  const refreshCorpus = useCallback(() => {
+    fetchCorpusCount().then(setCorpusCount);
   }, []);
+
+  // Live corpus size.
+  useEffect(() => {
+    refreshCorpus();
+  }, [refreshCorpus]);
 
   // Restore or create a session, then load its history on mount.
   useEffect(() => {
@@ -86,23 +98,51 @@ export default function Chat() {
     if (sid && typeof window !== "undefined") localStorage.setItem(SESSION_KEY, sid);
     setSessionId(sid);
     setMessages([]);
+    setStages([]);
+    setEvidence([]);
+    setHighlightedChunkId(null);
+    setStatusText(null);
   }, [isStreaming]);
 
   const handleIngest = async () => {
-    setStatus("Fetching FDA labels...");
+    setStatusText("Fetching FDA labels…");
     try {
       const result = await triggerFdaIngest();
-      setStatus(
+      setStatusText(
         `Indexed ${result.chunks_indexed} chunks from ${result.labels_indexed} labels`
       );
+      refreshCorpus();
     } catch (e: any) {
-      setStatus(`FDA ingest failed: ${e.message}`);
+      setStatusText(`FDA ingest failed: ${e.message}`);
     }
   };
+
+  const handleGrow = async () => {
+    setStatusText("Growing corpus…");
+    try {
+      const result = await growCorpus();
+      setStatusText(
+        `Grew by ${result.chunks_indexed} chunks from ${result.labels_indexed} labels`
+      );
+      refreshCorpus();
+    } catch (e: any) {
+      setStatusText(`Corpus growth failed: ${e.message}`);
+    }
+  };
+
+  const handleCitationClick = useCallback((chunkId: string) => {
+    setHighlightedChunkId(chunkId);
+    setHighlightNonce((n) => n + 1);
+  }, []);
 
   const send = async (question: string) => {
     if (!question.trim() || isStreaming) return;
     setInput("");
+    setStatusText(null);
+    // Reset the live panel for the new turn.
+    setStages([]);
+    setEvidence([]);
+    setHighlightedChunkId(null);
     setMessages((prev) => [...prev, { role: "user", content: question }]);
     setIsStreaming(true);
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -117,21 +157,28 @@ export default function Chat() {
 
     await streamChat(
       question,
-      (token) => patchLastAssistant((last) => ({ ...last, content: last.content + token })),
-      (citations, traceId, refused) => {
-        patchLastAssistant((last) => ({
-          ...last,
-          citations,
-          traceId,
-          isRefusal: refused || last.content.toLowerCase().includes("cannot answer"),
-        }));
-        setIsStreaming(false);
+      {
+        onStage: (stage) => setStages((prev) => [...prev, stage]),
+        onEvidence: (chunks) => setEvidence(chunks),
+        onToken: (token) =>
+          patchLastAssistant((last) => ({ ...last, content: last.content + token })),
+        onDone: (citations, traceId, refused, blocked) => {
+          patchLastAssistant((last) => ({
+            ...last,
+            citations,
+            traceId,
+            isBlocked: blocked,
+            isRefusal:
+              refused || last.content.toLowerCase().includes("cannot answer"),
+          }));
+          setIsStreaming(false);
+        },
+        onError: (errorMsg) => {
+          patchLastAssistant((last) => ({ ...last, content: `Error: ${errorMsg}` }));
+          setIsStreaming(false);
+        },
       },
-      (errorMsg) => {
-        patchLastAssistant((last) => ({ ...last, content: `Error: ${errorMsg}` }));
-        setIsStreaming(false);
-      },
-      sessionId
+      { sessionId, optimized: true }
     );
   };
 
@@ -140,84 +187,138 @@ export default function Chat() {
     send(input.trim());
   };
 
+  const hasActivity = isStreaming || stages.length > 0 || evidence.length > 0;
+
+  const evidencePanel = (
+    <EvidencePanel
+      stages={stages}
+      chunks={evidence}
+      live={isStreaming}
+      hasActivity={hasActivity}
+      highlightedChunkId={highlightedChunkId}
+      highlightNonce={highlightNonce}
+      corpusCount={corpusCount}
+    />
+  );
+
   return (
-    <div className="space-y-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
       <Disclaimer />
 
-      <div className="flex flex-col h-[calc(100vh-16rem)]">
-        {/* Status bar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-white border rounded-t-lg">
-          <span className="text-sm text-gray-600">Status: {status}</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleNewChat}
-              disabled={isStreaming}
-              className="text-sm px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              New chat
-            </button>
-            <button
-              onClick={handleIngest}
-              className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Fetch FDA Labels
-            </button>
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,26rem)]">
+        {/* LEFT — conversation */}
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-sage-200 bg-white shadow-sm dark:border-sage-800 dark:bg-sage-900">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sage-100 px-4 py-2.5 dark:border-sage-800">
+            <span className="text-xs text-sage-500 dark:text-sage-400">
+              {statusText ??
+                (corpusCount == null
+                  ? "Connecting to backend…"
+                  : `${corpusCount.toLocaleString()} FDA label chunks indexed`)}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleNewChat}
+                disabled={isStreaming}
+                className="rounded-lg border border-sage-200 px-2.5 py-1 text-xs font-medium text-sage-700 transition hover:bg-sage-50 disabled:opacity-50 dark:border-sage-700 dark:text-sage-200 dark:hover:bg-sage-800"
+              >
+                New chat
+              </button>
+              <button
+                onClick={handleIngest}
+                disabled={isStreaming}
+                className="rounded-lg border border-sage-200 px-2.5 py-1 text-xs font-medium text-sage-700 transition hover:bg-sage-50 disabled:opacity-50 dark:border-sage-700 dark:text-sage-200 dark:hover:bg-sage-800"
+              >
+                Fetch FDA Labels
+              </button>
+              <button
+                onClick={handleGrow}
+                disabled={isStreaming}
+                className="rounded-lg bg-sage-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sage-700 disabled:opacity-50"
+              >
+                Grow corpus
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white border-x">
-          {messages.length === 0 && (
-            <div className="text-center text-gray-400 mt-16">
-              <p className="text-lg">Ask about an FDA-approved drug</p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {EXAMPLES.map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => send(q)}
-                    className="text-sm px-3 py-1.5 border rounded-full text-gray-600 hover:bg-gray-50"
-                  >
-                    {q}
-                  </button>
-                ))}
+          {/* Messages */}
+          <div className="soft-scroll flex-1 space-y-4 overflow-y-auto p-4">
+            {messages.length === 0 && (
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-100 text-2xl dark:bg-sage-800">
+                  💬
+                </div>
+                <p className="text-lg font-semibold text-sage-800 dark:text-sage-100">
+                  How can I help you understand a medication?
+                </p>
+                <p className="mt-1 max-w-sm text-sm text-sage-500 dark:text-sage-400">
+                  Ask about an FDA-approved drug — indications, warnings, dosage,
+                  or interactions. Every answer is grounded in official label text.
+                </p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  {EXAMPLES.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => send(q)}
+                      className="rounded-full border border-sage-200 px-3 py-1.5 text-sm text-sage-700 transition hover:border-sage-300 hover:bg-sage-50 dark:border-sage-700 dark:text-sage-200 dark:hover:bg-sage-800"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {messages.map((msg, i) => (
-            <div key={i}>
-              <Message role={msg.role} content={msg.content} isRefusal={msg.isRefusal} />
-              {msg.citations && msg.citations.length > 0 && (
-                <Citations citations={msg.citations} />
-              )}
-              {msg.traceId && <TracePanel traceId={msg.traceId} />}
-            </div>
-          ))}
-          {isStreaming && (
-            <div className="flex items-center space-x-2 text-gray-400">
-              <div className="animate-pulse">Thinking...</div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            )}
+            {messages.map((msg, i) => {
+              const isLast = i === messages.length - 1;
+              return (
+                <div key={i}>
+                  <Message
+                    role={msg.role}
+                    content={msg.content}
+                    isRefusal={msg.isRefusal}
+                    isBlocked={msg.isBlocked}
+                    streaming={isStreaming && isLast && msg.role === "assistant"}
+                    citations={msg.citations}
+                    onCitationClick={handleCitationClick}
+                  />
+                  {msg.citations && msg.citations.length > 0 && (
+                    <Citations
+                      citations={msg.citations}
+                      onCitationClick={handleCitationClick}
+                    />
+                  )}
+                  {msg.traceId && <TracePanel traceId={msg.traceId} />}
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-2 border-t border-sage-100 p-3 dark:border-sage-800"
+          >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about a drug's warnings, dosage, interactions…"
+              className="flex-1 rounded-xl border border-sage-200 bg-sage-50 px-4 py-2.5 text-sm text-sage-900 outline-none transition placeholder:text-sage-400 focus:border-sage-400 focus:bg-white focus:ring-2 focus:ring-sage-200 dark:border-sage-700 dark:bg-sage-950 dark:text-sage-50 dark:focus:bg-sage-900 dark:focus:ring-sage-700"
+              disabled={isStreaming}
+            />
+            <button
+              type="submit"
+              disabled={isStreaming || !input.trim()}
+              className="rounded-xl bg-sage-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 disabled:opacity-50"
+            >
+              Send
+            </button>
+          </form>
         </div>
 
-        {/* Input */}
-        <form onSubmit={handleSubmit} className="flex border rounded-b-lg bg-white">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about a drug's warnings, dosage, interactions..."
-            className="flex-1 px-4 py-3 outline-none"
-            disabled={isStreaming}
-          />
-          <button
-            type="submit"
-            disabled={isStreaming || !input.trim()}
-            className="px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 rounded-br-lg"
-          >
-            Send
-          </button>
-        </form>
+        {/* RIGHT — live evidence panel */}
+        <div className="h-[26rem] min-h-0 lg:h-auto">{evidencePanel}</div>
       </div>
     </div>
   );

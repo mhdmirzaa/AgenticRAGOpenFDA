@@ -250,6 +250,107 @@ async def fetch_drug_labels(
     return records
 
 
+async def fetch_newest_labels(
+    *,
+    skip: int = 0,
+    limit: int = 25,
+    api_key: str | None = None,
+) -> tuple[list[DrugLabelRecord], str]:
+    """Fetch a page of labels sorted by most-recently-effective (for growth).
+
+    Returns (records, max_effective_time). Pages the openFDA catalog with
+    `sort=effective_time:desc` + `skip`, so successive growth runs walk further
+    into the catalog and the corpus keeps growing (course-parity daily sync).
+    A 404 (skip past the end / no results) yields an empty page, not an error.
+    """
+    if api_key is None:
+        api_key = getattr(get_settings(), "openfda_api_key", "") or None
+
+    params: dict = {
+        "search": "_exists_:effective_time",
+        "sort": "effective_time:desc",
+        "skip": skip,
+        "limit": limit,
+    }
+    if api_key:
+        params["api_key"] = api_key
+
+    records: list[DrugLabelRecord] = []
+    max_effective = ""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            resp = await client.get(OPENFDA_ENDPOINT, params=params)
+            if resp.status_code == 404:
+                return [], ""
+            resp.raise_for_status()
+            results = resp.json().get("results", [])
+        except Exception as e:
+            logger.warning("openFDA growth fetch failed (skip=%s): %s", skip, e)
+            return [], ""
+
+    for result in results:
+        rec = parse_label(result)
+        if rec is not None:
+            records.append(rec)
+        eff = _first(result.get("effective_time"))
+        if eff > max_effective:
+            max_effective = eff
+    return records, max_effective
+
+
+# openFDA caps `skip` at 25,000; wrap the paging cursor before then.
+_MAX_SKIP = 24_000
+
+_GROWTH_SKIP_KEY = "fda_growth_skip"
+_GROWTH_WATERMARK_KEY = "fda_growth_watermark"
+
+
+async def run_fda_growth(*, batch_size: int | None = None) -> dict:
+    """One daily growth batch: fetch the next page of newest labels and index.
+
+    Watermark = a paging cursor persisted in the KV store; each run advances it
+    so the corpus grows additively. Dedupe by label_id means already-known
+    labels on a page are skipped (idempotent). Degrades gracefully with no DB.
+    Returns {labels_fetched, labels_indexed, chunks_indexed, skipped, skip_next}.
+    """
+    if batch_size is None:
+        batch_size = getattr(get_settings(), "growth_batch_size", 25)
+
+    # Load the paging cursor + known ids from the DB (best-effort).
+    skip = 0
+    known: set[str] = set()
+    try:
+        from app.db import get_kv, get_known_label_ids
+        skip = int(get_kv(_GROWTH_SKIP_KEY, "0") or "0")
+        known = get_known_label_ids()
+    except Exception as e:
+        logger.warning("growth state load skipped: %s", e)
+
+    if skip > _MAX_SKIP:
+        skip = 0  # wrap around the catalog
+
+    records, max_effective = await fetch_newest_labels(skip=skip, limit=batch_size)
+    fresh = dedupe_records(records, known_label_ids=known)
+    stats = await ingest_records(fresh)
+    stats["labels_fetched"] = len(records)
+    stats["skipped"] = len(records) - len(fresh)
+
+    skip_next = skip + batch_size
+    try:
+        from app.db import set_kv, record_labels
+        set_kv(_GROWTH_SKIP_KEY, str(skip_next))
+        if max_effective:
+            set_kv(_GROWTH_WATERMARK_KEY, max_effective)
+        if fresh:
+            stats["labels_recorded"] = record_labels(fresh)
+    except Exception as e:
+        logger.warning("growth state persist skipped: %s", e)
+
+    stats["skip_next"] = skip_next
+    stats["watermark"] = max_effective
+    return stats
+
+
 async def ingest_records(
     records: list[DrugLabelRecord],
     *,

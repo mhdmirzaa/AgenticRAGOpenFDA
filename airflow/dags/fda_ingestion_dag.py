@@ -34,8 +34,8 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
-# Interval is configurable via env; default */15 (every 15 minutes) for the demo.
-FDA_DAG_SCHEDULE = os.environ.get("FDA_DAG_SCHEDULE", "*/15 * * * *")
+# Interval is configurable via env; default @daily (course parity: daily sync).
+FDA_DAG_SCHEDULE = os.environ.get("FDA_DAG_SCHEDULE", "@daily")
 # The backend service that owns Chroma + Postgres (single writer).
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://backend:8000")
 
@@ -115,6 +115,22 @@ def index_and_record(**context):
         return resp.json()
 
 
+def grow_corpus(**context):
+    """Delegate one continuous-growth batch to the backend (single writer).
+
+    POST /ingest/fda/grow fetches the next page of newest openFDA labels beyond
+    the stored watermark and indexes the fresh ones — course-parity daily corpus
+    growth. Additive + idempotent (dedupe by label_id).
+    """
+    import httpx
+
+    url = f"{BACKEND_URL}/ingest/fda/grow"
+    with httpx.Client(timeout=300.0) as client:
+        resp = client.post(url, json={})
+        resp.raise_for_status()
+        return resp.json()
+
+
 with DAG(
     dag_id="fda_ingestion",
     description="Fetch openFDA drug labels and index them (idempotent, deduped).",
@@ -129,5 +145,7 @@ with DAG(
     t_extract = PythonOperator(task_id="extract_sections", python_callable=extract_sections)
     t_dedupe = PythonOperator(task_id="dedupe", python_callable=dedupe)
     t_index_record = PythonOperator(task_id="index_and_record", python_callable=index_and_record)
+    t_grow = PythonOperator(task_id="grow_corpus", python_callable=grow_corpus)
 
-    t_fetch >> t_extract >> t_dedupe >> t_index_record
+    # Seed dedupe/index first, then grow the corpus by one page (daily sync).
+    t_fetch >> t_extract >> t_dedupe >> t_index_record >> t_grow

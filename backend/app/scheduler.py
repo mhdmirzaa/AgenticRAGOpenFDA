@@ -47,6 +47,25 @@ def run_ingestion_job() -> dict:
         return {"error": str(e)}
 
 
+def run_growth_job() -> dict:
+    """One continuous-growth batch (course parity: daily openFDA sync).
+
+    Fetches the next page of newest labels beyond the stored watermark and
+    indexes the fresh ones. Additive + idempotent; degrades gracefully with no
+    DB (paging cursor resets to 0). Kept separate from `run_ingestion_job` so
+    each has a single, testable responsibility.
+    """
+    from app.ingestion.openfda import run_fda_growth
+
+    try:
+        stats = asyncio.run(run_fda_growth())
+        logger.info("scheduler: growth complete %s", stats)
+        return stats
+    except Exception as e:
+        logger.error("scheduler: growth job failed: %s", e)
+        return {"error": str(e)}
+
+
 def start_scheduler(
     *,
     enabled: bool | None = None,
@@ -73,6 +92,17 @@ def start_scheduler(
         trigger="interval",
         minutes=minutes,
         id="fda_ingestion",
+        max_instances=1,
+        coalesce=True,
+        replace_existing=True,
+    )
+    # Continuous corpus growth (course parity): one page of newest labels per
+    # interval, additive + idempotent.
+    _scheduler.add_job(
+        run_growth_job,
+        trigger="interval",
+        minutes=minutes,
+        id="fda_growth",
         max_instances=1,
         coalesce=True,
         replace_existing=True,

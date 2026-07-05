@@ -25,3 +25,6 @@ class RagState(TypedDict, total=False):
     is_sufficient: bool              # grade decision
     refused: bool                    # whether agent refused to answer
     use_hybrid: bool                 # optimized mode: dense+BM25 hybrid retrieval + rerank
+    blocked: bool                    # guardrail blocked the question (safety)
+    block_category: str              # SELFHARM | MISUSE | ADVICE (when blocked)
+    block_message: str               # the tone-appropriate refusal text

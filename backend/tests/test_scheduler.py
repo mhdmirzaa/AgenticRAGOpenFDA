@@ -70,15 +70,18 @@ class TestSchedulerLifecycle:
         s = sched.start_scheduler(enabled=False)
         assert s is None
 
-    def test_enabled_registers_one_interval_job(self):
+    def test_enabled_registers_interval_jobs(self):
         import app.scheduler as sched
         s = sched.start_scheduler(enabled=True, minutes=15, run_now=False)
         try:
             assert s is not None
             jobs = s.get_jobs()
-            assert len(jobs) == 1
+            # Two jobs now: seed ingestion + continuous growth (course parity).
+            job_ids = {j.id for j in jobs}
+            assert job_ids == {"fda_ingestion", "fda_growth"}
             # interval trigger fires every 15 minutes
-            assert "900" in str(jobs[0].trigger) or "15:00" in str(jobs[0].trigger)
+            assert all("900" in str(j.trigger) or "15:00" in str(j.trigger)
+                       for j in jobs)
         finally:
             sched.shutdown_scheduler()
 

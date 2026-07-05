@@ -3,30 +3,29 @@
     "mode": "baseline",
     "total_questions": 17,
     "successful": 17,
-    "avg_hit_at_1": 0.8235294117647058,
+    "avg_hit_at_1": 0.8823529411764706,
     "avg_hit_at_3": 0.9411764705882353,
     "avg_hit_at_5": 0.9411764705882353,
-    "avg_mrr": 0.8725490196078431,
+    "avg_mrr": 0.9117647058823529,
     "avg_citation_accuracy": 0.9411764705882353,
     "avg_refusal_correctness": 0.9411764705882353,
     "avg_answer_match": 0.9411764705882353,
-    "avg_faithfulness": 0.9285714285714286,
-    "faithfulness_n": 14
+    "avg_faithfulness": 1.0,
+    "faithfulness_n": 13
   },
   "details": [
     {
       "id": "q1",
       "question": "What is ibuprofen used for?",
-      "answer": "Ibuprofen temporarily relieves minor aches and pains due to headache, toothache, backache, menstrual cramps, the common cold, muscular aches, and minor pain of arthritis. It also temporarily reduces fever [2]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Ibuprofen is used to temporarily relieve minor aches and pains due to headache, toothache, backache, menstrual cramps, the common cold, muscular aches, and minor pain of arthritis. It also temporarily reduces fever [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "ASPIRIN#indications-and-usage",
         "IBUPROFEN#indications-and-usage",
-        "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS#indications-and-usage"
+        "ACETAMINOPHEN#indications-and-usage"
       ],
       "citations": [
         {
-          "marker": "[2]",
+          "marker": "[1]",
           "source": "IBUPROFEN",
           "section": "indications-and-usage",
           "chunk_id": "IBUPROFEN#indications-and-usage:f6e8f245",
@@ -41,10 +40,10 @@
       "answer_contains_terms": [
         "pain"
       ],
-      "hit_at_1": 0.0,
+      "hit_at_1": 1.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.5,
+      "mrr": 1.0,
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
@@ -53,12 +52,11 @@
     {
       "id": "q2",
       "question": "What are the warnings for ibuprofen?",
-      "answer": "Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin, with symptoms including rash, facial swelling, asthma (wheezing), hives, skin reddening, shock, and blisters. If an allergic reaction occurs, stop use and seek medical help right away [1]. This product contains an NSAID, which may cause severe stomach bleeding. The chance is higher if you take more or for a longer time than directed, take a blood thinning or steroid drug, have had stomach ulcers or bleeding problems, have 3 or more alcoholic drinks every day while using this product, are age 60 or older, or take other drugs containing NSAIDs [1]. NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke, which can be fatal. The risk is higher if used more than directed or for longer than directed [1]. Do not use if you have ever had an allergic reaction to any other pain reliever/fever reducer right before or after heart surgery [1]. Ask a doctor before use if stomach bleeding warning applies, if you have a history of stomach problems such as heartburn, high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke, if you are taking a diuretic, or if you have problems or serious side effects from taking pain relievers or fever reducers [1]. Ask a doctor or pharmacist before use if you are under a doctor's care for any serious condition, taking aspirin for heart attack or stroke because ibuprofen may decrease this benefit, or taking any other drug [1]. Take with food or milk if stomach upset occurs [1]. Stop use and ask a doctor if you experience signs of stomach bleeding such as feeling faint, bloody or black stools, vomiting blood, or stomach pain that does not get better; symptoms of heart problems or stroke such as chest pain, slurred speech, trouble breathing, leg swelling, or weakness in one part or side of the body; pain that gets worse or lasts more than 10 days; fever that gets worse or lasts more than 3 days; redness or swelling in the painful area; or any new symptoms [1]. If pregnant or breast-feeding, ask a health professional before use. It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed by a doctor because it may cause problems in the unborn child or complications during delivery [1]. Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin, with symptoms including rash, facial swelling, asthma (wheezing), hives, skin reddening, shock, and blisters. If an allergic reaction occurs, stop use and seek medical help right away [1]. This product contains an NSAID, which may cause severe stomach bleeding. The chance is higher if you take more or for a longer time than directed, take a blood thinning (anticoagulant) or steroid drug, have had stomach ulcers or bleeding problems, have 3 or more alcoholic drinks every day while using this product, are age 60 or older, or take other drugs containing prescription or nonprescription NSAIDs [aspirin, ibuprofen, naproxen, or others] [1]. NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke, which can be fatal. The risk is higher if you use more than directed or for longer than directed [1]. Do not use if you have ever had an allergic reaction to any other pain reliever/fever reducer or right before or after heart surgery [1]. Ask a doctor before use if stomach bleeding warning applies to you; you have a history of stomach problems, such as heartburn; you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke; you are taking a diuretic; or you have problems or serious side effects from taking pain relievers or fever reducers [1]. Ask a doctor or pharmacist before use if you are under a doctor's care for any serious condition, taking aspirin for heart attack or stroke because ibuprofen may decrease this benefit of aspirin, or taking any other drug [1]. When using this product, take with food or milk if stomach upset occurs [1]. Stop use and ask a doctor if you experience any signs of stomach bleeding such as feeling faint, having bloody or black stools, vomiting blood, or having stomach pain that does not get better [1]. Also stop use and ask a doctor if you have symptoms of heart problems or stroke including chest pain, slurred speech, trouble breathing, leg swelling, or weakness in one part or side of the body; if pain gets worse or lasts more than 10 days; if fever gets worse or lasts more than 3 days; if redness or swelling is present in the painful area; or if any new symptoms appear [1]. If pregnant or breast-feeding, ask a health professional before use. It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery [1]. Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "IBUPROFEN#warnings",
-        "ASPIRIN#warnings",
-        "NAPROXEN#boxed-warning"
+        "ASPIRIN#warnings"
       ],
       "citations": [
         {
@@ -87,16 +85,15 @@
     {
       "id": "q3",
       "question": "What is acetaminophen used to treat?",
-      "answer": "Acetaminophen is used to temporarily relieve minor aches and pains due to headache, the common cold, backache, minor pain of arthritis, toothache, muscular aches, premenstrual and menstrual cramps. It also temporarily reduces fever [3]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Acetaminophen is used to temporarily relieve minor aches and pains due to headache, the common cold, backache, minor pain of arthritis, toothache, muscular aches, premenstrual and menstrual cramps. It also temporarily reduces fever [2]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "ASPIRIN#indications-and-usage",
         "IBUPROFEN#indications-and-usage",
         "ACETAMINOPHEN#indications-and-usage"
       ],
       "citations": [
         {
-          "marker": "[3]",
+          "marker": "[2]",
           "source": "ACETAMINOPHEN",
           "section": "indications-and-usage",
           "chunk_id": "ACETAMINOPHEN#indications-and-usage:715efa71",
@@ -114,7 +111,7 @@
       "hit_at_1": 0.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.3333333333333333,
+      "mrr": 0.5,
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
@@ -123,10 +120,11 @@
     {
       "id": "q4",
       "question": "What is aspirin indicated for?",
-      "answer": "Aspirin is indicated for the temporary relief of minor aches and pains or as recommended by your doctor. Because of its delayed action, this product will not provide fast relief of headaches or other symptoms needing immediate relief [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Aspirin is indicated for the temporary relief of minor aches and pains or as recommended by your doctor [1]. Because of its delayed action, it will not provide fast relief of headaches or other symptoms needing immediate relief [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "ASPIRIN#indications-and-usage"
+        "ASPIRIN#indications-and-usage",
+        "IBUPROFEN#indications-and-usage"
       ],
       "citations": [
         {
@@ -157,12 +155,11 @@
     {
       "id": "q5",
       "question": "What is the boxed warning for warfarin?",
-      "answer": "WARNING: BLEEDING RISK Warfarin sodium can cause major or fatal bleeding. Perform regular monitoring of INR in all treated patients. Drugs, dietary changes, and other factors affect INR levels achieved with warfarin sodium therapy. Instruct patients about prevention measures to minimize risk of bleeding and to report signs and symptoms of bleeding [1]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Warfarin sodium can cause major or fatal bleeding. Perform regular monitoring of INR in all treated patients. Drugs, dietary changes, and other factors affect INR levels achieved with warfarin sodium therapy. Instruct patients about prevention measures to minimize risk of bleeding and to report signs and symptoms of bleeding [1][2]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "WARFARIN SODIUM#boxed-warning",
-        "MONTELUKAST SODIUM#boxed-warning",
-        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning"
+        "WARFARIN SODIUM#warnings-and-cautions"
       ],
       "citations": [
         {
@@ -173,6 +170,15 @@
           "text": "## Boxed Warning\n\nWARNING: BLEEDING RISK Warfarin sodium can cause major or fatal bleeding [see Warnings and Precautions ( 5.1 )] . Perform regular monitoring of INR in all treated patients [see Dosag",
           "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
           "section_title": "Boxed Warning"
+        },
+        {
+          "marker": "[2]",
+          "source": "WARFARIN SODIUM",
+          "section": "warnings-and-cautions",
+          "chunk_id": "WARFARIN SODIUM#warnings-and-cautions:6b3c1b09",
+          "text": "5 WARNINGS AND PRECAUTIONS Tissue necrosis: Necrosis or gangrene of skin or other tissues can occur, with severe cases requiring debridement or amputation. Discontinue warfarin sodium and consider alt",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Warnings And Cautions"
         }
       ],
       "expected_sources": [
@@ -193,11 +199,11 @@
     {
       "id": "q6",
       "question": "What are the contraindications of warfarin?",
-      "answer": "Warfarin sodium is contraindicated in pregnancy except in women with mechanical heart valves [1]. It is contraindicated in patients with hemorrhagic tendencies or blood dyscrasias [1]. It is contraindicated in recent or contemplated surgery of the central nervous system or eye, or traumatic surgery resulting in large open surfaces [1]. It is contraindicated in bleeding tendencies associated with active ulceration or overt bleeding of the gastrointestinal, genitourinary, or respiratory tract; central nervous system hemorrhage; cerebral aneurysms; dissecting aorta; pericarditis and pericardial effusions; and bacterial endocarditis [1]. It is contraindicated in threatened abortion, eclampsia, and preeclampsia [1]. It is contraindicated in unsupervised patients with conditions associated with potential high levels of non-compliance [1]. It is contraindicated in spinal puncture and other diagnostic or therapeutic procedures with potential for uncontrollable bleeding [1]. It is contraindicated in hypersensitivity to warfarin or any other components of the product [1]. It is contraindicated in major regional or lumbar block anesthesia [1]. It is contraindicated in malignant hypertension [1]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Warfarin sodium is contraindicated in pregnancy except in women with mechanical heart valves [1]. It is contraindicated in patients with hemorrhagic tendencies or blood dyscrasias [1]. It is contraindicated in recent or contemplated surgery of the central nervous system or eye, or traumatic surgery resulting in large open surfaces [1]. It is contraindicated in bleeding tendencies associated with active ulceration or overt bleeding of the gastrointestinal, genitourinary, or respiratory tract, central nervous system hemorrhage, cerebral aneurysms, dissecting aorta, pericarditis and pericardial effusions, and bacterial endocarditis [1]. It is contraindicated in threatened abortion, eclampsia, and preeclampsia [1]. It is contraindicated in unsupervised patients with conditions associated with potential high level of non-compliance [1]. It is contraindicated in spinal puncture and other diagnostic or therapeutic procedures with potential for uncontrollable bleeding [1]. It is contraindicated in hypersensitivity to warfarin or any other components of the product [1]. It is contraindicated in major regional or lumbar block anesthesia [1]. It is contraindicated in malignant hypertension [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "WARFARIN SODIUM#contraindications",
-        "WARFARIN SODIUM#contraindications"
+        "ASCORBIC ACID, TOCOPHERYL ACID SUCCINATE, THIAMINE, RIBOFLAVIN, NIACINAMIDE, PYRIDOXINE, FOLIC ACID, COBALAMIN, BIOTIN, PANTOTHENIC ACID, ZINC, SELENIUM#contraindications"
       ],
       "citations": [
         {
@@ -229,9 +235,7 @@
       "answer": "Antidepressants increased the risk compared to placebo of suicidal thinking and behavior (suicidality) in children, adolescents, and young adults in short-term studies of major depressive disorder (MDD) and other psychiatric disorders. Anyone considering the use of Sertraline hydrochloride or any other antidepressant in a child, adolescent, or young adult must balance this risk with the clinical need. Short-term studies did not show an increase in the risk of suicidality with antidepressants compared to placebo in adults beyond age 24; there was a reduction in risk with antidepressants compared to placebo in adults aged 65 and older. Patients of all ages who are started on antidepressant therapy should be monitored appropriately and observed closely for clinical worsening, suicidality, or unusual changes in behavior. Families and caregivers should be advised of the need for close observation and communication with the prescriber. Sertraline hydrochloride tablets are not approved for the treatment of major depressive disorder in pediatric patients [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "SERTRALINE HYDROCHLORIDE#boxed-warning",
-        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning",
-        "MONTELUKAST SODIUM#boxed-warning"
+        "SERTRALINE HYDROCHLORIDE#boxed-warning"
       ],
       "citations": [
         {
@@ -265,9 +269,7 @@
       "answer": "WARNING: RISK OF SERIOUS CARDIOVASCULAR AND GASTROINTESTINAL EVENTS. Nonsteroidal anti-inflammatory drugs (NSAIDs) cause an increased risk of serious cardiovascular thrombotic events, including myocardial infarction and stroke, which can be fatal. This risk may occur early in treatment and may increase with duration of use. Naproxen tablets and naproxen sodium tablets are contraindicated in the setting of coronary artery bypass graft (CABG) surgery. NSAIDs cause an increased risk of serious gastrointestinal (GI) adverse events including bleeding, ulceration, and perforation of the stomach or intestines, which can be fatal. These events can occur at any time during use and without warning symptoms. Elderly patients and patients with a prior history of peptic ulcer disease and/or GI bleeding are at greater risk for serious GI events [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "NAPROXEN#boxed-warning",
-        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning",
-        "MONTELUKAST SODIUM#boxed-warning"
+        "NAPROXEN#boxed-warning"
       ],
       "citations": [
         {
@@ -330,7 +332,7 @@
     {
       "id": "q10",
       "question": "What is atorvastatin used for?",
-      "answer": "Atorvastatin calcium tablets are indicated to reduce the risk of myocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk factors for coronary heart disease (CHD) but without clinically evident CHD. They are also indicated to reduce the risk of MI and stroke in adults with type 2 diabetes mellitus with multiple risk factors for CHD but without clinically evident CHD. Additionally, they reduce the risk of non-fatal MI, fatal and non-fatal stroke, revascularization procedures, hospitalization for congestive heart failure, and angina in adults with clinically evident CHD. Atorvastatin is used as an adjunct to diet to reduce low-density lipoprotein cholesterol (LDL-C) in adults with primary hyperlipidemia, adults and pediatric patients aged 10 years and older with heterozygous familial hypercholesterolemia (HeFH), and as an adjunct to other LDL-C-lowering therapies or alone if such treatments are unavailable, to reduce LDL-C in adults and pediatric patients aged 10 years and older with homozygous familial hypercholesterolemia (HoFH). It is also used as an adjunct to diet for the treatment of adults with primary dysbetalipoproteinemia and hypertriglyceridemia [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Atorvastatin calcium tablets are indicated to reduce the risk of myocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk factors for coronary heart disease (CHD) but without clinically evident CHD. They are also indicated to reduce MI and stroke in adults with type 2 diabetes mellitus with multiple risk factors for CHD but without clinically evident CHD. Additionally, they reduce non-fatal MI, fatal and non-fatal stroke, revascularization procedures, hospitalization for congestive heart failure, and angina in adults with clinically evident CHD. Atorvastatin is used as an adjunct to diet to reduce low-density lipoprotein cholesterol (LDL-C) in adults with primary hyperlipidemia, adults and pediatric patients aged 10 years and older with heterozygous familial hypercholesterolemia (HeFH), and adults and pediatric patients aged 10 years and older with homozygous familial hypercholesterolemia (HoFH). It is also used as an adjunct to diet for the treatment of adults with primary dysbetalipoproteinemia and hypertriglyceridemia [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "ATORVASTATIN CALCIUM#indications-and-usage"
@@ -362,13 +364,10 @@
     {
       "id": "q11",
       "question": "What drug interactions are listed for ciprofloxacin?",
-      "answer": "Systemic administration of some quinolones, including ciprofloxacin, has been shown to elevate plasma concentrations of theophylline, interfere with the metabolism of caffeine, enhance the effects of the oral anticoagulant warfarin and its derivatives, and has been associated with transient elevations in serum creatinine in patients receiving cyclosporine concomitantly [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Specific drug interaction studies have not been conducted with ophthalmic ciprofloxacin. However, systemic administration of some quinolones has been shown to elevate plasma concentrations of theophylline, interfere with the metabolism of caffeine, enhance the effects of the oral anticoagulant warfarin and its derivatives, and has been associated with transient elevations in serum creatinine in patients receiving cyclosporine concomitantly [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "CIPROFLOXACIN#drug-interactions",
-        "WARFARIN SODIUM#drug-interactions",
-        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#drug-interactions",
-        "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS#drug-interactions"
+        "CIPROFLOXACIN#drug-interactions"
       ],
       "citations": [
         {
@@ -397,10 +396,12 @@
     {
       "id": "q12",
       "question": "What is gabapentin indicated to treat?",
-      "answer": "Gabapentin Capsules, USP are indicated for the management of postherpetic neuralgia in adults. Gabapentin Capsules, USP are also indicated as adjunctive therapy in the treatment of partial onset seizures, with and without secondary generalization, in adults and pediatric patients 3 years and older with epilepsy [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Gabapentin is indicated for the management of postherpetic neuralgia in adults. It is also indicated as adjunctive therapy in the treatment of partial onset seizures, with and without secondary generalization, in adults and pediatric patients 3 years and older with epilepsy [1].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "GABAPENTIN#indications-and-usage"
+        "GABAPENTIN#indications-and-usage",
+        "GABAPENTIN#dosage-and-administration",
+        "GABAPENTIN#dosage-and-administration"
       ],
       "citations": [
         {
@@ -429,15 +430,26 @@
     {
       "id": "q13",
       "question": "Is there a bleeding risk if I take ibuprofen together with warfarin?",
-      "answer": "Concomitant use of ibuprofen, a non-steroidal anti-inflammatory agent, with warfarin increases the risk of bleeding. Ibuprofen is listed among drugs that can increase the risk of bleeding when used with warfarin, and patients should be closely monitored for bleeding risk [1]. Additionally, ibuprofen itself may cause severe stomach bleeding, and the chance is higher if taken with a blood thinning (anticoagulant) drug such as warfarin [2]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Taking ibuprofen together with warfarin increases the risk of bleeding because ibuprofen is a non-steroidal anti-inflammatory agent that can increase bleeding risk when used concomitantly with warfarin [1][3]. Warfarin sodium itself carries a boxed warning for major or fatal bleeding and requires regular INR monitoring, especially when used with drugs that increase bleeding risk such as NSAIDs including ibuprofen [2][3][4]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
+        "IBUPROFEN#warnings",
+        "WARFARIN SODIUM#boxed-warning",
         "WARFARIN SODIUM#drug-interactions",
-        "IBUPROFEN#warnings"
+        "WARFARIN SODIUM#warnings-and-cautions"
       ],
       "citations": [
         {
           "marker": "[1]",
+          "source": "IBUPROFEN",
+          "section": "warnings",
+          "chunk_id": "IBUPROFEN#warnings:e36dad14",
+          "text": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shoc",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
+          "section_title": "Warnings"
+        },
+        {
+          "marker": "[3]",
           "source": "WARFARIN SODIUM",
           "section": "drug-interactions",
           "chunk_id": "WARFARIN SODIUM#drug-interactions:f9e57619",
@@ -447,12 +459,21 @@
         },
         {
           "marker": "[2]",
-          "source": "IBUPROFEN",
-          "section": "warnings",
-          "chunk_id": "IBUPROFEN#warnings:e36dad14",
-          "text": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shoc",
-          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
-          "section_title": "Warnings"
+          "source": "WARFARIN SODIUM",
+          "section": "boxed-warning",
+          "chunk_id": "WARFARIN SODIUM#boxed-warning:1b550079",
+          "text": "## Boxed Warning\n\nWARNING: BLEEDING RISK Warfarin sodium can cause major or fatal bleeding [see Warnings and Precautions ( 5.1 )] . Perform regular monitoring of INR in all treated patients [see Dosag",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Boxed Warning"
+        },
+        {
+          "marker": "[4]",
+          "source": "WARFARIN SODIUM",
+          "section": "warnings-and-cautions",
+          "chunk_id": "WARFARIN SODIUM#warnings-and-cautions:6b3c1b09",
+          "text": "5 WARNINGS AND PRECAUTIONS Tissue necrosis: Necrosis or gangrene of skin or other tissues can occur, with severe cases requiring debridement or amputation. Discontinue warfarin sodium and consider alt",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Warnings And Cautions"
         }
       ],
       "expected_sources": [
@@ -474,12 +495,9 @@
     {
       "id": "q14",
       "question": "What boxed warnings do warfarin and clopidogrel carry?",
-      "answer": "I cannot answer this question based on the available FDA label information. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
-      "refused": false,
-      "retrieved_sources": [
-        "MONTELUKAST SODIUM#boxed-warning",
-        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#boxed-warning"
-      ],
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
       "citations": [],
       "expected_sources": [
         "WARFARIN SODIUM#boxed-warning",
@@ -493,9 +511,9 @@
       "hit_at_5": 0.0,
       "mrr": 0.0,
       "citation_accuracy": 0.0,
-      "refusal_correctness": 1.0,
+      "refusal_correctness": 0.0,
       "answer_match": 0.0,
-      "faithfulness": 0.0
+      "faithfulness": null
     },
     {
       "id": "q15",
@@ -536,14 +554,9 @@
     {
       "id": "q17",
       "question": "What is the recommended dosage of insulin glargine?",
-      "answer": "I cannot answer this question based on the available FDA label information.  \nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
-      "refused": false,
-      "retrieved_sources": [
-        "SITAGLIPTIN AND METFORMIN HYDROCHLORIDE#dosage-and-administration",
-        "GABAPENTIN#dosage-and-administration",
-        "PREDNISONE#dosage-and-administration",
-        "SIMVASTATIN#dosage-and-administration"
-      ],
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
       "citations": [],
       "expected_sources": [],
       "answer_contains_terms": [],
@@ -552,7 +565,7 @@
       "hit_at_5": 1.0,
       "mrr": 1.0,
       "citation_accuracy": 1.0,
-      "refusal_correctness": 0.0,
+      "refusal_correctness": 1.0,
       "answer_match": 1.0,
       "faithfulness": null
     }

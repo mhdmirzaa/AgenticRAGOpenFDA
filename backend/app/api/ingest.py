@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from app.ingestion.loader import load_corpus
 from app.ingestion.chunker import chunk_documents
 from app.ingestion.indexer import index_chunks
-from app.ingestion.openfda import run_fda_ingestion
+from app.ingestion.openfda import run_fda_ingestion, run_fda_growth
 from app.retrieval.vectorstore import get_vectorstore
 
 router = APIRouter()
@@ -70,6 +70,26 @@ async def ingest_fda(request: FdaIngestRequest | None = None):
         return {"status": "success", **stats}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"openFDA ingestion failed: {str(e)}")
+
+
+class GrowRequest(BaseModel):
+    """Optional override for one growth batch."""
+    batch_size: int | None = None
+
+
+@router.post("/ingest/fda/grow")
+async def ingest_fda_grow(request: GrowRequest | None = None):
+    """Run one daily growth batch (course parity: continuous corpus growth).
+
+    Fetches the next page of newest openFDA labels beyond the stored watermark,
+    dedupes by label_id, and indexes the fresh ones. Idempotent + additive.
+    """
+    req = request or GrowRequest()
+    try:
+        stats = await run_fda_growth(batch_size=req.batch_size)
+        return {"status": "success", **stats}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"openFDA growth failed: {str(e)}")
 
 
 def _known_label_ids() -> set[str]:

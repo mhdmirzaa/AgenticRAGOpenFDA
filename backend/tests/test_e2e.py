@@ -37,6 +37,11 @@ class FakeProvider:
 
     def _reply(self, prompt: str) -> str:
         p = prompt.lower()
+        if "safety classifier" in p:
+            # Guardrail runs first on every path; treat handbook/drug questions
+            # as SAFE deterministically (guardrail-specific tests use their own
+            # providers to exercise the block categories).
+            return "SAFE"
         if "query router" in p:
             return "RETRIEVE"
         if "search query optimizer" in p:

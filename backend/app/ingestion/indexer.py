@@ -48,12 +48,23 @@ async def index_chunks(chunks: list) -> int:
                     meta[key] = val
             all_metadatas.append(meta)
 
-    # Upsert to Chroma
-    vs.add(
-        ids=all_ids,
-        embeddings=all_embeddings,
-        documents=all_documents,
-        metadatas=all_metadatas,
-    )
+    # Primary store: OpenSearch when configured (course parity); otherwise the
+    # embedded Chroma fallback. Both take the same (ids, embeddings, docs, meta).
+    from app.retrieval.opensearch_store import get_opensearch_store
+    store = get_opensearch_store()
+    if store is not None:
+        store.add(
+            ids=all_ids,
+            embeddings=all_embeddings,
+            documents=all_documents,
+            metadatas=all_metadatas,
+        )
+    else:
+        vs.add(
+            ids=all_ids,
+            embeddings=all_embeddings,
+            documents=all_documents,
+            metadatas=all_metadatas,
+        )
 
     return len(all_ids)

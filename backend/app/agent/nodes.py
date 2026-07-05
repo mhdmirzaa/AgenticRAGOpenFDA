@@ -17,11 +17,102 @@ from app.agent.prompts import (
     GRADE_PROMPT,
     GENERATE_PROMPT,
     REFUSE_PROMPT,
+    GUARDRAIL_PROMPT,
+    GUARDRAIL_REFUSE_CARING,
+    GUARDRAIL_REFUSE_NEUTRAL,
+    GUARDRAIL_REFUSE_ADVICE,
 )
 from app.config import get_settings
 from app.models import Citation, TraceStep
 from app.providers.base import get_provider
 from app.retrieval.vectorstore import get_vectorstore
+
+
+# Keyword fast-path for the safety guardrail: obvious, deterministic, free.
+# Maps a matched phrase to a block category. Legitimate dosing questions ("max
+# safe dose") are intentionally NOT here — they fall through to SAFE / the LLM.
+_SELFHARM_PATTERNS = [
+    "kill myself", "suicide", "suicidal", "end my life", "overdose to die",
+    "how much to die", "lethal dose", "fatal dose", "how much would kill",
+    "enough to die", "want to die", "how to overdose", "od on",
+]
+_MISUSE_PATTERNS = [
+    "get high", "getting high", "to get high on", "abuse", "recreational",
+    "snort", "inject to", "ignore your instructions", "ignore previous",
+    "disregard your", "how to poison", "harm someone", "hurt someone",
+]
+
+_BLOCK_MESSAGES = {
+    "SELFHARM": GUARDRAIL_REFUSE_CARING,
+    "MISUSE": GUARDRAIL_REFUSE_NEUTRAL,
+    "ADVICE": GUARDRAIL_REFUSE_ADVICE,
+}
+
+
+def _keyword_guardrail(question: str) -> str | None:
+    """Deterministic fast-path. Returns a block category or None (undecided)."""
+    q = question.lower()
+    for p in _SELFHARM_PATTERNS:
+        if p in q:
+            return "SELFHARM"
+    for p in _MISUSE_PATTERNS:
+        if p in q:
+            return "MISUSE"
+    return None
+
+
+async def guardrail_node(state: RagState) -> dict:
+    """First node: decide whether the question may be answered at all.
+
+    Hybrid decision: a keyword fast-path handles obvious unsafe cases instantly
+    and for free; anything it can't settle goes to one small gpt-4.1-mini intent
+    check. If the LLM call fails, we degrade to the keyword verdict (SAFE if the
+    fast-path also found nothing) so the guardrail never breaks a request.
+    """
+    settings = get_settings()
+    question = state["question"]
+
+    if not settings.enable_guardrail:
+        return {"blocked": False, "trace_id": state.get("trace_id", str(uuid.uuid4()))}
+
+    category = _keyword_guardrail(question)
+    decided_by = "keyword"
+
+    if category is None:
+        # Subtle / paraphrased cases -> one small LLM intent check.
+        try:
+            provider = get_provider()
+            resp = await provider.complete(GUARDRAIL_PROMPT.format(question=question))
+            verdict = resp.strip().upper()
+            decided_by = "llm"
+            if "SELFHARM" in verdict:
+                category = "SELFHARM"
+            elif "MISUSE" in verdict:
+                category = "MISUSE"
+            elif "ADVICE" in verdict:
+                category = "ADVICE"
+            else:
+                category = None  # SAFE
+        except Exception:
+            category = None  # degrade to keyword verdict (SAFE here)
+            decided_by = "keyword(llm-failed)"
+
+    blocked = category is not None
+    trace_step = TraceStep(
+        node="guardrail",
+        input=question,
+        output=(f"blocked={blocked} category={category or 'SAFE'} "
+                f"(via {decided_by})"),
+    )
+
+    return {
+        "blocked": blocked,
+        "block_category": category or "",
+        "block_message": _BLOCK_MESSAGES.get(category or "", ""),
+        "trace": state.get("trace", []) + [trace_step],
+        "trace_id": state.get("trace_id", str(uuid.uuid4())),
+        "iterations": 0,
+    }
 
 
 async def route_node(state: RagState) -> dict:
@@ -89,6 +180,18 @@ async def retrieve_node(state: RagState) -> dict:
 
     async def _compute() -> list[dict]:
         out: list[dict] = []
+
+        # Primary store: OpenSearch (BM25 + kNN, native hybrid RRF) when active.
+        from app.retrieval.opensearch_store import get_opensearch_store
+        store = get_opensearch_store()
+        if store is not None:
+            from app.retrieval.cache import cached_embed
+            query_embedding = await cached_embed(query)
+            if use_hybrid:
+                return store.hybrid_search(query, query_embedding, top_k=settings.top_k)
+            return store.dense_search(query_embedding, top_k=settings.top_k)
+
+        # Fallback store: embedded Chroma + rank-bm25.
         if use_hybrid:
             from app.retrieval.hybrid import get_hybrid_retriever
             retriever = get_hybrid_retriever()
@@ -302,15 +405,31 @@ async def generate_node(state: RagState) -> dict:
 
 
 async def refuse_node(state: RagState) -> dict:
-    """Refuse to answer when retrieval fails."""
-    trace_step = TraceStep(
-        node="refuse",
-        input=state["question"],
-        output="refused - insufficient relevant information",
-    )
+    """Refuse to answer.
+
+    Two distinct refusal moments share this node:
+      - guardrail block (unsafe/off-limits) -> a tone-appropriate safety message
+        (caring for self-harm, neutral for misuse/advice), traced as "blocked".
+      - unanswerable (route said off-domain, or the graded set stayed empty) ->
+        the standard "not in my FDA labels" refusal.
+    """
+    if state.get("blocked"):
+        answer = state.get("block_message") or REFUSE_PROMPT
+        trace_step = TraceStep(
+            node="refuse",
+            input=state["question"],
+            output=f"blocked by guardrail: {state.get('block_category', '')}",
+        )
+    else:
+        answer = REFUSE_PROMPT
+        trace_step = TraceStep(
+            node="refuse",
+            input=state["question"],
+            output="refused - insufficient relevant information",
+        )
 
     return {
-        "answer": REFUSE_PROMPT,
+        "answer": answer,
         "citations": [],
         "refused": True,
         "trace": state.get("trace", []) + [trace_step],

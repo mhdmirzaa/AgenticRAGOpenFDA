@@ -57,7 +57,7 @@ class OpenAIProvider(LLMProvider):
         settings = get_settings()
         self.api_key = settings.openai_api_key
         self.gen_model = settings.gen_model or "gpt-4.1-mini"
-        self.embed_model = settings.embed_model or "text-embedding-3-small"
+        self.embed_model = settings.embed_model or "text-embedding-3-large"
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY is required when LLM_PROVIDER=openai")
         self._client = httpx.AsyncClient(

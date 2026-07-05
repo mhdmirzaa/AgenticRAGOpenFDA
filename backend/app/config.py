@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     # gemini-embedding-001, NOT the Vertex-only text-embedding-00x names.
     embed_model: str = "gemini-embedding-001"
 
+    # Embedding dimension. text-embedding-3-large = 3072; -3-small = 1536;
+    # gemini-embedding-001 = 3072. Only used to size the OpenSearch knn_vector
+    # field (Chroma infers dimension from the first vector). [PRD v3.0 M1]
+    embed_dim: int = 3072
+
     # API keys (optional depending on provider)
     gemini_api_key: str = ""
     openai_api_key: str = ""
@@ -30,8 +35,16 @@ class Settings(BaseSettings):
     # openFDA is keyless by default; a key only raises rate limits.
     openfda_api_key: str = ""
 
-    # Chroma vector DB
+    # Chroma vector DB (fallback store when OpenSearch is not configured)
     chroma_path: str = "./chroma_db"
+
+    # OpenSearch (course-parity primary store: BM25 + kNN, native hybrid RRF).
+    # Empty => fall back to Chroma + rank-bm25 (keeps offline tests green and
+    # preserves a revert path). [PRD v3.0 M2]
+    opensearch_url: str = ""              # e.g. http://opensearch:9200
+    opensearch_index: str = "fda_labels"
+    opensearch_user: str = ""
+    opensearch_password: str = ""
 
     # PostgreSQL persistence (item 2). Defaults to a local sqlite file so the
     # app + tests run with zero external services; docker-compose sets a
@@ -44,7 +57,18 @@ class Settings(BaseSettings):
     # Orchestration (item 3). Airflow is the production orchestrator; the
     # in-process APScheduler is the runnable fallback. Off by default.
     enable_scheduler: bool = False
-    schedule_minutes: int = 15
+    schedule_minutes: int = 1440  # daily fallback (course parity: daily sync)
+
+    # Continuous corpus growth (course parity: daily openFDA sync). One growth
+    # batch fetches the newest labels beyond a stored watermark. [PRD v3.0 M3]
+    growth_batch_size: int = 25   # labels fetched per growth run
+
+    # Telegram bot (secondary client). Empty token => bot does not start. The
+    # course names this TELEGRAM__BOT_TOKEN; both spellings are accepted. [M7]
+    telegram_bot_token: str = ""
+
+    # Safety guardrail (medical domain). First node in the graph. [PRD v3.0 M4a]
+    enable_guardrail: bool = True
 
     # Caching (item 7). Empty REDIS_URL => in-memory LRU (degrades gracefully).
     redis_url: str = ""

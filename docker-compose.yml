@@ -25,17 +25,19 @@ x-airflow-common: &airflow-common
     OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     LLM_PROVIDER: ${LLM_PROVIDER:-openai}
     GEN_MODEL: ${GEN_MODEL:-gpt-4.1-mini}
-    EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-small}
+    EMBED_MODEL: ${EMBED_MODEL:-text-embedding-3-large}
+    EMBED_DIM: ${EMBED_DIM:-3072}
     OPENFDA_API_KEY: ${OPENFDA_API_KEY:-}
-    FDA_DAG_SCHEDULE: ${FDA_DAG_SCHEDULE:-*/15 * * * *}
-    # The DAG delegates all Chroma/Postgres WRITES to the backend (single writer).
+    FDA_DAG_SCHEDULE: ${FDA_DAG_SCHEDULE:-@daily}
+    # The DAG delegates all writes to the backend (single writer); the backend
+    # owns the OpenSearch index + Postgres. Airflow only fetches/dedupes + POSTs.
     BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
-    # Only the deps the ingestion DAG needs (fetch/parse/chunk/embed/index).
+    # Only the deps the ingestion DAG needs (fetch/parse for read-only tasks).
     # Do NOT add sqlalchemy>=2 / psycopg3 here — Airflow 2.9 pins SQLAlchemy 1.4
     # and upgrading it breaks Airflow's ORM. The DAG's optional `record` task
     # imports app.db lazily and degrades gracefully if that mismatch bites.
     _PIP_ADDITIONAL_REQUIREMENTS: >-
-      httpx>=0.27 chromadb>=0.5 pydantic>=2.9 pydantic-settings>=2.5
+      httpx>=0.27 pydantic>=2.9 pydantic-settings>=2.5
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./backend:/opt/airflow/backend
@@ -61,6 +63,25 @@ services:
       timeout: 5s
       retries: 10
 
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    ports: ["9200:9200"]
+    volumes: ["opensearch_data:/usr/share/opensearch/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
   backend:
     build: ./backend
     ports: ["8000:8000"]
@@ -68,11 +89,19 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://app:app@postgres:5432/maistorage
       CHROMA_PATH: /app/chroma_db
+      EMBED_MODEL: text-embedding-3-large
+      EMBED_DIM: "3072"
+      # Set directly (not via ${..:-}) so the backend reliably uses OpenSearch
+      # inside the stack regardless of the (bare) .env value used for local runs.
+      OPENSEARCH_URL: http://opensearch:9200
+      OPENSEARCH_INDEX: fda_labels
     volumes:
       - ./corpus:/corpus
       - chroma_data:/app/chroma_db
     depends_on:
       postgres:
+        condition: service_healthy
+      opensearch:
         condition: service_healthy
 
   frontend:
@@ -81,6 +110,18 @@ services:
     environment:
       - NEXT_PUBLIC_API_BASE=http://localhost:8000
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on: [backend]
+
+  # Secondary client (course parity). Exits cleanly if TELEGRAM__BOT_TOKEN is
+  # unset, so the stack is unaffected when the bot is not configured.
+  telegram-bot:
+    build: ./backend
+    command: ["python", "-m", "app.services.telegram.bot"]
+    env_file: .env
+    environment:
+      BACKEND_URL: http://backend:8000
+      TELEGRAM__BOT_TOKEN: ${TELEGRAM__BOT_TOKEN:-}
+    restart: "no"
     depends_on: [backend]
 
   airflow-postgres:
@@ -128,3 +169,4 @@ volumes:
   pg_data:
   airflow_pg_data:
   chroma_data:
+  opensearch_data:

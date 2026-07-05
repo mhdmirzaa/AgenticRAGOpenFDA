@@ -14,6 +14,7 @@ from langgraph.graph import StateGraph, END
 
 from app.agent.state import RagState
 from app.agent.nodes import (
+    guardrail_node,
     route_node,
     rewrite_node,
     retrieve_node,
@@ -26,6 +27,13 @@ from app.agent.nodes import (
 from app.config import get_settings
 from app.models import Citation, TraceStep
 from app.providers.base import get_provider
+
+
+def _guardrail_decision(state: RagState) -> str:
+    """After guardrail: refuse if blocked (unsafe), else continue to route."""
+    if state.get("blocked", False):
+        return "refuse"
+    return "route"
 
 
 def _route_decision(state: RagState) -> str:
@@ -50,6 +58,7 @@ def build_graph() -> StateGraph:
     graph = StateGraph(RagState)
 
     # Add nodes
+    graph.add_node("guardrail", guardrail_node)
     graph.add_node("route", route_node)
     graph.add_node("rewrite", rewrite_node)
     graph.add_node("retrieve", retrieve_node)
@@ -59,10 +68,14 @@ def build_graph() -> StateGraph:
     graph.add_node("generate", generate_node)
     graph.add_node("refuse", refuse_node)
 
-    # Set entry point
-    graph.set_entry_point("route")
+    # Set entry point: the safety guardrail runs FIRST, before any retrieval.
+    graph.set_entry_point("guardrail")
 
     # Add edges
+    graph.add_conditional_edges("guardrail", _guardrail_decision, {
+        "route": "route",
+        "refuse": "refuse",
+    })
     graph.add_conditional_edges("route", _route_decision, {
         "rewrite": "rewrite",
         "refuse": "refuse",
@@ -111,6 +124,9 @@ def _initial_state(question: str, use_hybrid: bool) -> RagState:
         "is_sufficient": False,
         "refused": False,
         "use_hybrid": use_hybrid,
+        "blocked": False,
+        "block_category": "",
+        "block_message": "",
     }
 
 
@@ -153,40 +169,129 @@ async def _contextualize(question: str, history: list[dict] | None) -> str:
         return question
 
 
-async def _run_loop_to_decision(
+def _evidence_payload(state: RagState) -> dict:
+    """Build the graded-candidate evidence set (PASS/FAIL per chunk) for the UI."""
+    graded_ids = {c["chunk_id"] for c in state.get("graded", [])}
+    chunks = []
+    for c in state.get("candidates", []):
+        chunks.append({
+            "chunk_id": c.get("chunk_id", ""),
+            "source": c.get("source", ""),
+            "section": c.get("section", ""),
+            "section_title": c.get("section_title", ""),
+            "text": (c.get("text", "") or "")[:400],
+            "source_url": c.get("source_url", ""),
+            "grade": "PASS" if c.get("chunk_id") in graded_ids else "FAIL",
+        })
+    return {"type": "evidence", "chunks": chunks}
+
+
+async def _run_agent_events(
     question: str, use_hybrid: bool, history: list[dict] | None = None
-) -> RagState:
-    """Run route -> (rewrite -> retrieve -> rerank -> grade -> decide) loop.
+):
+    """Drive guardrail -> route -> (rewrite..decide) loop, yielding UI events.
 
-    Reuses the exact node functions and decision helpers the compiled graph
-    uses (no duplicated logic), stopping just before generate/refuse so the
-    final generation can be streamed token-by-token.
+    An async generator that yields lightweight ("stage"/"evidence", payload)
+    tuples in real time as each node runs, then finally ("decision", state) with
+    `state["_next"]` set to "generate", "refuse", or "blocked". Reuses the exact
+    node functions the compiled graph uses (no duplicated logic).
 
-    When `history` is present, the question is first contextualized (coreference
-    resolution) so follow-up questions retrieve against the right drug.
+    When `history` is present the question is first contextualized (coreference
+    resolution) so follow-ups retrieve against the right drug.
     """
     from app.agent.nodes import (
-        route_node, rewrite_node, retrieve_node,
+        guardrail_node, route_node, rewrite_node, retrieve_node,
         rerank_node, grade_node, decide_node,
     )
 
     question = await _contextualize(question, history)
     state: RagState = _initial_state(question, use_hybrid)
+
+    # 1) Safety guardrail (first, before any retrieval).
+    yield ("stage", {"type": "stage", "stage": "safety", "status": "active",
+                     "detail": "Safety check"})
+    state.update(await guardrail_node(state))
+    if _guardrail_decision(state) == "refuse":
+        yield ("stage", {"type": "stage", "stage": "blocked", "status": "done",
+                         "detail": f"Blocked: {state.get('block_category', '')}"})
+        state["_next"] = "blocked"
+        yield ("decision", state)
+        return
+    yield ("stage", {"type": "stage", "stage": "safety", "status": "done",
+                     "detail": "Safe to answer"})
+
+    # 2) Route.
+    yield ("stage", {"type": "stage", "stage": "route", "status": "active",
+                     "detail": "Understanding the question"})
     state.update(await route_node(state))
     if _route_decision(state) == "refuse":
+        yield ("stage", {"type": "stage", "stage": "route", "status": "done",
+                         "detail": "Off-topic — cannot answer"})
         state["_next"] = "refuse"
-        return state
+        yield ("decision", state)
+        return
+    yield ("stage", {"type": "stage", "stage": "route", "status": "done",
+                     "detail": "Needs FDA-label search"})
 
+    # 3) Retrieval / grading loop.
     while True:
+        yield ("stage", {"type": "stage", "stage": "search", "status": "active",
+                         "detail": "Searching FDA labels"})
         state.update(await rewrite_node(state))
         state.update(await retrieve_node(state))
         state.update(await rerank_node(state))
+        yield ("stage", {"type": "stage", "stage": "search", "status": "done",
+                         "detail": f"Found {len(state.get('candidates', []))} candidates"})
+
+        yield ("stage", {"type": "stage", "stage": "grade", "status": "active",
+                         "detail": "Grading evidence"})
         state.update(await grade_node(state))
+        yield ("evidence", _evidence_payload(state))
+        yield ("stage", {"type": "stage", "stage": "grade", "status": "done",
+                         "detail": f"{len(state.get('graded', []))} passed"})
+
         state.update(await decide_node(state))
         decision = _decide_decision(state)
+        yield ("stage", {"type": "stage", "stage": "decide", "status": "done",
+                         "detail": decision if decision != "rewrite" else "Re-retrieving"})
         if decision != "rewrite":
             state["_next"] = decision  # "generate" or "refuse"
-            return state
+            yield ("decision", state)
+            return
+
+
+async def run_agent_answer(
+    question: str, history: list[dict] | None = None, use_hybrid: bool = True
+) -> dict:
+    """Non-streaming agentic answer (course-parity /ask-agentic + Telegram).
+
+    Runs the full guardrail->route->loop->generate/refuse pipeline and returns
+    a plain dict: {answer, citations, trace_id, refused, blocked}.
+    """
+    from app.agent.nodes import _extract_citations, generate_node, refuse_node
+
+    state: RagState | None = None
+    async for kind, payload in _run_agent_events(question, use_hybrid, history):
+        if kind == "decision":
+            state = payload
+    assert state is not None
+
+    nxt = state.get("_next")
+    if nxt in ("refuse", "blocked"):
+        state.update(await refuse_node(state))
+    else:
+        state.update(await generate_node(state))
+    _persist_trace(state)
+
+    citations = state.get("citations", [])
+    return {
+        "answer": state.get("answer", ""),
+        "citations": [c.model_dump() if hasattr(c, "model_dump") else c
+                      for c in citations],
+        "trace_id": state.get("trace_id", ""),
+        "refused": bool(state.get("refused", False)),
+        "blocked": bool(state.get("blocked", False)),
+    }
 
 
 def _format_history(history: list[dict] | None) -> str:
@@ -239,32 +344,53 @@ async def run_agent_streaming(
             )
 
     try:
-        state = await _run_loop_to_decision(question, use_hybrid, history)
+        # Drive the agent, forwarding live stage/evidence events to the UI.
+        state: RagState | None = None
+        async for kind, payload in _run_agent_events(question, use_hybrid, history):
+            if kind == "decision":
+                state = payload
+            else:  # "stage" | "evidence"
+                yield payload
+        assert state is not None
+
         # The loop may have contextualized a follow-up into a standalone
         # question; use that resolved form for generation + memory too.
         question = state.get("question", question)
         trace_id = state.get("trace_id", "")
 
-        if state.get("_next") == "refuse":
-            state["answer"] = REFUSE_PROMPT
+        nxt = state.get("_next")
+        if nxt in ("refuse", "blocked"):
+            blocked = nxt == "blocked"
+            # Terminal stage for the UI timeline. `blocked` was already emitted
+            # by the guardrail; a plain (unanswerable) refusal needs its own.
+            if not blocked:
+                yield {"type": "stage", "stage": "refuse", "status": "done",
+                       "detail": "The indexed FDA labels don't cover this."}
+            refusal_text = (state.get("block_message") or REFUSE_PROMPT) if blocked \
+                else REFUSE_PROMPT
+            state["answer"] = refusal_text
             state["refused"] = True
             state["citations"] = []
             state["trace"] = state.get("trace", []) + [TraceStep(
                 node="refuse", input=question,
-                output="refused - insufficient relevant information",
+                output=(f"blocked: {state.get('block_category','')}" if blocked
+                        else "refused - insufficient relevant information"),
             )]
             _persist_trace(state)
             _log_node_spans(state)
-            lf_trace.update(output=REFUSE_PROMPT, metadata={"refused": True})
+            lf_trace.update(output=refusal_text,
+                            metadata={"refused": True, "blocked": blocked})
             lf_trace.end()
-            for word in REFUSE_PROMPT.split(" "):
+            for word in refusal_text.split(" "):
                 yield {"type": "token", "text": word + " "}
             yield {"type": "done", "citations": [], "trace_id": trace_id,
-                   "refused": True}
+                   "refused": True, "blocked": blocked}
             return
 
         # Sufficient evidence -> stream the grounded generation.
         graded = state.get("graded", [])
+        yield {"type": "stage", "stage": "generate", "status": "active",
+               "detail": "Composing a cited answer from graded evidence."}
         context_parts = [
             f"[{i}] Source: {c['source']}#{c['section']}\n{c['text']}"
             for i, c in enumerate(graded, 1)
@@ -321,6 +447,7 @@ async def run_agent_streaming(
                           for c in citations],
             "trace_id": trace_id,
             "refused": False,
+            "blocked": False,
         }
 
     except Exception as e:

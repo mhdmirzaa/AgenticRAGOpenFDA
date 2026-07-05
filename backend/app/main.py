@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.health import router as health_router
 from app.api.ingest import router as ingest_router
 from app.api.chat import router as chat_router
+from app.api.ask import router as ask_router
 from app.api.trace import router as trace_router
 from app.api.sessions import router as sessions_router
 from app.config import get_settings
@@ -52,21 +53,27 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Provider init failed: {e}")
 
-    # Verify Chroma and pre-build the BM25 keyword index for hybrid retrieval.
+    # Primary store: OpenSearch when configured (course parity); otherwise the
+    # embedded Chroma fallback (with a pre-built BM25 keyword index).
     try:
-        from app.retrieval.vectorstore import get_vectorstore
-        vs = get_vectorstore()
-        count = vs.count()
-        logger.info(f"Chroma ready with {count} documents")
-        if count > 0:
-            try:
-                from app.retrieval.hybrid import get_hybrid_retriever
-                get_hybrid_retriever().ensure_index()
-                logger.info("BM25 hybrid index pre-built")
-            except Exception as bm_e:
-                logger.warning(f"BM25 pre-build skipped: {bm_e}")
+        from app.retrieval.opensearch_store import get_opensearch_store
+        os_store = get_opensearch_store()
+        if os_store is not None:
+            logger.info(f"OpenSearch ready with {os_store.count()} documents")
+        else:
+            from app.retrieval.vectorstore import get_vectorstore
+            vs = get_vectorstore()
+            count = vs.count()
+            logger.info(f"Chroma ready with {count} documents")
+            if count > 0:
+                try:
+                    from app.retrieval.hybrid import get_hybrid_retriever
+                    get_hybrid_retriever().ensure_index()
+                    logger.info("BM25 hybrid index pre-built")
+                except Exception as bm_e:
+                    logger.warning(f"BM25 pre-build skipped: {bm_e}")
     except Exception as e:
-        logger.warning(f"Chroma check failed: {e}")
+        logger.warning(f"Store check failed: {e}")
     
     # Optional in-process ingestion scheduler (APScheduler fallback for Airflow).
     try:
@@ -105,5 +112,6 @@ app.add_middleware(
 app.include_router(health_router, tags=["health"])
 app.include_router(ingest_router, tags=["ingestion"])
 app.include_router(chat_router, tags=["chat"])
+app.include_router(ask_router, tags=["chat"])
 app.include_router(trace_router, tags=["trace"])
 app.include_router(sessions_router, tags=["sessions"])

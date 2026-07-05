@@ -19,6 +19,12 @@ class ChatRequest(BaseModel):
     session_id: str | None = None  # optional: persist + load conversation memory
 
 
+class AskRequest(BaseModel):
+    """Non-streaming agentic request (course-parity /ask-agentic + Telegram)."""
+    question: str
+    session_id: str | None = None
+
+
 class Citation(BaseModel):
     """A single citation reference."""
     marker: str          # e.g. "[1]"
@@ -28,6 +34,15 @@ class Citation(BaseModel):
     text: str            # the chunk text snippet
     source_url: str = "" # e.g. DailyMed label URL (FDA labels)
     section_title: str = ""  # human-readable section, e.g. "Warnings"
+
+
+class AskResponse(BaseModel):
+    """Non-streaming agentic answer."""
+    answer: str
+    citations: list[Citation]
+    trace_id: str
+    refused: bool = False
+    blocked: bool = False
 
 
 class TraceStep(BaseModel):
@@ -48,12 +63,44 @@ class ChatDoneEvent(BaseModel):
     type: str = "done"
     citations: list[Citation]
     trace_id: str
+    refused: bool = False
+    blocked: bool = False
 
 
 class ChatTokenEvent(BaseModel):
     """Streaming token SSE event."""
     type: str = "token"
     text: str
+
+
+class ChatStageEvent(BaseModel):
+    """Live agent-stage event for the evidence panel (additive, non-breaking).
+
+    Emitted as the agent progresses so the UI can animate a stage timeline in
+    real time. `stage` is one of: safety, route, search, grade, decide,
+    generate, refuse, blocked. `status` is "active" or "done".
+    """
+    type: str = "stage"
+    stage: str
+    status: str = "done"
+    detail: str = ""
+
+
+class EvidenceChunk(BaseModel):
+    """A retrieved candidate with its grade, for the evidence panel."""
+    chunk_id: str
+    source: str
+    section: str
+    section_title: str = ""
+    text: str
+    source_url: str = ""
+    grade: str = "PASS"  # PASS | FAIL
+
+
+class ChatEvidenceEvent(BaseModel):
+    """The graded candidate set, emitted once after grading."""
+    type: str = "evidence"
+    chunks: list[EvidenceChunk]
 
 
 class ChatErrorEvent(BaseModel):
