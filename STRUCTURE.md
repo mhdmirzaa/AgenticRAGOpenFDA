@@ -47,7 +47,7 @@ maistorage/
 │   └── playwright.config.ts / Dockerfile
 │
 ├── airflow/dags/fda_ingestion_dag.py @daily: fetch → extract → dedupe → index_and_record → grow_corpus (delegates writes to backend)
-├── eval/                             Golden-set harness: run.py, metrics.py, golden.jsonl (17 Qs), last_run_*.json
+├── eval/                             Golden-set harness: run.py, metrics.py, golden.jsonl (50 Qs), reconcile_golden.py, GROW_RUNBOOK.md, last_run_*.json  (corpus grown to 332 labels / 3,054 chunks)
 ├── docker-compose.yml               backend, frontend, postgres, opensearch, airflow ×3, telegram-bot
 ├── docker-compose.redis.yml / .langfuse.yml   optional overlays
 └── docs/                            PRD.md, PROJECT_REPORT.md, CHANGES_V3.md, metrics.md, DEMO.md

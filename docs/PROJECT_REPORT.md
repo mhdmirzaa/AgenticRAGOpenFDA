@@ -27,6 +27,7 @@
 11. [API reference](#11-api-reference)
 12. [Test strategy & results](#12-test-strategy--results)
 13. [Live full-stack verification (2026-07-04)](#13-live-full-stack-verification-2026-07-04)
+13a. [Grow + re-measure verification (2026-07-06)](#13a-grow--re-measure-verification-2026-07-06)
 14. [Metrics (real, reproducible)](#14-metrics-real-reproducible)
 15. [Defects found & fixed during verification](#15-defects-found--fixed-during-verification)
 16. [Assessment Q1 alignment audit](#16-assessment-q1-alignment-audit)
@@ -60,10 +61,14 @@ TypeScript** streaming chat UI with a **live evidence panel**, and a **Telegram 
 a second client — all brought up by one `docker compose up`.
 
 This report was produced by bringing the whole stack up live and exercising every layer
-on **2026-07-04**. **Five real defects were found and fixed** during verification (see
-§15). Final state: **124 backend tests pass**, **Playwright e2e is 4/4** against the
-running UI, the live golden-set eval reproduces the documented metrics, and every
-production layer works.
+on **2026-07-04**, then extended on **2026-07-06** by growing the corpus **~14× to 332 FDA
+labels / 3,054 chunks** and honestly re-measuring baseline vs optimized on an expanded
+**50-question** golden set (§13a, §14). **Five real defects were found and fixed** during
+the original verification (see §15). Final state: **168 backend tests pass**, **Playwright
+e2e is 4/4** against the running UI, the golden-set eval is reproduced live on the grown
+index, and every production layer works. The grown-corpus re-measure showed the optimized
+hybrid+rerank path **underperforming** dense-only retrieval — an honest result we report
+and root-cause rather than tune away (§14).
 
 ---
 
@@ -81,11 +86,16 @@ was implemented plan → test → verify on the `enhance-pass` branch and commit
 | 4 | **UI polish** | Timeline connector rail + smooth active→done transitions; terminal states (blocked/refuse/generate) get a tinted ring band; PASS evidence gets an emerald accent while FAIL is de-emphasized; PASS/FAIL summary pills; `prefers-reduced-motion` honored. All Playwright `data-testid`s preserved. | `tsc --noEmit` clean · `next build` clean |
 | 5 | **Error handling & resilience** | Every agent node degrades instead of crashing: route-LLM down → attempt retrieval; rewrite down → raw question; retrieval/embed down → 0 candidates → clean refusal; grader down → chunk fails **closed**; generation down → graceful disclaimer-bearing refusal (non-streaming **and** mid-stream); top-level stream error → friendly message, raw error only in logs. | `test_resilience.py` (7 tests) incl. a full turn surviving a total LLM outage as a clean refusal |
 
-**Backend suite: 150 tests pass offline** (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`), up from 124 — the 26 additions are the five new test modules above. Frontend `tsc --noEmit` and `next build` are clean.
+**Backend suite: 150 tests pass offline** (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`), up from 124 — the 26 additions are the five new test modules above. Frontend `tsc --noEmit` and `next build` are clean. *(The later grow pass, §13a, added corpus/eval-guard tests bringing the current total to **168**.)*
 
 **Honestly not re-run in this pass (require the live Docker + OpenAI stack, which was not available in the enhancement environment):**
 - **Playwright e2e** — all selectors/`data-testid`s were preserved, so the existing 4/4 spec should stay green, but it must be re-run against the running stack to reconfirm.
-- **Live golden-set eval** — the retrieval-robustness change (item 2) is designed so the optimized path is **≥ baseline by construction** (dense-favored fusion + a guaranteed dense-top superset), but the actual Hit@k/MRR/faithfulness numbers in §14 were **not** re-measured here and **were not changed**. Re-run `eval/run.py --mode baseline|optimized` on the live stack to confirm the delta; the §14 numbers remain the last real measurement (2026-07-04).
+- **Live golden-set eval** — *(resolved 2026-07-06, §13a/§14).* This pass **hypothesized** the
+  retrieval-robustness change (item 2) made the optimized path "≥ baseline by construction." That
+  claim was **later tested and refuted**: on the grown 332-label corpus the dense-anchor guard only
+  guarantees the dense top-1 stays in the *pool*, and the cross-encoder can still re-rank it out of
+  top-1 — so optimized measured **below** baseline. The §14 table now holds the **re-measured
+  2026-07-06** numbers with a root-cause diagnostic; no number was tuned to hide the delta.
 
 ---
 
@@ -147,7 +157,7 @@ maistorage/
 │   ├── e2e/chat.spec.ts             Playwright e2e (disclaimer, streaming+citations, blocked, refusal)
 │   └── playwright.config.ts / Dockerfile
 ├── airflow/dags/fda_ingestion_dag.py   @daily: fetch → extract → dedupe → index_and_record → grow_corpus (delegates writes to backend)
-├── eval/                            Golden-set harness: run.py, metrics.py, golden.jsonl (17 Qs), last_run_*.json
+├── eval/                            Golden-set harness: run.py, metrics.py, golden.jsonl (50 Qs), reconcile_golden.py, GROW_RUNBOOK.md, last_run_*.json
 ├── docker-compose.yml              backend, frontend, postgres, opensearch, airflow ×3, telegram-bot
 ├── docker-compose.redis.yml / .langfuse.yml   optional overlays
 └── docs/                           PRD.md, PROJECT_REPORT.md (this), CHANGES_V3.md, metrics.md, DEMO.md
@@ -240,6 +250,10 @@ validation (`_extract_citations`) drops any `[n]` marker not backed by a graded 
   offline test suite green with zero external services and preserves a revert path.
 - **Rerank:** cross-encoder `BAAI/bge-reranker-base`, degrades to passthrough if the model
   can't load.
+- **Which mode is actually better?** Both are selectable and measured honestly. On the grown
+  332-label FDA corpus, **dense-only (baseline) beats hybrid+rerank** because every label
+  shares identical section names — see the §14 measurement + root-cause. The hybrid path is
+  kept for heterogeneous corpora where lexical + dense are complementary.
 - **Cache** (`cache.py`): **Redis** when `REDIS_URL` is set (shared, survives restarts),
   else in-memory LRU; a Redis outage degrades to memory. Caches query embeddings +
   retrieval results (TTL `cache_ttl_seconds=3600`); stats + active backend on `/health`.
@@ -254,7 +268,10 @@ otherwise the Chroma path — identical candidate dicts downstream.
 **Source:** openFDA `GET /drug/label.json` — keyless, throttled at 0.3 s. Label prose
 sections chunk and retrieve well.
 
-**Seed set:** 24 common drugs → **23 labels → 240 section chunks** indexed (3072-d).
+**Seed set:** a curated evergreen list of ~317 common drug names (24-drug demo core preserved
+for a stable golden set) → **332 labels → 3,054 section chunks** indexed (3072-d) after the
+grow pass (`eval/GROW_RUNBOOK.md`). The original 24-drug/23-label/240-chunk seed was the v3.0
+demo baseline; the corpus was then grown ~14× to stress retrieval honestly.
 **Extracted sections:** boxed_warning, indications_and_usage, dosage_and_administration,
 warnings, warnings_and_cautions, contraindications, adverse_reactions, drug_interactions.
 
@@ -268,9 +285,10 @@ page of newest labels (`sort=effective_time:desc` + a `skip` cursor persisted in
 `kv_store` table), dedupes by `label_id`, indexes the fresh ones, and advances the
 watermark — **additive + idempotent**, and it keeps growing even on quiet days (paging
 fallback). Exposed as `POST /ingest/fda/grow` and driven by the Airflow `grow_corpus`
-task (and the APScheduler fallback). **Verified live:** a growth batch added **5 labels /
-31 chunks** and advanced the watermark; the corpus grew from 240 → 388 docs across the
-verification session.
+task (and the APScheduler fallback). **Verified live:** growth batches are additive and
+idempotent (an early batch added 5 labels / 31 chunks and advanced the watermark); running
+the seed+growth path to completion took the corpus from the 240-chunk demo seed to the
+**3,054-chunk / 332-label** index the §14 metrics were re-measured against.
 
 ---
 
@@ -328,10 +346,12 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**150 backend tests pass** offline
-(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 124 in
-v3.0 (99 in v2.0); the v3.1 enhancement pass (§1a) added 26. **Playwright e2e: 4/4** against
-the live UI (last run 2026-07-04; preserved-selector, re-run on the live stack to reconfirm).
+**168 backend tests pass** offline
+(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 150 in
+v3.1 (124 in v3.0, 99 in v2.0); the grow pass (§13a) added corpus/eval-guard tests
+(`test_growth`, `test_reconcile`, `test_seed_corpus`, `test_golden_set`,
+`test_openai_embed_guard`). **Playwright e2e: 4/4** against the live UI (re-confirmed on the
+running stack 2026-07-06, §13a).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -379,38 +399,88 @@ OpenSearch, Postgres, Redis, Airflow ×3, telegram-bot).
 
 ---
 
+## 13a. Grow + re-measure verification (2026-07-06)
+
+The `GROW_AND_REMEASURE` runbook (`eval/GROW_RUNBOOK.md`) was executed end-to-end against a
+live stack (OpenSearch + backend, OpenAI key set), and the whole suite was re-run to confirm
+nothing regressed. This is the state the §14 numbers reflect.
+
+| What | Result |
+|---|---|
+| Grow index (`SEED_DRUGS` ~317 names → openFDA) | ✅ **332 labels / 3,054 chunks** in OpenSearch (`/health` `store.documents=3054`) |
+| Golden set expanded + reconciled to indexed generics | ✅ **50 questions** (39 single-hop, 6 multi-hop, 5 refusal); every `expected_source` resolves to an indexed label (0 dangling) |
+| `eval/run.py --mode baseline` (grown index) | ✅ 50/50; Hit@1 **0.760**, MRR **0.787** (§14) |
+| `eval/run.py --mode optimized` (grown index) | ✅ 50/50; Hit@1 **0.700**, MRR **0.713** — **below** baseline; root-caused + reported honestly (§14) |
+| RRF/rerank sanity check (permitted tuning) | ✅ swept `rrf_bm25_weight` 0.5→0.25→0.0; reranked Hit@1 flat at 0.689 — no knob recovers it; **defaults unchanged, no overfitting** |
+| Backend tests | ✅ **168 passed** (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 pytest -q`) |
+| Frontend | ✅ `tsc --noEmit` clean · `next build` clean (4/4 static pages) |
+| **Playwright e2e** | ✅ **4/4 passed** against the running stack (disclaimer, streaming+citations, blocked, refusal) |
+
+**One flaw surfaced during testing, diagnosed, not a regression:** the Playwright citations
+test first failed by timeout while the 50-question optimized eval was concurrently saturating
+the OpenAI `gpt-4.1-mini` endpoint (the streamed turn exceeded the 90 s test timeout). Re-run
+without the eval contention, it passed in 26.9 s — the failure was resource contention, not a
+UI/backend defect. No code change was needed.
+
+---
+
 ## 14. Metrics (real, reproducible)
 
 Generation **`gpt-4.1-mini`**, embeddings **`text-embedding-3-large` (3072-d)**, store
-**OpenSearch**. Golden set = `eval/golden.jsonl` (**17 questions**: answerable single-hop,
-multi-hop, and unanswerable/refusal). Run live on **2026-07-04**.
+**OpenSearch** (BM25 + kNN). Corpus **grown to 332 FDA labels / 3,054 section chunks**
+(from the 24-drug seed; see `eval/GROW_RUNBOOK.md`). Golden set = `eval/golden.jsonl`
+(**50 questions**: 39 answerable single-hop, 6 multi-hop across two drugs, 5
+unanswerable/refusal). Re-measured live on **2026-07-06** on the grown index.
 
-> **Note (v3.1):** these are the **2026-07-04** measurements and were **not** re-run in the
-> v3.1 enhancement pass. The retrieval-robustness change (§1a item 2) is built so the
-> optimized path is ≥ baseline by construction, but the table below was left unchanged
-> rather than re-measured without the live stack — re-run `eval/run.py` to refresh it.
+| Metric | Baseline (dense kNN) | Optimized (hybrid + rerank) | Δ |
+|---|---:|---:|---:|
+| Hit@1 | **0.760** | 0.700 | −0.060 |
+| Hit@3 | **0.820** | 0.740 | −0.080 |
+| Hit@5 | **0.820** | 0.740 | −0.080 |
+| MRR | **0.787** | 0.713 | −0.073 |
+| Citation accuracy | **0.860** | 0.790 | −0.070 |
+| Refusal correctness | **0.900** | 0.840 | −0.060 |
+| Answer match | **0.900** | 0.860 | −0.040 |
+| Faithfulness (LLM judge) | **0.950** (n=40) | 0.892 (n=37) | −0.058 |
 
-| Metric | Baseline (dense kNN) | Optimized (hybrid + rerank) |
+**Honest interpretation — the optimized path underperforms dense-only on the grown
+corpus, and we report it truthfully.** The v3.0 note above (small 23-label corpus)
+predicted the hybrid+rerank stack would "pay off on a larger, noisier corpus." **Growing
+to 332 labels and re-measuring refuted that prediction** — a good example of measuring
+instead of assuming.
+
+A retrieval-only diagnostic (raw Hit@k over the 45 answerable questions, no LLM grading)
+pinpoints why, isolating each stage:
+
+| Retrieval config | Hit@1 | Hit@3 |
 |---|---:|---:|
-| Hit@1 | **0.882** | 0.824 |
-| Hit@3 | 0.941 | 0.941 |
-| Hit@5 | 0.941 | 0.941 |
-| MRR | **0.912** | 0.873 |
-| Citation accuracy | 0.941 | 0.941 |
-| Refusal correctness | 0.941 | 0.941 |
-| Answer match | 0.941 | 0.941 |
-| Faithfulness (LLM judge) | 1.000 (n=13) | 1.000 (n=13) |
+| Dense-only (baseline) | **0.778** | **0.867** |
+| Hybrid RRF, no rerank | 0.667 | 0.778 |
+| Hybrid RRF + cross-encoder rerank | 0.689 | 0.800 |
 
-**Honest interpretation.** With the stronger **3-large** embeddings, dense-only retrieval
-already places the correct section at top-1/top-3 (Hit@1 0.882, up from 0.824 in the v2.0
-3-small run), leaving **no ranking headroom**. Adding hybrid BM25 fusion + cross-encoder
-rerank did **not** improve retrieval here and slightly **reduced** Hit@1/MRR — a one-question
-swing (±1 Q ≈ 0.059) driven by RRF reshuffling on a small, curated corpus where lexical
-signals compete with an already-correct dense top-1. **No delta was fabricated.** The
-optimized machinery is expected to pay off on a **larger, noisier corpus** — exactly what
-the continuous-growth path builds toward; re-measuring after substantial growth is the
-intended follow-up. Faithfulness is perfect in both modes (answers are strictly grounded
-in graded chunks or the agent refuses).
+Two independent effects each drag retrieval **below** dense-only: **(1)** every FDA label
+shares the *same* section names, so on 332 drugs a BM25 hit on a section keyword pulls the
+**same section of the wrong drug** into the top ranks (`MINOCYCLINE#contraindications`
+crowding out `DOXYCYCLINE#contraindications`); dense embeddings encode drug identity and
+avoid this. **(2)** the general-domain cross-encoder (`bge-reranker-base`) re-scores the
+fused pool but doesn't reliably prefer the correct *drug's* section, recovering only part
+of the loss (0.667 → 0.689), never back to dense's 0.778.
+
+**The permitted RRF/rerank sanity check does not recover it.** Sweeping `rrf_bm25_weight`
+0.5 → 0.25 → 0.0 leaves reranked Hit@1 **flat at 0.689** (the cross-encoder re-scores from
+scratch, so RRF weights don't move its top-1); `rerank_top_n` can't change Hit@1 either.
+Per the runbook honesty rule, **no golden-set-overfitting tuning was applied** and
+retrieval defaults were left unchanged. This also corrects the §1a item-2 claim that the
+optimized path is "≥ baseline by construction": the dense-anchor guard guarantees the
+dense top-1 stays in the *pool*, but the cross-encoder can still re-rank it out of top-1 —
+so the guarantee holds for pool membership, not for final rank.
+
+**Takeaway.** For this corpus (many drugs, identical section vocabulary, section-targeted
+questions) a strong dense retriever (3-large, 3072-d) is the right tool; lexical fusion +
+a general reranker *add noise*. The hybrid+rerank stack is retained as a selectable mode —
+it pays off on heterogeneous corpora where exact-match tokens (codes, rare terms) and dense
+semantics are complementary — but dense-only is the honest default here. Faithfulness stays
+high in both modes (0.95 / 0.89): answers are grounded in graded chunks or the agent refuses.
 
 **Caching latency (performance bonus).** Retrieval step, Redis backend: **cold ~1905 ms**
 (OpenAI embed + OpenSearch hybrid) **→ warm ~0.78 ms** (Redis cache hit) — a ~2400×
@@ -680,8 +750,8 @@ course repo. These are decisions about *how the system is put together*:
   our approach keeps the model a configuration detail.
 - **Offline-deterministic test approach.** The suite runs with **no API key**: a `FakeProvider`
   (real local MiniLM embeddings + rule-based LLM replies keyed on prompt phrases) drives the
-  real graph against a temp store, so 124 tests are deterministic and CI-friendly, complemented
-  by live e2e (Playwright) against the running stack.
+  real graph against a temp store, so all 168 tests are deterministic and CI-friendly,
+  complemented by live e2e (Playwright) against the running stack.
 - **Config approach: one Pydantic-settings source, bare `.env`.** A single `Settings` object
   loads config regardless of CWD; values are kept comment-free after we learned docker's
   `env_file` does not strip inline comments (§15.1).
@@ -717,14 +787,14 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 150 backend tests + 4 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 168 backend tests + 4 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
 
 | Gap / limitation | Impact | Mitigation / status |
 |---|---|---|
-| **Small corpus saturates retrieval** | Hybrid+rerank shows no (even slightly negative) Hit@k headroom vs strong dense | Continuous growth is built; re-measure the optimized delta after substantial growth |
+| **Hybrid+rerank underperforms dense on this corpus** | Measured on the grown 332-label index: optimized Hit@1 0.700 vs baseline 0.760 (§14). FDA labels share identical section names, so BM25 fusion + a general reranker pull the wrong drug's same-named section up; dense embeddings encode drug identity | Reported honestly, root-caused with a retrieval-only diagnostic; **dense-only is the right default here**. Hybrid mode retained (selectable) for heterogeneous corpora; a drug-aware reranker or a drug-ID metadata filter on BM25 would be the principled fix (roadmap) |
 | **Grading = one LLM call per candidate** | up to `top_k` calls/iteration ⇒ latency + tokens | Batch grading or grade only reranked top-N; add early-exit on high rerank scores |
 | **End-to-end latency ~10 s** | Dominated by generation (uncached) | Already token-streamed; a smaller grading model + an answer cache would help |
 | **Reranker cold start** | First optimized query loads the cross-encoder (~seconds) | Bake `BAAI/bge-reranker-base` into the image or a named volume for reproducible starts |
@@ -757,7 +827,7 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large \
   python -m eval.run --mode optimized
 
 # 5. tests
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 150 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 168 passed
 cd frontend && npx tsc --noEmit && npm run build                               # clean
 PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test                  # 4/4 (stack must be up)
 ```

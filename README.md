@@ -130,17 +130,21 @@ runs in-process via APScheduler (`ENABLE_SCHEDULER=1`, `SCHEDULE_MINUTES`).
 
 ## Evaluation
 
-Real numbers (gpt-4.1-mini) in `docs/metrics.md`. Golden set `eval/golden.jsonl`
-(answerable, multi-hop across two drugs, unanswerable/refusal):
+Real numbers (gpt-4.1-mini, `text-embedding-3-large`, OpenSearch) in `docs/metrics.md`.
+Corpus grown to **332 FDA labels / 3,054 chunks**; golden set `eval/golden.jsonl` = **50
+questions** (39 single-hop, 6 multi-hop across two drugs, 5 unanswerable/refusal):
 
 ```bash
-python -m eval.run --mode baseline
-python -m eval.run --mode optimized
+OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode baseline
+OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode optimized
 ```
 
-Headline: Hit@3 0.941, MRR 0.873, faithfulness 0.929 → **1.000** and citation
-accuracy 0.941 → **0.971** under the optimized (hybrid) path. Retrieval Hit@k is
-saturated on this curated corpus — documented honestly, not faked.
+Headline (grown corpus, 2026-07-06): **baseline dense-only wins** — Hit@1 **0.760** vs
+0.700, MRR **0.787** vs 0.713, faithfulness **0.950** vs 0.892. The optimized hybrid+rerank
+path **underperforms** here: on a corpus where every drug shares identical section names,
+BM25 fusion and a general-domain cross-encoder both pull the *wrong drug's* same-named
+section into the top ranks, which strong dense embeddings avoid. Root-caused with a
+retrieval-only diagnostic and reported honestly — not tuned away (see `docs/metrics.md`).
 
 ## Tests
 

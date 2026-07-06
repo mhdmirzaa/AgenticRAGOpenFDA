@@ -1,29 +1,27 @@
 {
   "aggregate": {
     "mode": "optimized",
-    "total_questions": 17,
-    "successful": 17,
-    "avg_hit_at_1": 0.8235294117647058,
-    "avg_hit_at_3": 0.9411764705882353,
-    "avg_hit_at_5": 0.9411764705882353,
-    "avg_mrr": 0.8725490196078431,
-    "avg_citation_accuracy": 0.9411764705882353,
-    "avg_refusal_correctness": 0.9411764705882353,
-    "avg_answer_match": 0.9411764705882353,
-    "avg_faithfulness": 1.0,
-    "faithfulness_n": 13
+    "total_questions": 50,
+    "successful": 50,
+    "avg_hit_at_1": 0.7,
+    "avg_hit_at_3": 0.74,
+    "avg_hit_at_5": 0.74,
+    "avg_mrr": 0.7133333333333333,
+    "avg_citation_accuracy": 0.79,
+    "avg_refusal_correctness": 0.84,
+    "avg_answer_match": 0.86,
+    "avg_faithfulness": 0.8918918918918919,
+    "faithfulness_n": 37
   },
   "details": [
     {
       "id": "q1",
       "question": "What is ibuprofen used for?",
-      "answer": "Ibuprofen is used to temporarily relieve minor aches and pains due to headache, toothache, backache, menstrual cramps, the common cold, muscular aches, and minor pain of arthritis. It also temporarily reduces fever [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Ibuprofen is used to temporarily relieve minor aches and pains and to reduce fever. [1]\n\n- It helps with headache, toothache, backache, menstrual cramps, the common cold, muscular aches, and minor pain of arthritis. [1]  \n- It temporarily reduces fever. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "IBUPROFEN#indications-and-usage",
-        "ACETAMINOPHEN#indications-and-usage",
-        "AMOXICILLIN AND CLAVULANATE POTASSIUM#indications-and-usage",
-        "AZITHROMYCIN#indications-and-usage"
+        "ACETAMINOPHEN#indications-and-usage"
       ],
       "citations": [
         {
@@ -54,20 +52,39 @@
     {
       "id": "q2",
       "question": "What are the warnings for ibuprofen?",
-      "answer": "Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin, with symptoms including rash, facial swelling, asthma (wheezing), hives, skin reddening, shock, and blisters. If an allergic reaction occurs, stop use and seek medical help right away [1]. This product contains an NSAID, which may cause severe stomach bleeding. The chance is higher if you take more or for a longer time than directed, take a blood thinning (anticoagulant) or steroid drug, have had stomach ulcers or bleeding problems, have 3 or more alcoholic drinks every day while using this product, are age 60 or older, or take other drugs containing prescription or nonprescription NSAIDs [aspirin, ibuprofen, naproxen, or others] [1]. NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke, which can be fatal. The risk is higher if you use more than directed or for longer than directed [1]. Do not use if you have ever had an allergic reaction to any other pain reliever/fever reducer or right before or after heart surgery [1]. Ask a doctor before use if stomach bleeding warning applies to you, you have a history of stomach problems such as heartburn, you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke, you are taking a diuretic, or you have problems or serious side effects from taking pain relievers or fever reducers [1]. Ask a doctor or pharmacist before use if you are under a doctor's care for any serious condition, taking aspirin for heart attack or stroke because ibuprofen may decrease this benefit of aspirin, or taking any other drug [1]. When using this product, take with food or milk if stomach upset occurs [1]. Stop use and ask a doctor if you experience signs of stomach bleeding such as feeling faint, having bloody or black stools, vomiting blood, or having stomach pain that does not get better [1]. Also stop use and ask a doctor if you have symptoms of heart problems or stroke including chest pain, slurred speech, trouble breathing, leg swelling, or weakness in one part or side of the body; if pain gets worse or lasts more than 10 days; if fever gets worse or lasts more than 3 days; if redness or swelling is present in the painful area; or if any new symptoms appear [1]. If pregnant or breast-feeding, ask a health professional before use. It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery [1]. Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Ibuprofen has several important warnings related to heart, stomach, allergic reactions, and use in certain surgeries. [1][2][3]\n\n- Ibuprofen can increase the risk of serious heart problems like heart attack and stroke, which can happen early in treatment and may get worse the longer you use it. [2]  \n- It can cause serious stomach problems such as bleeding, ulcers, and holes in the stomach or intestines, which can be fatal and may occur without warning. Older adults are at higher risk for these stomach issues. [2]  \n- Ibuprofen should not be used in patients who have had asthma, hives, or allergic reactions after taking aspirin or other NSAIDs because severe allergic-like reactions have been reported. [1]  \n- Ibuprofen is not to be used in patients undergoing coronary artery bypass graft (CABG) surgery. [1][2]  \n- Stop use and ask a doctor if symptoms last more than 5 days or get worse. If pregnant or breastfeeding, ask a health professional before use. Keep out of reach of children. [3]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "IBUPROFEN#warnings",
-        "ASPIRIN#warnings"
+        "IBUPROFEN#contraindications",
+        "IBUPROFEN#boxed-warning",
+        "ALDESLEUKIN - EVERLASTING EXTRACT - FOMITOPSIS PINICOLA FRUITING BODY - INTERFERON GAMMA-1B - MELATONIN - METENKEFALIN - REISHI - SEROTONIN - SOYBEAN - SUS SCROFA BLOOD - SUS SCROFA SMALL INTESTINE MUCOSA LYMPH FOLLICLE - SUS SCROFA SPLEEN -#warnings"
       ],
       "citations": [
         {
           "marker": "[1]",
           "source": "IBUPROFEN",
+          "section": "contraindications",
+          "chunk_id": "IBUPROFEN#contraindications:e8cae533",
+          "text": "## Contraindications\n\nCONTRAINDICATIONS Ibuprofen oral suspension is contraindicated in patients with known hypersensitivity to ibuprofen. Ibuprofen oral suspension should not be given to patients who",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=38ebacc3-378f-483e-babc-76119677e7df",
+          "section_title": "Contraindications"
+        },
+        {
+          "marker": "[2]",
+          "source": "IBUPROFEN",
+          "section": "boxed-warning",
+          "chunk_id": "IBUPROFEN#boxed-warning:3e501923",
+          "text": "## Boxed Warning\n\nCardiovascular Thrombotic Events Nonsteroidal anti-inflammatory drugs (NSAIDs) cause an increased risk of serious cardiovascular thrombotic events, including myocardial infarction an",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=38ebacc3-378f-483e-babc-76119677e7df",
+          "section_title": "Boxed Warning"
+        },
+        {
+          "marker": "[3]",
+          "source": "ALDESLEUKIN - EVERLASTING EXTRACT - FOMITOPSIS PINICOLA FRUITING BODY - INTERFERON GAMMA-1B - MELATONIN - METENKEFALIN - REISHI - SEROTONIN - SOYBEAN - SUS SCROFA BLOOD - SUS SCROFA SMALL INTESTINE MUCOSA LYMPH FOLLICLE - SUS SCROFA SPLEEN -",
           "section": "warnings",
-          "chunk_id": "IBUPROFEN#warnings:e36dad14",
-          "text": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shoc",
-          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
+          "chunk_id": "ALDESLEUKIN - EVERLASTING EXTRACT - FOMITOPSIS PINICOLA FRUITING BODY - INTERFERON GAMMA-1B - MELATONIN - METENKEFALIN - REISHI - SEROTONIN - SOYBEAN - SUS SCROFA BLOOD - SUS SCROFA SMALL INTESTINE MUCOSA LYMPH FOLLICLE - SUS SCROFA SPLEEN -#warnings:77264c05",
+          "text": "## Warnings\n\nWARNINGS Stop use and ask doctor if symptoms persist more than 5 days or worsen. If pregnant or breast-feeding ask a health professional before use. Keep out of reach of children.",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=53e741c4-8897-71f3-e063-6394a90a751d",
           "section_title": "Warnings"
         }
       ],
@@ -75,10 +92,10 @@
         "IBUPROFEN#warnings"
       ],
       "answer_contains_terms": [],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
@@ -87,15 +104,16 @@
     {
       "id": "q3",
       "question": "What is acetaminophen used to treat?",
-      "answer": "Acetaminophen is used to temporarily relieve minor aches and pains due to headache, the common cold, backache, minor pain of arthritis, toothache, muscular aches, premenstrual and menstrual cramps. It also temporarily reduces fever [2]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Acetaminophen is used to temporarily relieve minor aches and pains and to reduce fever.  \n- It relieves minor aches and pains due to headache, the common cold, backache, minor pain of arthritis, toothache, muscular aches, and premenstrual and menstrual cramps.  \n- It temporarily reduces fever.  \n[3]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
+        "ACETAMINOPHEN, DEXTROMETHORPHAN HBR, PHENYLEPHRINE HCL#indications-and-usage",
         "IBUPROFEN#indications-and-usage",
         "ACETAMINOPHEN#indications-and-usage"
       ],
       "citations": [
         {
-          "marker": "[2]",
+          "marker": "[3]",
           "source": "ACETAMINOPHEN",
           "section": "indications-and-usage",
           "chunk_id": "ACETAMINOPHEN#indications-and-usage:715efa71",
@@ -113,7 +131,7 @@
       "hit_at_1": 0.0,
       "hit_at_3": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.5,
+      "mrr": 0.3333333333333333,
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
@@ -122,7 +140,7 @@
     {
       "id": "q4",
       "question": "What is aspirin indicated for?",
-      "answer": "Aspirin is indicated for the temporary relief of minor aches and pains or as recommended by your doctor. Because of its delayed action, this product will not provide fast relief of headaches or other symptoms needing immediate relief. Ask your doctor about other uses for safety coated 81 mg aspirin [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Aspirin is indicated for the temporary relief of minor aches and pains or as recommended by your doctor. [1]  \n- It is not meant for fast relief of headaches or other symptoms needing immediate relief because it works slowly. [1]  \n- You should ask your doctor about other uses for safety coated 81 mg aspirin. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "ASPIRIN#indications-and-usage"
@@ -156,11 +174,11 @@
     {
       "id": "q5",
       "question": "What is the boxed warning for warfarin?",
-      "answer": "WARNING: BLEEDING RISK Warfarin sodium can cause major or fatal bleeding. Perform regular monitoring of INR in all treated patients. Drugs, dietary changes, and other factors affect INR levels achieved with warfarin sodium therapy. Instruct patients about prevention measures to minimize risk of bleeding and to report signs and symptoms of bleeding [1]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "The boxed warning for warfarin is that it can cause major or fatal bleeding. [1]\n\n- Perform regular monitoring of INR (a blood clotting test) in all treated patients. [1]  \n- Drugs, dietary changes, and other factors can affect INR levels during warfarin therapy. [1]  \n- Patients should be instructed on how to prevent bleeding and to report any signs or symptoms of bleeding. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "WARFARIN SODIUM#boxed-warning",
-        "MONTELUKAST SODIUM#boxed-warning"
+        "METFORMIN HYDROCHLORIDE#boxed-warning"
       ],
       "citations": [
         {
@@ -191,11 +209,10 @@
     {
       "id": "q6",
       "question": "What are the contraindications of warfarin?",
-      "answer": "Warfarin sodium is contraindicated in pregnancy except in women with mechanical heart valves [1]. It is contraindicated in patients with hemorrhagic tendencies or blood dyscrasias [1]. Warfarin is contraindicated in recent or contemplated surgery of the central nervous system or eye, or traumatic surgery resulting in large open surfaces [1]. It is contraindicated in bleeding tendencies associated with active ulceration or overt bleeding of the gastrointestinal, genitourinary, or respiratory tract, central nervous system hemorrhage, cerebral aneurysms, dissecting aorta, pericarditis and pericardial effusions, and bacterial endocarditis [1]. Warfarin is contraindicated in threatened abortion, eclampsia, and preeclampsia [1]. It is contraindicated in unsupervised patients with conditions associated with potential high level of non-compliance [1]. Warfarin is contraindicated in spinal puncture and other diagnostic or therapeutic procedures with potential for uncontrollable bleeding [1]. It is contraindicated in hypersensitivity to warfarin or any other components of the product [1]. Warfarin is contraindicated in major regional or lumbar block anesthesia [1]. It is contraindicated in malignant hypertension [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Warfarin is not to be used in certain conditions and situations because it can cause serious harm. [1]\n\n- Warfarin should not be used during pregnancy, except in pregnant women with mechanical heart valves. [1]  \n- It is contraindicated in patients with bleeding problems or blood disorders. [1]  \n- It should not be used if recent or planned surgery involves the central nervous system, eye, or large open wounds. [1]  \n- It is not for use in patients with bleeding related to active ulcers or bleeding in the stomach, urinary, or respiratory tracts. [1]  \n- It is contraindicated in patients with bleeding in the brain, cerebral aneurysms, dissecting aorta, pericarditis, pericardial effusions, or bacterial endocarditis. [1]  \n- It should not be used in cases of threatened abortion, eclampsia, or preeclampsia. [1]  \n- Patients who are unlikely to follow treatment instructions should not use warfarin. [1]  \n- It is contraindicated in patients undergoing spinal puncture or other procedures with a high risk of uncontrollable bleeding. [1]  \n- Warfarin should not be used in patients with known allergy or hypersensitivity to warfarin or any of its ingredients. [1]  \n- It is contraindicated in patients receiving major regional or lumbar block anesthesia. [1]  \n- It should not be used in patients with malignant hypertension. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "WARFARIN SODIUM#contraindications",
-        "ASCORBIC ACID, TOCOPHERYL ACID SUCCINATE, THIAMINE, RIBOFLAVIN, NIACINAMIDE, PYRIDOXINE, FOLIC ACID, COBALAMIN, BIOTIN, PANTOTHENIC ACID, ZINC, SELENIUM#contraindications"
+        "WARFARIN SODIUM#contraindications"
       ],
       "citations": [
         {
@@ -224,7 +241,7 @@
     {
       "id": "q7",
       "question": "What is the boxed warning for sertraline?",
-      "answer": "Antidepressants increased the risk compared to placebo of suicidal thinking and behavior (suicidality) in children, adolescents, and young adults in short-term studies of major depressive disorder (MDD) and other psychiatric disorders. Anyone considering the use of Sertraline hydrochloride or any other antidepressant in a child, adolescent, or young adult must balance this risk with the clinical need. Short-term studies did not show an increase in the risk of suicidality with antidepressants compared to placebo in adults beyond age 24; there was a reduction in risk with antidepressants compared to placebo in adults aged 65 and older. Patients of all ages who are started on antidepressant therapy should be monitored appropriately and observed closely for clinical worsening, suicidality, or unusual changes in behavior. Families and caregivers should be advised of the need for close observation and communication with the prescriber. Sertraline hydrochloride tablets are not approved for the treatment of major depressive disorder in pediatric patients [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "The boxed warning for sertraline states that antidepressants, including sertraline, increase the risk of suicidal thoughts and behavior in children, adolescents, and young adults. [1]\n\n- Antidepressants raised the risk of suicidality compared to placebo in short-term studies of major depressive disorder and other psychiatric disorders in people under 25 years old. [1]  \n- No increased risk of suicidality was seen in adults over 24 years old in short-term studies; adults 65 and older showed a reduced risk with antidepressants compared to placebo. [1]  \n- Depression and some psychiatric disorders themselves increase the risk of suicide. [1]  \n- Patients of all ages starting antidepressants should be closely monitored for worsening symptoms, suicidality, or unusual behavior changes. [1]  \n- Families and caregivers should be informed about the need for close observation and communication with the prescriber. [1]  \n- Sertraline tablets are not approved for treating major depressive disorder in children. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "SERTRALINE HYDROCHLORIDE#boxed-warning"
@@ -258,7 +275,7 @@
     {
       "id": "q8",
       "question": "What is the boxed warning for naproxen?",
-      "answer": "WARNING: RISK OF SERIOUS CARDIOVASCULAR AND GASTROINTESTINAL EVENTS. Nonsteroidal anti-inflammatory drugs (NSAIDs) cause an increased risk of serious cardiovascular thrombotic events, including myocardial infarction and stroke, which can be fatal. This risk may occur early in treatment and may increase with duration of use. Naproxen tablets and naproxen sodium tablets are contraindicated in the setting of coronary artery bypass graft (CABG) surgery. NSAIDs cause an increased risk of serious gastrointestinal (GI) adverse events including bleeding, ulceration, and perforation of the stomach or intestines, which can be fatal. These events can occur at any time during use and without warning symptoms. Elderly patients and patients with a prior history of peptic ulcer disease and/or GI bleeding are at greater risk for serious GI events [1].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Naproxen has a boxed warning about serious risks to the heart and stomach.  \n- NSAIDs like naproxen increase the risk of serious heart problems such as heart attack and stroke, which can be fatal. This risk can happen early and may grow the longer the drug is used.  \n- Naproxen is not to be used in patients undergoing coronary artery bypass graft (CABG) surgery.  \n- NSAIDs also increase the risk of serious stomach and intestinal problems like bleeding, ulcers, and holes, which can be fatal. These problems can happen at any time without warning.  \n- Older adults and people with a history of stomach ulcers or bleeding are at higher risk for these serious stomach problems. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "NAPROXEN#boxed-warning"
@@ -286,13 +303,13 @@
       "mrr": 1.0,
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
-      "answer_match": 1.0,
+      "answer_match": 0.0,
       "faithfulness": 1.0
     },
     {
       "id": "q9",
       "question": "What are the contraindications for clopidogrel?",
-      "answer": "Clopidogrel is contraindicated in patients with active pathological bleeding, such as peptic ulcer or intracranial hemorrhage. Clopidogrel is also contraindicated in patients with hypersensitivity (e.g., anaphylaxis) to clopidogrel or any component of the product [1]. \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Clopidogrel should not be used in patients who have certain bleeding problems or allergies.  \n- It is contraindicated in patients with active pathological bleeding, such as peptic ulcer or bleeding inside the brain (intracranial hemorrhage).  \n- It is contraindicated in patients who are allergic (hypersensitive) to clopidogrel or any ingredient in the product. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "CLOPIDOGREL BISULFATE#contraindications"
@@ -324,7 +341,7 @@
     {
       "id": "q10",
       "question": "What is atorvastatin used for?",
-      "answer": "Atorvastatin calcium tablets are indicated to reduce the risk of myocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk factors for coronary heart disease (CHD) but without clinically evident CHD [1]. They are also indicated to reduce the risk of MI and stroke in adults with type 2 diabetes mellitus with multiple risk factors for CHD but without clinically evident CHD [1]. Additionally, atorvastatin is used to reduce the risk of non-fatal MI, fatal and non-fatal stroke, revascularization procedures, hospitalization for congestive heart failure, and angina in adults with clinically evident CHD [1]. As an adjunct to diet, atorvastatin is used to reduce low-density lipoprotein cholesterol (LDL-C) in adults with primary hyperlipidemia and in adults and pediatric patients aged 10 years and older with heterozygous familial hypercholesterolemia (HeFH) [1]. It is also used as an adjunct to other LDL-C-lowering therapies, or alone if such treatments are unavailable, to reduce LDL-C in adults and pediatric patients aged 10 years and older with homozygous familial hypercholesterolemia (HoFH) [1]. Furthermore, atorvastatin is indicated as an adjunct to diet for the treatment of adults with primary dysbetalipoproteinemia and hypertriglyceridemia [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Atorvastatin is used to lower certain fats in the blood and to reduce the risk of heart problems like heart attacks and strokes. [1]\n\n- It reduces the risk of heart attack, stroke, procedures to restore blood flow, and chest pain in adults with multiple risk factors for coronary heart disease but no clear heart disease yet. [1]  \n- It lowers the risk of heart attack and stroke in adults with type 2 diabetes who have multiple risk factors for coronary heart disease but no clear heart disease yet. [1]  \n- It reduces the risk of non-fatal heart attack, fatal and non-fatal stroke, procedures to restore blood flow, hospital stays for heart failure, and chest pain in adults with clear coronary heart disease. [1]  \n- It is used along with diet to lower low-density lipoprotein cholesterol (LDL-C) in adults with primary high cholesterol. [1]  \n- It is used with diet to lower LDL-C in adults and children aged 10 years and older with heterozygous familial hypercholesterolemia (a genetic high cholesterol condition). [1]  \n- It can be used alone or with other LDL-C-lowering treatments to reduce LDL-C in adults and children aged 10 years and older with homozygous familial hypercholesterolemia (a more severe genetic high cholesterol condition). [1]  \n- It is used with diet to treat adults with primary dysbetalipoproteinemia (a disorder of fat metabolism). [1]  \n- It is used with diet to treat adults with high triglycerides. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "ATORVASTATIN CALCIUM#indications-and-usage"
@@ -356,42 +373,31 @@
     {
       "id": "q11",
       "question": "What drug interactions are listed for ciprofloxacin?",
-      "answer": "Specific drug interaction studies have not been conducted with ophthalmic ciprofloxacin. However, systemic administration of some quinolones has been shown to elevate plasma concentrations of theophylline, interfere with the metabolism of caffeine, enhance the effects of the oral anticoagulant warfarin and its derivatives, and has been associated with transient elevations in serum creatinine in patients receiving cyclosporine concomitantly [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
-      "refused": false,
-      "retrieved_sources": [
-        "CIPROFLOXACIN#drug-interactions"
-      ],
-      "citations": [
-        {
-          "marker": "[1]",
-          "source": "CIPROFLOXACIN",
-          "section": "drug-interactions",
-          "chunk_id": "CIPROFLOXACIN#drug-interactions:aa94c433",
-          "text": "## Drug Interactions\n\nDrug Interactions: Specific drug interaction studies have not been conducted with ophthalmic ciprofloxacin. However, the systemic administration of some quinolones has been shown",
-          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=05b2836d-cd3d-4d7f-970c-66ec2d788667",
-          "section_title": "Drug Interactions"
-        }
-      ],
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
       "expected_sources": [
         "CIPROFLOXACIN#drug-interactions"
       ],
       "answer_contains_terms": [],
-      "hit_at_1": 1.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 1.0,
-      "citation_accuracy": 1.0,
-      "refusal_correctness": 1.0,
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
       "answer_match": 1.0,
-      "faithfulness": 1.0
+      "faithfulness": null
     },
     {
       "id": "q12",
       "question": "What is gabapentin indicated to treat?",
-      "answer": "Gabapentin is indicated for the management of postherpetic neuralgia in adults. Gabapentin is also indicated as adjunctive therapy in the treatment of partial onset seizures, with and without secondary generalization, in adults and pediatric patients 3 years and older with epilepsy [1]. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Gabapentin is indicated to treat postherpetic neuralgia in adults and as an additional treatment for partial onset seizures in adults and children 3 years and older with epilepsy.  \n- It is used for managing postherpetic neuralgia in adults [1].  \n- It is used as adjunctive therapy for partial onset seizures, with or without secondary generalization, in adults and pediatric patients 3 years and older with epilepsy [1].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
-        "GABAPENTIN#indications-and-usage"
+        "GABAPENTIN#indications-and-usage",
+        "GABAPENTIN#dosage-and-administration"
       ],
       "citations": [
         {
@@ -420,13 +426,13 @@
     {
       "id": "q13",
       "question": "Is there a bleeding risk if I take ibuprofen together with warfarin?",
-      "answer": "Taking ibuprofen together with warfarin increases the risk of bleeding. Warfarin sodium can cause major or fatal bleeding, and certain concomitant drugs, including non-steroidal anti-inflammatory agents such as ibuprofen, increase the risk of bleeding when used with warfarin [1][2][4]. Ibuprofen, as an NSAID, may cause severe stomach bleeding, and the chance is higher if you take a blood thinning (anticoagulant) drug such as warfarin [3]. Therefore, concomitant use of ibuprofen and warfarin requires careful monitoring due to increased bleeding risk [1][2][3][4].\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "answer": "Taking ibuprofen together with warfarin increases the risk of bleeding. [1][2][4]\n\n- Warfarin can cause major or fatal bleeding, and certain drugs increase this risk. [1][2]  \n- Ibuprofen is a nonsteroidal anti-inflammatory drug (NSAID) that can cause serious gastrointestinal bleeding. [4]  \n- Drugs like NSAIDs that interfere with platelet function may increase bleeding risk when used with anticoagulants like warfarin. [2][4]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": false,
       "retrieved_sources": [
         "WARFARIN SODIUM#boxed-warning",
         "WARFARIN SODIUM#warnings-and-cautions",
-        "IBUPROFEN#warnings",
-        "WARFARIN SODIUM#drug-interactions"
+        "HEPARIN SODIUM#drug-interactions",
+        "IBUPROFEN#boxed-warning"
       ],
       "citations": [
         {
@@ -449,21 +455,12 @@
         },
         {
           "marker": "[4]",
-          "source": "WARFARIN SODIUM",
-          "section": "drug-interactions",
-          "chunk_id": "WARFARIN SODIUM#drug-interactions:f9e57619",
-          "text": "7 DRUG INTERACTIONS Concomitant use of drugs that increase bleeding risk, antibiotics, antifungals, botanical (herbal) products, and inhibitors and inducers of CYP2C9, 1A2, or 3A4. ( 7 ) Consult label",
-          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
-          "section_title": "Drug Interactions"
-        },
-        {
-          "marker": "[3]",
           "source": "IBUPROFEN",
-          "section": "warnings",
-          "chunk_id": "IBUPROFEN#warnings:e36dad14",
-          "text": "Warnings Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin. Symptoms may include: rash facial swelling asthma (wheezing) hives skin reddening shoc",
-          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00653b7c-7099-487e-9a01-e89781c21323",
-          "section_title": "Warnings"
+          "section": "boxed-warning",
+          "chunk_id": "IBUPROFEN#boxed-warning:3e501923",
+          "text": "## Boxed Warning\n\nCardiovascular Thrombotic Events Nonsteroidal anti-inflammatory drugs (NSAIDs) cause an increased risk of serious cardiovascular thrombotic events, including myocardial infarction an",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=38ebacc3-378f-483e-babc-76119677e7df",
+          "section_title": "Boxed Warning"
         }
       ],
       "expected_sources": [
@@ -474,9 +471,9 @@
         "bleeding"
       ],
       "hit_at_1": 0.0,
-      "hit_at_3": 1.0,
-      "hit_at_5": 1.0,
-      "mrr": 0.3333333333333333,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
       "citation_accuracy": 1.0,
       "refusal_correctness": 1.0,
       "answer_match": 1.0,
@@ -543,7 +540,1094 @@
     },
     {
       "id": "q17",
-      "question": "What is the recommended dosage of insulin glargine?",
+      "question": "What is the recommended dosage of pembrolizumab?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q18",
+      "question": "What is the boxed warning for metformin?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "METFORMIN HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "lactic acidosis"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 0.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q19",
+      "question": "What is metformin used to treat?",
+      "answer": "Metformin is used to help improve blood sugar control in adults with type 2 diabetes when combined with diet and exercise. [1][2]\n\n- Metformin hydrochloride extended-release tablets are indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus. [1]  \n- The combination product JENTADUETO XR, which contains metformin hydrochloride and linagliptin, is also indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus. [2]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "METFORMIN HYDROCHLORIDE#indications-and-usage",
+        "LINAGLIPTIN AND METFORMIN HYDROCHLORIDE#indications-and-usage"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "METFORMIN HYDROCHLORIDE",
+          "section": "indications-and-usage",
+          "chunk_id": "METFORMIN HYDROCHLORIDE#indications-and-usage:ba7ce021",
+          "text": "## Indications And Usage\n\n1 INDICATIONS AND USAGE Metformin hydrochloride extended-release tablets are indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 di",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=3dca884d-ec44-496f-9eeb-31fd8fa3f574",
+          "section_title": "Indications And Usage"
+        },
+        {
+          "marker": "[2]",
+          "source": "LINAGLIPTIN AND METFORMIN HYDROCHLORIDE",
+          "section": "indications-and-usage",
+          "chunk_id": "LINAGLIPTIN AND METFORMIN HYDROCHLORIDE#indications-and-usage:75452da4",
+          "text": "## Indications And Usage\n\n1 INDICATIONS AND USAGE JENTADUETO XR is indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus . JENTADUETO XR is a",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=3d02a4d4-d312-80b4-05c4-691b8f0aa7aa",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "METFORMIN HYDROCHLORIDE#indications-and-usage"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q20",
+      "question": "What is the boxed warning for lisinopril?",
+      "answer": "The boxed warning for lisinopril is about the risk of harm to a developing baby during pregnancy.  \n- When pregnancy is detected, lisinopril should be stopped as soon as possible.  \n- Drugs like lisinopril that act on the renin-angiotensin system can cause injury and death to the developing fetus. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS",
+          "section": "boxed-warning",
+          "chunk_id": "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS#boxed-warning:86ed98c4",
+          "text": "## Boxed Warning\n\nWARNING: FETAL TOXICITY When pregnancy is detected, discontinue lisinopril and hydrochlorothiazide tablets as soon as possible. Drugs that act directly on the renin-angiotensin syste",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00b266d9-ac4a-e931-e063-6294a90a6a0b",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "pregnancy"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q21",
+      "question": "What is the boxed warning for losartan?",
+      "answer": "The boxed warning for losartan is about the risk of harm to a developing baby during pregnancy.  \n- When pregnancy is detected, losartan potassium should be stopped as soon as possible.  \n- Drugs like losartan that act on the renin-angiotensin system can cause injury and death to the developing fetus. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "LOSARTAN POTASSIUM#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "LOSARTAN POTASSIUM",
+          "section": "boxed-warning",
+          "chunk_id": "LOSARTAN POTASSIUM#boxed-warning:26b31794",
+          "text": "## Boxed Warning\n\nWARNING: FETAL TOXICITY When pregnancy is detected, discontinue losartan potassium as soon as possible. Drugs that act directly on the renin-angiotensin system can cause injury and d",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=021cd76a-b093-4704-8410-5e7d01e20a54",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "LOSARTAN POTASSIUM#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "pregnancy"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q22",
+      "question": "What is the boxed warning for levofloxacin?",
+      "answer": "The boxed warning for levofloxacin states that it can cause serious and potentially irreversible side effects affecting tendons, nerves, the brain, and muscle strength. [1]\n\n- Levofloxacin has been linked to disabling and potentially irreversible serious adverse reactions that may happen together, including tendinitis and tendon rupture. [1]  \n- It can cause peripheral neuropathy, which means nerve damage. [1]  \n- It may cause central nervous system effects, affecting the brain and nervous system. [1]  \n- Levofloxacin can worsen muscle weakness in patients with myasthenia gravis, so it should be avoided in these patients. [1]  \n- If any of these serious side effects occur, levofloxacin should be stopped immediately. [1]  \n- Because of these risks, levofloxacin should only be used for certain infections when no other treatment options are available, such as uncomplicated urinary tract infection, acute bacterial exacerbation of chronic bronchitis, and acute bacterial sinusitis. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "LEVOFLOXACIN#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "LEVOFLOXACIN",
+          "section": "boxed-warning",
+          "chunk_id": "LEVOFLOXACIN#boxed-warning:1849dd1e",
+          "text": "BOXED WARNING SECTION WARNING: SERIOUS ADVERSE REACTIONS INCLUDING TENDINITIS, TENDON RUPTURE, PERIPHERAL NEUROPATHY, CENTRAL NERVOUS SYSTEM EFFECTS AND EXACERBATION OF MYASTHENIA GRAVIS \u2022 Fluoroquino",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=05d179f5-b200-8597-e063-6394a90a10cc",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "LEVOFLOXACIN#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "tendon"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q23",
+      "question": "What is the boxed warning for duloxetine?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "DULOXETINE HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "suicidal"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 0.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q24",
+      "question": "What is the boxed warning for fluoxetine?",
+      "answer": "The boxed warning for fluoxetine is about the increased risk of suicidal thoughts and behaviors in certain age groups.  \n- Antidepressants, including fluoxetine, increased the risk of suicidal thoughts and behaviors in children, adolescents, and young adults in short-term studies [1].  \n- These studies did not show an increased risk in patients over age 24; in fact, there was a reduction in risk in patients aged 65 and older [1].  \n- Patients of all ages starting antidepressant therapy should be closely monitored for worsening symptoms and emergence of suicidal thoughts and behaviors [1].  \n- Families and caregivers should be advised to observe patients closely and communicate with the prescriber [1].  \n- Fluoxetine is not approved for use in children under 7 years of age [1].  \n- When fluoxetine is used in combination with olanzapine, the boxed warning for Symbyax should also be consulted [1].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "FLUOXETINE HYDROCHLORIDE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "FLUOXETINE HYDROCHLORIDE",
+          "section": "boxed-warning",
+          "chunk_id": "FLUOXETINE HYDROCHLORIDE#boxed-warning:9d555ed5",
+          "text": "## Boxed Warning\n\nWARNING: SUICIDAL THOUGHTS AND BEHAVIORS Antidepressants increased the risk of suicidal thoughts and behavior in children, adolescents, and young adults in short-term studies. These ",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=02283de9-6087-45f7-a9ce-3b082ce860de",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "FLUOXETINE HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "suicidal"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q25",
+      "question": "What is the boxed warning for bupropion?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "BUPROPION HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "suicidal"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 0.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q26",
+      "question": "What is the boxed warning for tramadol?",
+      "answer": "The boxed warning for tramadol highlights serious and life-threatening risks including addiction, respiratory depression, accidental ingestion, and risks from certain drug interactions. [1]\n\n- Tramadol extended-release tablets can cause opioid addiction, abuse, and misuse, which may lead to overdose and death; patients should be assessed before and during treatment for these risks. [1]  \n- Serious, life-threatening, or fatal breathing problems (respiratory depression) can happen, especially when starting tramadol or increasing the dose; proper dosing and swallowing the tablets whole are important to reduce this risk. [1]  \n- Accidental swallowing of even one dose, especially by children, can cause a fatal overdose. [1]  \n- Using tramadol with benzodiazepines or other central nervous system depressants (including alcohol) can cause severe sedation, breathing problems, coma, or death; such combinations should be reserved for patients without alternatives and used at the lowest dose and shortest time needed. [1]  \n- Pregnant women using opioids for a long time should be warned about the risk of Neonatal Opioid Withdrawal Syndrome in newborns, which can be life-threatening if not treated. [1]  \n- Tramadol extended-release tablets are not to be used in children under 12 years old or in children under 18 years old after tonsil or adenoid removal surgery; use in adolescents 12 to 18 years old with other risk factors for breathing problems should be avoided. [1]  \n- The effects of drugs that affect certain liver enzymes (cytochrome P450 3A4 and 2D6) on tramadol are complex and require careful consideration. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "TRAMADOL HYDROCHLORIDE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "TRAMADOL HYDROCHLORIDE",
+          "section": "boxed-warning",
+          "chunk_id": "TRAMADOL HYDROCHLORIDE#boxed-warning:867765cd",
+          "text": "WARNING: SERIOUS AND LIFE-THREATENING RISKS FROM USE OF TRAMADOL HYDROCHLORIDE EXTENDED-RELEASE TABLETS Addiction, Abuse, and Misuse Because the use of tramadol hydrochloride extended-release tablets ",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=004de5a4-80f8-4040-a6ea-be5e99352a36",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "TRAMADOL HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "addiction"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q27",
+      "question": "What is the boxed warning for oxycodone?",
+      "answer": "The boxed warning for oxycodone highlights serious and life-threatening risks including addiction, respiratory depression, accidental ingestion, dangerous interactions, and risks to newborns. [1]\n\n- Oxycodone can cause addiction, abuse, and misuse, which may lead to overdose and death; patients should be assessed for these risks before and during treatment. [1]  \n- Serious, life-threatening, or fatal breathing problems can happen, especially when starting oxycodone or increasing the dose; careful dosing is essential. [1]  \n- Accidental swallowing of even one dose, especially by children, can cause a fatal overdose. [1]  \n- Using oxycodone with benzodiazepines or other central nervous system depressants, including alcohol, can cause extreme sedation, breathing problems, coma, or death; such combinations should be limited to cases where no alternatives exist. [1]  \n- Pregnant women using oxycodone for a long time risk causing Neonatal Opioid Withdrawal Syndrome in their newborns, which can be life-threatening if not treated properly. [1]  \n- Healthcare providers are encouraged to complete special education programs and counsel patients on the serious risks and safe use of oxycodone. [1]  \n- Taking oxycodone with certain drugs that affect liver enzymes (CYP3A4 inhibitors or inducers) can increase oxycodone levels and risk fatal overdose. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "OXYCODONE HYDROCHLORIDE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "OXYCODONE HYDROCHLORIDE",
+          "section": "boxed-warning",
+          "chunk_id": "OXYCODONE HYDROCHLORIDE#boxed-warning:0591626b",
+          "text": "WARNING: SERIOUS AND LIFE-THREATENING RISKS FROM USE OF OXYCODONE HYDROCHLORIDE TABLETS Addiction, Abuse, and Misuse Because the use of oxycodone hydrochloride tablets exposes patients and other users",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=01db4606-d49c-4b10-a78a-1cf41880a9fb",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "OXYCODONE HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "addiction"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q28",
+      "question": "What is the boxed warning for fentanyl?",
+      "answer": "The boxed warning for fentanyl highlights serious and life-threatening risks associated with its use.  \n\n- Fentanyl Citrate Injection exposes users to risks of addiction, abuse, and misuse, which can lead to overdose and death. Patients should be assessed for these risks before prescribing and monitored regularly [1].  \n- Serious, life-threatening, or fatal respiratory depression may occur, especially when starting fentanyl or increasing the dose. Proper dosing and careful adjustment are essential to reduce this risk [1].  \n- Using fentanyl together with benzodiazepines or other central nervous system (CNS) depressants, including alcohol, can cause severe sedation, respiratory depression, coma, and death. Such combined use should be reserved for patients without adequate alternative treatments [1].  \n- Taking fentanyl with drugs that inhibit the enzyme CYP3A4, or stopping drugs that induce CYP3A4, can increase fentanyl levels and cause potentially fatal respiratory depression [1].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "FENTANYL CITRATE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "FENTANYL CITRATE",
+          "section": "boxed-warning",
+          "chunk_id": "FENTANYL CITRATE#boxed-warning:0010050b",
+          "text": "WARNING: SERIOUS AND LIFE-THREATENING RISKS FROM USE OF FENTANYL CITRATE INJECTION Addiction, Abuse, and Misuse Because the use of Fentanyl Citrate Injection exposes patients and other users to the ri",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0c10e465-4117-48ba-a454-23ccb7a3fcc7",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "FENTANYL CITRATE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "respiratory depression"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q29",
+      "question": "What is the boxed warning for pioglitazone?",
+      "answer": "The boxed warning for pioglitazone is that it can cause or worsen congestive heart failure in some patients. [1]\n\n- After starting pioglitazone or increasing the dose, patients should be carefully watched for signs of heart failure such as rapid weight gain, trouble breathing, or swelling. [1]  \n- If heart failure occurs, it should be treated according to current medical standards, and stopping or lowering the dose of pioglitazone should be considered. [1]  \n- Pioglitazone is not recommended for patients who already have symptoms of heart failure. [1]  \n- Starting pioglitazone in patients with severe heart failure (New York Heart Association Class III or IV) is not allowed. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "PIOGLITAZONE HYDROCHLORIDE#boxed-warning",
+        "PIOGLITAZONE HYDROCHLORIDE#warnings-and-cautions"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "PIOGLITAZONE HYDROCHLORIDE",
+          "section": "boxed-warning",
+          "chunk_id": "PIOGLITAZONE HYDROCHLORIDE#boxed-warning:87996f7c",
+          "text": "## Boxed Warning\n\nWARNING: CONGESTIVE HEART FAILURE Thiazolidinediones, including pioglitazone , cause or exacerbate congestive heart failure in some patients [see Warnings and Precautions (5.1) ] . A",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0331400c-b163-4856-bfb0-965470247cb3",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "PIOGLITAZONE HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "heart failure"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q30",
+      "question": "What is the boxed warning for amiodarone?",
+      "answer": "The boxed warning for amiodarone highlights serious risks of lung, liver, and heart toxicity. [1]\n\n- Amiodarone is intended only for patients with life-threatening arrhythmias because it has substantial toxicity. [1]  \n- It can cause lung toxicity, including hypersensitivity pneumonitis or interstitial/alveolar pneumonitis, which has occurred in up to 17% of patients and has been fatal about 10% of the time. [1]  \n- Lung function tests and chest X-rays should be done before and regularly during treatment. [1]  \n- Amiodarone can cause liver damage that may be fatal; liver enzymes should be checked before and during treatment, and the drug should be stopped if liver injury signs appear. [1]  \n- It can worsen arrhythmias and should be started only where continuous heart monitoring and resuscitation are available. [1]  \n- Use amiodarone only after trying other treatments because of these serious risks. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "AMIODARONE HYDROCHLORIDE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "AMIODARONE HYDROCHLORIDE",
+          "section": "boxed-warning",
+          "chunk_id": "AMIODARONE HYDROCHLORIDE#boxed-warning:bdc5f564",
+          "text": "## Boxed Warning\n\nWARNING: PULMONARY, HEPATIC and CARDIAC TOXICITY Pacerone is intended for use only in patients with the indicated life-threatening arrhythmias because its use is accompanied by subst",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=02f4a736-63ed-4ad4-a1f1-b21a71e928bd",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "AMIODARONE HYDROCHLORIDE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "pulmonary"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 0.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q31",
+      "question": "What is the boxed warning for lamotrigine?",
+      "answer": "The boxed warning for lamotrigine is that it can cause serious skin rashes that may require hospitalization and stopping the medicine. [1]\n\n- These serious rashes include Stevens-Johnson syndrome and toxic epidermal necrolysis, which can be life-threatening or cause death. [1]  \n- The risk of serious rash is higher in children (aged 2 to 17 years) than in adults. [1]  \n- Factors that increase the risk of rash include taking lamotrigine with valproate, starting at too high a dose, increasing the dose too quickly, or having the HLA-B*1502 gene. [1]  \n- Serious rashes usually happen within 2 to 8 weeks after starting treatment but can occur later. [1]  \n- It is not possible to predict which rashes will be serious, so lamotrigine should be stopped at the first sign of a rash unless it is clearly not caused by the drug. [1]  \n- Even stopping the drug may not prevent a rash from becoming life-threatening or causing permanent harm. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "LAMOTRIGINE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "LAMOTRIGINE",
+          "section": "boxed-warning",
+          "chunk_id": "LAMOTRIGINE#boxed-warning:7b38641b",
+          "text": "WARNING: SERIOUS SKIN RASHES Lamotrigine can cause serious rashes requiring hospitalization and discontinuation of treatment. The incidence of these rashes, which have included Stevens-Johnson syndrom",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=003663e5-c0c7-4fc1-a64d-313f2a5b10d2",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "LAMOTRIGINE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "rash"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q32",
+      "question": "What is the boxed warning for carbamazepine?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "CARBAMAZEPINE#boxed-warning"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q33",
+      "question": "What is the boxed warning for methotrexate?",
+      "answer": "Methotrexate has a boxed warning for embryo-fetal toxicity, severe hypersensitivity reactions, serious adverse reactions, and risk of medication errors. [1]\n\n- Methotrexate tablets can cause embryo-fetal toxicity, including fetal death, and are contraindicated in pregnancy for non-cancer diseases; patients of reproductive potential should use effective contraception. [1][2]  \n- Methotrexate is contraindicated in patients with a history of severe hypersensitivity reactions, including anaphylaxis. [1][2]  \n- Taking methotrexate daily by mistake instead of weekly has caused death. [1][2]  \n- Serious adverse reactions, including death, have been reported affecting bone marrow, gastrointestinal tract, liver, lungs, skin, and kidneys; patients should be closely monitored and methotrexate withheld or stopped as needed. [1][2]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "METHOTREXATE#boxed-warning",
+        "METHOTREXATE#warnings-and-cautions"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "METHOTREXATE",
+          "section": "boxed-warning",
+          "chunk_id": "METHOTREXATE#boxed-warning:ca80593b",
+          "text": "WARNING: EMBRYO-FETAL TOXICITY, HYPERSENSITIVITY REACTIONS, SEVERE ADVERSE REACTIONS, and RISK OF MEDICATION ERRORS \u2022 Methotrexate tablets can cause embryo-fetal toxicity, including fetal death. For n",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=04a95db9-a124-4b97-bd71-1c37a6b3b0c8",
+          "section_title": "Boxed Warning"
+        },
+        {
+          "marker": "[2]",
+          "source": "METHOTREXATE",
+          "section": "warnings-and-cautions",
+          "chunk_id": "METHOTREXATE#warnings-and-cautions:d66115c3",
+          "text": "5 WARNINGS AND PRECAUTIONS \u2022 Serious Infections : Monitor patients for infection during and after treatment with methotrexate. Withhold or discontinue methotrexate for serious infections as appropriat",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=04a95db9-a124-4b97-bd71-1c37a6b3b0c8",
+          "section_title": "Warnings And Cautions"
+        }
+      ],
+      "expected_sources": [
+        "METHOTREXATE#boxed-warning"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q34",
+      "question": "What is the boxed warning for quetiapine?",
+      "answer": "The boxed warning for quetiapine states that there is an increased risk of death in elderly patients with dementia-related psychosis and an increased risk of suicidal thoughts and behaviors in certain age groups.  \n- Elderly patients with dementia-related psychosis treated with antipsychotic drugs, including quetiapine, have an increased risk of death. Quetiapine is not approved for treating dementia-related psychosis in elderly patients.  \n- Antidepressants, including quetiapine, increase the risk of suicidal thoughts and behaviors in children, adolescents, and young adults in short-term studies.  \n- There was no increased risk of suicidal thoughts and behaviors in patients over age 24, and a reduced risk in patients aged 65 and older.  \n- Patients of all ages starting antidepressant therapy should be closely monitored for worsening symptoms and emergence of suicidal thoughts and behaviors.  \n- Quetiapine is not approved for use in pediatric patients under ten years of age. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "QUETIAPINE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "QUETIAPINE",
+          "section": "boxed-warning",
+          "chunk_id": "QUETIAPINE#boxed-warning:9f1d6aaa",
+          "text": "## Boxed Warning\n\nWARNING: INCREASED MORTALITY IN ELDERLY PATIENTS WITH DEMENTIA-RELATED PSYCHOSIS; and SUICIDAL THOUGHTS AND BEHAVIORS Increased Mortality in Elderly Patients with Dementia-Related Ps",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=01261008-5f42-4844-8a65-d4545a67a309",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "QUETIAPINE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "dementia"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 0.0
+    },
+    {
+      "id": "q35",
+      "question": "What is the boxed warning for olanzapine?",
+      "answer": "The boxed warning for olanzapine states that elderly patients with dementia-related psychosis treated with antipsychotic drugs have an increased risk of death.  \n- The risk of death in drug-treated patients was about 1.6 to 1.7 times higher than in placebo-treated patients in clinical trials lasting about 10 weeks.  \n- The death rate in drug-treated patients was about 4.5%, compared to about 2.6% in the placebo group.  \n- Most deaths were due to cardiovascular causes (like heart failure or sudden death) or infections (like pneumonia).  \n- Olanzapine is not approved for treating patients with dementia-related psychosis.  \n- When olanzapine is used with fluoxetine, the boxed warning for the combination product Symbyax should also be consulted. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "OLANZAPINE#boxed-warning"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "OLANZAPINE",
+          "section": "boxed-warning",
+          "chunk_id": "OLANZAPINE#boxed-warning:ccc6228c",
+          "text": "## Boxed Warning\n\nWARNING: INCREASED MORTALITY IN ELDERLY PATIENTS WITH DEMENTIA-RELATED PSYCHOSIS Elderly patients with dementia-related psychosis treated with antipsychotic drugs are at an increased",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=002dd00f-7946-ea4f-e063-6294a90a5916",
+          "section_title": "Boxed Warning"
+        }
+      ],
+      "expected_sources": [
+        "OLANZAPINE#boxed-warning"
+      ],
+      "answer_contains_terms": [
+        "dementia"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q36",
+      "question": "What is pantoprazole used for?",
+      "answer": "Pantoprazole is used to treat gastroesophageal reflux disease (GERD) with a history of erosive esophagitis (EE) and pathological conditions with too much stomach acid, including Zollinger-Ellison Syndrome in adults. [1]\n\n- It is indicated for treatment of GERD and a history of erosive esophagitis for up to 10 days in adults. [1]  \n- It is also indicated for pathological hypersecretory conditions such as Zollinger-Ellison Syndrome in adults. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "PANTOPRAZOLE SODIUM#indications-and-usage",
+        "PANTOPRAZOLE SODIUM#dosage-and-administration"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "PANTOPRAZOLE SODIUM",
+          "section": "indications-and-usage",
+          "chunk_id": "PANTOPRAZOLE SODIUM#indications-and-usage:f58d7d2e",
+          "text": "## Indications And Usage\n\n1 INDICATIONS AND USAGE Pantoprazole Sodium for Injection is indicated for treatment of: gastroesophageal reflux disease (GERD) and a history of erosive esophagitis (EE) for ",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=014f9762-6948-46b7-8659-5c89f35ad8bf",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "PANTOPRAZOLE SODIUM#indications-and-usage"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q37",
+      "question": "What is cephalexin used to treat?",
+      "answer": "Cephalexin is used to treat infections caused by certain bacteria. [1]\n\n- It treats respiratory tract infections caused by Streptococcus pneumoniae and Streptococcus pyogenes. [1]  \n- It treats ear infections (otitis media) caused by Streptococcus pneumoniae, Haemophilus influenzae, Staphylococcus aureus, Streptococcus pyogenes, and Moraxella catarrhalis. [1]  \n- It treats skin and skin structure infections caused by Staphylococcus aureus and Streptococcus pyogenes. [1]  \n- It treats bone infections caused by Staphylococcus aureus and Proteus mirabilis. [1]  \n- It treats genitourinary tract infections, including acute prostatitis, caused by Escherichia coli, Proteus mirabilis, and Klebsiella pneumoniae. [1]  \n- Cephalexin should only be used to treat infections that are proven or strongly suspected to be caused by bacteria. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "CEPHALEXIN#indications-and-usage"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "CEPHALEXIN",
+          "section": "indications-and-usage",
+          "chunk_id": "CEPHALEXIN#indications-and-usage:d1271daa",
+          "text": "1 INDICATIONS AND USAGE Cephalexin capsules are a cephalosporin antibacterial drug indicated for the treatment of the following infections caused by susceptible isolates of designated bacteria: Respir",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=02b5cd6f-3df8-43c1-879d-217fcf55231a",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "CEPHALEXIN#indications-and-usage"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q38",
+      "question": "What are the contraindications for doxycycline?",
+      "answer": "Doxycycline is contraindicated in people who have shown an allergic reaction to tetracyclines or any ingredients in the product.  \n- It should not be used by anyone who has had hypersensitivity to any tetracyclines.  \n- It should not be used by anyone who is allergic to any components of the product formulation. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "MINOCYCLINE HYDROCHLORIDE#contraindications"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "MINOCYCLINE HYDROCHLORIDE",
+          "section": "contraindications",
+          "chunk_id": "MINOCYCLINE HYDROCHLORIDE#contraindications:dc2e060b",
+          "text": "## Contraindications\n\nCONTRAINDICATIONS This drug is contraindicated in persons who have shown hypersensitivity to any of the tetracyclines or to any of the components of the product formulation.",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0760232b-21a6-2b13-e063-6394a90a22c1",
+          "section_title": "Contraindications"
+        }
+      ],
+      "expected_sources": [
+        "DOXYCYCLINE#contraindications"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 0.0
+    },
+    {
+      "id": "q39",
+      "question": "What drug interactions are listed for spironolactone?",
+      "answer": "Spironolactone has several drug interactions that can affect potassium levels, drug effectiveness, and toxicity risks. [1]\n\n- Taking spironolactone with other agents that increase potassium can cause severe high potassium (hyperkalemia). These agents include potassium supplements, ACE inhibitors, angiotensin receptor blockers (ARBs), NSAIDs, heparin, and trimethoprim. [1]  \n- Using spironolactone with lithium increases the risk of lithium toxicity because spironolactone reduces lithium clearance by the kidneys. Lithium levels should be monitored. [1]  \n- NSAIDs may reduce the diuretic, natriuretic, and blood pressure-lowering effects of spironolactone, so close monitoring is needed. [1]  \n- Spironolactone can interfere with lab tests for digoxin, making it appear that digoxin levels are higher than they really are. Use a test that does not interact with spironolactone if both drugs are taken together. [1]  \n- Taking spironolactone with cholestyramine has been reported to cause hyperkalemic metabolic acidosis. [1]  \n- Acetylsalicylic acid (aspirin) may reduce spironolactone\u2019s effectiveness, possibly requiring dose adjustment and close observation. [1]  \n- Spironolactone may increase prostate-specific antigen (PSA) levels in patients treated with abiraterone, and their combined use is not recommended. [1]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "SPIRONOLACTONE#drug-interactions",
+        "POTASSIUM CHLORIDE#drug-interactions",
+        "SACUBITRIL AND VALSARTAN#drug-interactions"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "SPIRONOLACTONE",
+          "section": "drug-interactions",
+          "chunk_id": "SPIRONOLACTONE#drug-interactions:a13006fb",
+          "text": "7 DRUG INTERACTIONS Agents increasing serum potassium: Concomitant administration can lead to hyperkalemia ( 5.1 , 7.1 ). Lithium: Increased risk of lithium toxicity ( 7.2 ). NSAIDs: May reduce the di",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=08738ad4-1607-4d55-af71-6790477353bd",
+          "section_title": "Drug Interactions"
+        }
+      ],
+      "expected_sources": [
+        "SPIRONOLACTONE#drug-interactions"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q40",
+      "question": "What are the adverse reactions of tamsulosin?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "TAMSULOSIN HYDROCHLORIDE#adverse-reactions"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q41",
+      "question": "What is allopurinol used for?",
+      "answer": "Allopurinol is used to manage gout, certain cancer-related uric acid problems, and recurrent kidney stones caused by high uric acid levels.  \n- It is indicated for adults with signs and symptoms of primary or secondary gout, including acute attacks, tophi, joint destruction, uric acid lithiasis, and nephropathy.  \n- It is used for adults and children with leukemia, lymphoma, or solid tumors who receive cancer treatment that raises uric acid levels in blood and urine.  \n- It is used for adults with recurrent calcium oxalate kidney stones when their daily uric acid excretion is high despite lifestyle changes.  \n- It is not recommended for treating asymptomatic high uric acid levels (asymptomatic hyperuricemia). [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "ALLOPURINOL#indications-and-usage",
+        "ADALIMUMAB-AATY#indications-and-usage",
+        "AMOXICILLIN AND CLAVULANATE POTASSIUM#indications-and-usage"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "ALLOPURINOL",
+          "section": "indications-and-usage",
+          "chunk_id": "ALLOPURINOL#indications-and-usage:57071964",
+          "text": "## Indications And Usage\n\n1 INDICATIONS AND USAGE Allopurinol tablets are indicated for: The management of adults with signs and symptoms of primary or secondary gout (acute attacks, tophi, joint dest",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=005048dd-844f-468c-bf56-1a09727e3477",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "ALLOPURINOL#indications-and-usage"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q42",
+      "question": "What is furosemide indicated for?",
+      "answer": "Furosemide is used to treat swelling caused by heart failure, liver disease, and kidney problems, and it can also be used to treat high blood pressure in adults.  \n- It treats edema (swelling) linked to congestive heart failure, cirrhosis of the liver, and renal disease, including nephrotic syndrome, in both adults and children.  \n- It is especially helpful when a stronger diuretic effect is needed.  \n- It may be used alone or with other blood pressure medicines in adults for hypertension.  \n- Patients whose blood pressure is not controlled by thiazide diuretics are also unlikely to be controlled by furosemide alone.  \n\n[1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "FUROSEMIDE#indications-and-usage"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "FUROSEMIDE",
+          "section": "indications-and-usage",
+          "chunk_id": "FUROSEMIDE#indications-and-usage:046eeb84",
+          "text": "## Indications And Usage\n\nINDICATIONS AND USAGE Edema Furosemide tablets are indicated in adults and pediatric patients for the treatment of edema associated with congestive heart failure, cirrhosis o",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=01a5f094-b473-4e46-9e61-69d5ec6dd766",
+          "section_title": "Indications And Usage"
+        }
+      ],
+      "expected_sources": [
+        "FUROSEMIDE#indications-and-usage"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q43",
+      "question": "What are the contraindications for sildenafil?",
+      "answer": "Sildenafil should not be used in certain situations because it can cause serious problems. [1]\n\n- It is contraindicated in patients who are using nitric oxide donors such as organic nitrates or organic nitrites in any form, because sildenafil increases the blood pressure-lowering effects of these drugs. [1]  \n- It should not be given to patients who have a known allergy (hypersensitivity) to sildenafil or any ingredient in the tablet. [1]  \n- It must not be used with guanylate cyclase (GC) stimulators, such as riociguat, because sildenafil can increase their blood pressure-lowering effects. [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "SILDENAFIL CITRATE#contraindications",
+        "SILDENAFIL CITRATE#drug-interactions"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "SILDENAFIL CITRATE",
+          "section": "contraindications",
+          "chunk_id": "SILDENAFIL CITRATE#contraindications:e1db11a2",
+          "text": "## Contraindications\n\n4 CONTRAINDICATIONS Administration of sildenafil tablets to patients using nitric oxide donors, such as organic nitrates or organic nitrites in any form. Sildenafil tablets was s",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00ee09dd-2de0-4dc4-85f6-b51ed6eabd5b",
+          "section_title": "Contraindications"
+        }
+      ],
+      "expected_sources": [
+        "SILDENAFIL CITRATE#contraindications"
+      ],
+      "answer_contains_terms": [
+        "nitrate"
+      ],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q44",
+      "question": "What are the contraindications for metoprolol?",
+      "answer": "Metoprolol is not to be used in certain heart conditions and if you are allergic to it. [1]\n\n- Severe slow heart rate (severe bradycardia) [1]  \n- Second- or third-degree heart block (a type of heart electrical problem) [1]  \n- Cardiogenic shock (a condition where the heart suddenly can't pump enough blood) [1]  \n- Systolic blood pressure less than 100 mmHg [1]  \n- Decompensated heart failure (worsening heart failure) [1]  \n- Sick sinus syndrome unless you have a permanent pacemaker [1]  \n- Known allergy to any part of the medicine [1]  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "METOPROLOL TARTRATE#contraindications"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "METOPROLOL TARTRATE",
+          "section": "contraindications",
+          "chunk_id": "METOPROLOL TARTRATE#contraindications:667e9290",
+          "text": "## Contraindications\n\n4 CONTRAINDICATIONS Metoprolol tartrate tablets are contraindicated in severe bradycardia, second- or third-degree heart block, cardiogenic shock, systolic blood pressure <100, d",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00de1f16-f979-4dbf-aa60-246ffac8d410",
+          "section_title": "Contraindications"
+        }
+      ],
+      "expected_sources": [
+        "METOPROLOL TARTRATE#contraindications"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q45",
+      "question": "Do warfarin and aspirin together increase the risk of bleeding?",
+      "answer": "Yes, taking warfarin and aspirin together increases the risk of bleeding.  \n\n- Warfarin can cause major or fatal bleeding, and patients should be instructed to report signs and symptoms of bleeding [2].  \n- Concomitant use of drugs affecting blood clotting, including aspirin and other antiplatelet agents, increases the risk of bleeding [1].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "APIXABAN#warnings-and-cautions",
+        "WARFARIN SODIUM#boxed-warning",
+        "EDOXABAN TOSYLATE#drug-interactions"
+      ],
+      "citations": [
+        {
+          "marker": "[2]",
+          "source": "WARFARIN SODIUM",
+          "section": "boxed-warning",
+          "chunk_id": "WARFARIN SODIUM#boxed-warning:1b550079",
+          "text": "## Boxed Warning\n\nWARNING: BLEEDING RISK Warfarin sodium can cause major or fatal bleeding [see Warnings and Precautions ( 5.1 )] . Perform regular monitoring of INR in all treated patients [see Dosag",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0cbce382-9c88-4f58-ae0f-532a841e8f95",
+          "section_title": "Boxed Warning"
+        },
+        {
+          "marker": "[1]",
+          "source": "APIXABAN",
+          "section": "warnings-and-cautions",
+          "chunk_id": "APIXABAN#warnings-and-cautions:effa2c15",
+          "text": "5 WARNINGS AND PRECAUTIONS Apixaban can cause serious, potentially fatal, bleeding. Promptly evaluate signs and symptoms of blood loss. An agent to reverse the anti-factor Xa activity of apixaban is a",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=095a08ac-cf0e-497e-a682-ddef38d6b29c",
+          "section_title": "Warnings And Cautions"
+        }
+      ],
+      "expected_sources": [
+        "WARFARIN SODIUM#drug-interactions",
+        "ASPIRIN#warnings"
+      ],
+      "answer_contains_terms": [
+        "bleeding"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.5,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 0.0
+    },
+    {
+      "id": "q46",
+      "question": "Is it dangerous to combine sildenafil with nitroglycerin?",
+      "answer": "It is dangerous to combine sildenafil with nitroglycerin because their combined use can cause severe low blood pressure.  \n- Nitroglycerin should not be used in patients taking sildenafil or other PDE-5 inhibitors due to the risk of severe hypotension, fainting, or heart problems [1].  \n- Sildenafil is contraindicated in patients using organic nitrates like nitroglycerin because it increases the blood pressure-lowering effects of nitrates [3].  \n- The drug interaction section confirms that sildenafil can increase the hypotensive effects of nitrates, making their combined use unsafe [4].  \n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "NITROGLYCERIN#contraindications",
+        "ISOSORBIDE MONONITRATE#warnings",
+        "SILDENAFIL CITRATE#contraindications",
+        "SILDENAFIL CITRATE#drug-interactions"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "NITROGLYCERIN",
+          "section": "contraindications",
+          "chunk_id": "NITROGLYCERIN#contraindications:abcbff41",
+          "text": "## Contraindications\n\n4 CONTRAINDICATIONS \u2022 Use of phosphodiesterase type 5 (PDE-5) inhibitors, such as avanafil, sildenafil, tadalafil, or vardenafil, or soluble guanylate cyclase (sGC) stimulators. ",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=041f127e-5166-4484-bc1a-0a373d1187ae",
+          "section_title": "Contraindications"
+        },
+        {
+          "marker": "[3]",
+          "source": "SILDENAFIL CITRATE",
+          "section": "contraindications",
+          "chunk_id": "SILDENAFIL CITRATE#contraindications:e1db11a2",
+          "text": "## Contraindications\n\n4 CONTRAINDICATIONS Administration of sildenafil tablets to patients using nitric oxide donors, such as organic nitrates or organic nitrites in any form. Sildenafil tablets was s",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00ee09dd-2de0-4dc4-85f6-b51ed6eabd5b",
+          "section_title": "Contraindications"
+        },
+        {
+          "marker": "[4]",
+          "source": "SILDENAFIL CITRATE",
+          "section": "drug-interactions",
+          "chunk_id": "SILDENAFIL CITRATE#drug-interactions:1c4180a9",
+          "text": "7 DRUG INTERACTIONS Sildenafil can potentiate the hypotensive effects of nitrates, alpha blockers, and anti-hypertensives ( 4.1 , 5.5 , 7.1 , 7.2 , 7.3 , 12.2 ) With concomitant use of alpha blockers,",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00ee09dd-2de0-4dc4-85f6-b51ed6eabd5b",
+          "section_title": "Drug Interactions"
+        }
+      ],
+      "expected_sources": [
+        "SILDENAFIL CITRATE#contraindications",
+        "NITROGLYCERIN#drug-interactions"
+      ],
+      "answer_contains_terms": [],
+      "hit_at_1": 0.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 0.3333333333333333,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 1.0
+    },
+    {
+      "id": "q47",
+      "question": "Can taking lisinopril together with potassium chloride cause problems?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [
+        "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS#drug-interactions",
+        "POTASSIUM CHLORIDE#warnings"
+      ],
+      "answer_contains_terms": [
+        "potassium"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 0.0,
+      "answer_match": 0.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q48",
+      "question": "Is there a serotonin risk taking tramadol with sertraline?",
+      "answer": "Taking tramadol with sertraline can increase the risk of serotonin syndrome. [1][2][3][4]\n\n- Serotonin syndrome is a potentially life-threatening condition that can happen when tramadol is used with other serotonergic drugs like selective serotonin reuptake inhibitors (SSRIs), which include sertraline. [1][2][3][4]  \n- Symptoms of serotonin syndrome may include confusion, agitation, hallucinations, fast heartbeat, unstable blood pressure, high body temperature, muscle tremors or stiffness, and nausea or vomiting. [1][2][3][4]  \n- If serotonin syndrome symptoms occur, treatment with tramadol and other serotonergic drugs should be stopped immediately and supportive care started. [1][2][3][4]  \n- Careful observation is advised when starting or increasing doses of tramadol with serotonergic drugs like sertraline. [1][4]\n\nInformational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": false,
+      "retrieved_sources": [
+        "CYCLOBENZAPRINE HYDROCHLORIDE#warnings",
+        "METAXALONE#warnings",
+        "GRANISETRON HYDROCHLORIDE#warnings",
+        "CYCLOBENZAPRINE HCL#warnings"
+      ],
+      "citations": [
+        {
+          "marker": "[1]",
+          "source": "CYCLOBENZAPRINE HYDROCHLORIDE",
+          "section": "warnings",
+          "chunk_id": "CYCLOBENZAPRINE HYDROCHLORIDE#warnings:41391e51",
+          "text": "WARNINGS Serotonin Syndrome The development of a potentially life-threatening serotonin syndrome has been reported with cyclobenzaprine hydrochloride when used in combination with other drugs, such as",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=00b20a8c-debd-e930-e063-6394a90a7ed0",
+          "section_title": "Warnings"
+        },
+        {
+          "marker": "[2]",
+          "source": "METAXALONE",
+          "section": "warnings",
+          "chunk_id": "METAXALONE#warnings:106ce2d5",
+          "text": "## Warnings\n\nWARNINGS Serotonin Syndrome Cases of serotonin syndrome, a potentially life-threatening condition, have been reported during concomitant use of serotonergic drugs with Metaxalone used wit",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=02c42f72-5d78-436d-8105-8c0f8d4c0d91",
+          "section_title": "Warnings"
+        },
+        {
+          "marker": "[3]",
+          "source": "GRANISETRON HYDROCHLORIDE",
+          "section": "warnings",
+          "chunk_id": "GRANISETRON HYDROCHLORIDE#warnings:dd4f3295",
+          "text": "## Warnings\n\nWARNINGS Serotonin Syndrome The development of serotonin syndrome has been reported with 5-HT3 receptor antagonists alone but particularly with concomitant use of serotonergic drugs (e.g.",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=2758eb4d-2fe0-4f74-b3f5-b4903009e97c",
+          "section_title": "Warnings"
+        },
+        {
+          "marker": "[4]",
+          "source": "CYCLOBENZAPRINE HCL",
+          "section": "warnings",
+          "chunk_id": "CYCLOBENZAPRINE HCL#warnings:ef039ba2",
+          "text": "Serotonin Syndrome The development of a potentially life-threatening serotonin syndrome has been reported with cyclobenzaprine hydrochloride when used in combination with other drugs, such as selectiv",
+          "source_url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=55683c5c-0f86-9a26-e063-6294a90a8e8c",
+          "section_title": "Warnings"
+        }
+      ],
+      "expected_sources": [
+        "TRAMADOL HYDROCHLORIDE#warnings",
+        "SERTRALINE HYDROCHLORIDE#warnings"
+      ],
+      "answer_contains_terms": [
+        "serotonin"
+      ],
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "mrr": 0.0,
+      "citation_accuracy": 0.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": 0.0
+    },
+    {
+      "id": "q49",
+      "question": "What are the warnings for trastuzumab?",
+      "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
+      "refused": true,
+      "retrieved_sources": [],
+      "citations": [],
+      "expected_sources": [],
+      "answer_contains_terms": [],
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "mrr": 1.0,
+      "citation_accuracy": 1.0,
+      "refusal_correctness": 1.0,
+      "answer_match": 1.0,
+      "faithfulness": null
+    },
+    {
+      "id": "q50",
+      "question": "How much does a one-month supply of atorvastatin cost?",
       "answer": "I cannot answer this question based on the available FDA label information in my knowledge base. The question appears to be outside the scope of the drug labels I have access to. Informational only, sourced from FDA labels \u2014 not medical advice. Consult a healthcare professional.",
       "refused": true,
       "retrieved_sources": [],
