@@ -52,11 +52,35 @@ async def chat(request: ChatRequest):
     history = _load_memory(session_id)
     _persist(session_id, "user", request.question)
 
+    from app.retrieval.cache import get_cached_answer, store_cached_answer
+    mode = "optimized" if request.optimized else "baseline"
+    # Only exact-repeat, stateless turns are cacheable (a follow-up's answer
+    # depends on prior turns, so history-bearing turns always run live).
+    cacheable = not history
+
     async def event_stream():
         answer_parts: list[str] = []
         citations: list = []
         trace_id: str | None = None
 
+        # Warm path: replay the exact SSE event sequence (stages + evidence +
+        # tokens + done) instantly, so the UI trace renders identically.
+        if cacheable:
+            cached_events = get_cached_answer(request.question, mode, kind="sse")
+            if cached_events:
+                for event in cached_events:
+                    if event.get("type") == "token":
+                        answer_parts.append(event.get("text", ""))
+                    elif event.get("type") == "done":
+                        citations = event.get("citations", [])
+                        trace_id = event.get("trace_id")
+                    yield f"data: {json.dumps(event, default=str)}\n\n"
+                _persist(session_id, "assistant", "".join(answer_parts),
+                         citations=citations, trace_id=trace_id)
+                return
+
+        collected: list = []
+        errored = False
         async for event in run_agent_streaming(
             request.question, use_hybrid=request.optimized, history=history
         ):
@@ -65,8 +89,15 @@ async def chat(request: ChatRequest):
             elif event.get("type") == "done":
                 citations = event.get("citations", [])
                 trace_id = event.get("trace_id")
+            elif event.get("type") == "error":
+                errored = True
+            collected.append(event)
             data = json.dumps(event, default=str)
             yield f"data: {data}\n\n"
+
+        # Store only clean, complete streams (never an error stream).
+        if cacheable and not errored and collected:
+            store_cached_answer(request.question, mode, collected, kind="sse")
 
         _persist(session_id, "assistant", "".join(answer_parts),
                  citations=citations, trace_id=trace_id)

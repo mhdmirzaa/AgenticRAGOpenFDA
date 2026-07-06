@@ -272,6 +272,16 @@ async def run_agent_answer(
     a plain dict: {answer, citations, trace_id, refused, blocked}.
     """
     from app.agent.nodes import _extract_citations, generate_node, refuse_node
+    from app.retrieval.cache import get_cached_answer, store_cached_answer
+
+    mode = "optimized" if use_hybrid else "baseline"
+    # Exact-repeat, stateless questions return the whole answer instantly.
+    # History-bearing follow-ups are never served from cache (the standalone
+    # question — and thus the answer — depends on prior turns).
+    if not history:
+        cached = get_cached_answer(question, mode, kind="ans")
+        if cached is not None:
+            return cached
 
     state: RagState | None = None
     async for kind, payload in _run_agent_events(question, use_hybrid, history):
@@ -287,7 +297,7 @@ async def run_agent_answer(
     _persist_trace(state)
 
     citations = state.get("citations", [])
-    return {
+    result = {
         "answer": state.get("answer", ""),
         "citations": [c.model_dump() if hasattr(c, "model_dump") else c
                       for c in citations],
@@ -295,6 +305,10 @@ async def run_agent_answer(
         "refused": bool(state.get("refused", False)),
         "blocked": bool(state.get("blocked", False)),
     }
+    # Cache stateless answers (blocked verdicts too — they're deterministic).
+    if not history:
+        store_cached_answer(question, mode, result, kind="ans")
+    return result
 
 
 def _format_history(history: list[dict] | None) -> str:

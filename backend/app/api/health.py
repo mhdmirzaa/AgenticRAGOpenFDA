@@ -59,9 +59,10 @@ async def health_check():
 
     # Cache stats + active backend (redis|memory) — performance visibility.
     try:
-        from app.retrieval.cache import cache_stats
+        from app.retrieval.cache import cache_stats, answer_cache_stats
         status["embedding_cache"] = cache_stats()
         status["cache_backend"] = status["embedding_cache"].get("backend")
+        status["answer_cache"] = answer_cache_stats()
     except Exception:
         pass
 

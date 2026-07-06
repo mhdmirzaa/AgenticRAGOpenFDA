@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 _MAX_ENTRIES = 512
 _stats = {"hits": 0, "misses": 0}
+# Separate counters for the final-answer cache so the retrieval/embedding cache
+# hit-ratio (the item-7 latency story) stays uncontaminated on /health.
+_answer_stats = {"hits": 0, "misses": 0}
 
 
 # ------------------------------------------------------------------ backends
@@ -183,3 +186,58 @@ async def cached_retrieval(query: str, mode: str, compute):
     except Exception as e:
         logger.warning("retrieval cache store skipped: %s", e)
     return candidates
+
+
+# --------------------------------------------------------- final-answer cache
+def answer_cache_enabled() -> bool:
+    return bool(get_settings().enable_answer_cache)
+
+
+def answer_cache_stats() -> dict:
+    """Hit/miss counters for the final-answer cache (separate from retrieval)."""
+    total = _answer_stats["hits"] + _answer_stats["misses"]
+    ratio = _answer_stats["hits"] / total if total else 0.0
+    return {**_answer_stats, "backend": get_backend().name, "hit_ratio": round(ratio, 3)}
+
+
+def clear_answer_cache_stats() -> None:
+    _answer_stats["hits"] = 0
+    _answer_stats["misses"] = 0
+
+
+def _answer_key(question: str, mode: str, kind: str) -> str:
+    # kind distinguishes the non-streaming answer dict ("ans") from the streamed
+    # SSE event list ("sse") so the two response shapes never collide.
+    return f"{kind}:{mode}:{_normalize(question)}"
+
+
+def get_cached_answer(question: str, mode: str, kind: str = "ans"):
+    """Return a cached answer payload (dict or list) for an exact-repeat
+    question, or None. Degrades to a miss on any backend/decode error."""
+    if not answer_cache_enabled():
+        return None
+    try:
+        raw = get_backend().get(_answer_key(question, mode, kind))
+    except Exception:
+        raw = None
+    if raw is None:
+        _answer_stats["misses"] += 1
+        return None
+    try:
+        payload = json.loads(raw)
+    except Exception:
+        _answer_stats["misses"] += 1
+        return None
+    _answer_stats["hits"] += 1
+    return payload
+
+
+def store_cached_answer(question: str, mode: str, payload, kind: str = "ans") -> None:
+    """Store a final-answer payload under a short TTL. Never raises."""
+    if not answer_cache_enabled():
+        return
+    try:
+        ttl = get_settings().answer_cache_ttl_seconds
+        get_backend().set(_answer_key(question, mode, kind), json.dumps(payload, default=str), ttl)
+    except Exception as e:
+        logger.warning("answer cache store skipped: %s", e)

@@ -74,6 +74,13 @@ class Settings(BaseSettings):
     redis_url: str = ""
     cache_ttl_seconds: int = 3600
 
+    # Final-answer cache (v3.2 performance). An exact-repeat question (same mode,
+    # no conversation history) returns the whole answer instantly, skipping the
+    # ~10 s generation. Short TTL keeps answers fresh; degrade-safe (any cache
+    # error just recomputes). Disable with ENABLE_ANSWER_CACHE=0.
+    enable_answer_cache: bool = True
+    answer_cache_ttl_seconds: int = 300
+
     # Observability (item 8). Empty keys => tracing no-ops (degrades gracefully).
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
