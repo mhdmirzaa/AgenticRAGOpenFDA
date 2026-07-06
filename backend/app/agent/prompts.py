@@ -57,17 +57,18 @@ Rules:
 
 Does this chunk actually help answer the question? Respond with exactly one word: YES or NO"""
 
-GRADE_BATCH_PROMPT = """You are a relevance grader. Given a question and several NUMBERED text chunks from FDA drug labels, decide for EACH chunk whether it actually helps answer the question.
+GRADE_BATCH_PROMPT = """You are a relevance grader. Given a question and several NUMBERED FDA-label chunks — each tagged with the drug it comes from — decide for EACH chunk whether it actually helps answer the question.
 
 Question: {question}
 
-Chunks:
+Chunks (each tagged with its source drug):
 {chunks}
 
 Rules (apply to every chunk):
-- The chunk must be about the SAME drug the question asks about. A chunk about a DIFFERENT drug is NOT relevant, even if it covers the same topic (e.g. a dosage section for another drug does not answer a dosage question about this drug).
-- Exception: if the question is about a drug INTERACTION or comparison between drugs, a chunk about any of the drugs named in the question counts as relevant.
-- The chunk must address the topic asked (warnings, dosage, interactions, indications, etc.).
+- A chunk is relevant ONLY if it is from the SAME drug the question asks about. If the drug named in the question does not match the chunk's tagged drug, answer NO — even when the topic (warnings, dosage, interactions, …) matches.
+- Exception: if the question is about a drug INTERACTION or comparison between drugs, a chunk from ANY drug named in the question counts as relevant.
+- If the question asks about a drug that none of the chunks are from (e.g. a drug not in the corpus), answer NO for every chunk.
+- The chunk must also address the topic asked.
 
 Return ONLY a JSON array, one object per chunk, in the same order, with no prose before or after:
 [{{"index": 1, "relevant": "YES"}}, {{"index": 2, "relevant": "NO"}}]"""

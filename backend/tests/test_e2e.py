@@ -58,14 +58,16 @@ class FakeProvider:
             return any(w in chunk.lower() for w in words)
 
         if "json array" in p and "relevance grader" in p:
-            # Batched grader (v3.2): grade each numbered chunk, return JSON.
+            # Batched grader (v3.2): grade each numbered chunk, return JSON. Each
+            # chunk line is "[i] (drug: SRC) text"; the drug tag is part of text
+            # so the word-overlap heuristic still keys on the same-drug match.
             import json as _json
             import re as _re
-            question = prompt.split("Question:", 1)[-1].split("Chunks:", 1)[0]
-            block = prompt.split("Chunks:", 1)[-1].split("Rules", 1)[0]
+            question = prompt.split("Question:", 1)[-1].split("Chunks", 1)[0]
+            block = prompt.split("Chunks", 1)[-1].split("\nRules", 1)[0]
             parts = _re.split(r"\[(\d+)\]", block)
             verdicts = []
-            # parts = ['', '1', 'text1', '2', 'text2', ...]
+            # parts = ['...preamble...', '1', 'text1', '2', 'text2', ...]
             for k in range(1, len(parts) - 1, 2):
                 idx = int(parts[k])
                 text = parts[k + 1]

@@ -123,6 +123,28 @@ def test_batch_call_exception_falls_back():
     assert len(out["graded"]) == 2
 
 
+def test_batch_prompt_tags_each_chunk_with_its_source_drug():
+    """The batch grader must see each chunk's drug so it can reject wrong-drug
+    chunks that share the asked section (the fake-drug refusal hardening)."""
+    seen = {}
+
+    class _Capture:
+        async def complete(self, prompt):
+            seen["prompt"] = prompt
+            return '[{"index":1,"relevant":"NO"},{"index":2,"relevant":"NO"}]'
+
+    _inject(_Capture())
+    cands = [
+        {"chunk_id": "c1", "text": "boxed warning text", "source": "METFORMIN HYDROCHLORIDE", "section": "boxed-warning"},
+        {"chunk_id": "c2", "text": "warnings text", "source": "MINOXIDIL", "section": "warnings"},
+    ]
+    state = {"question": "warnings for zzqoflaxibogus-9000?", "candidates": cands, "trace": []}
+    out = asyncio.run(grade_node(state))
+    assert "(drug: METFORMIN HYDROCHLORIDE)" in seen["prompt"]
+    assert "(drug: MINOXIDIL)" in seen["prompt"]
+    assert out["graded"] == []  # both NO -> refuse
+
+
 def test_empty_candidates_makes_no_calls():
     prov = _CountingProvider("[]")
     _inject(prov)

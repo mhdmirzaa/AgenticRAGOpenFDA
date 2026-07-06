@@ -383,8 +383,12 @@ async def _grade_batch(question: str, candidates: list[dict]):
     from app.agent.prompts import GRADE_BATCH_PROMPT
 
     provider = get_provider()
+    # Tag each chunk with its source drug so the grader can apply the drug-match
+    # rule reliably (a wrong-drug chunk that shares the asked section — e.g. some
+    # other drug's `warnings` for a drug not in the corpus — is then rejected).
     chunks_block = "\n\n".join(
-        f"[{i}] {c['text'][:1500]}" for i, c in enumerate(candidates, 1)
+        f"[{i}] (drug: {c.get('source', '?')}) {c['text'][:1500]}"
+        for i, c in enumerate(candidates, 1)
     )
     prompt = GRADE_BATCH_PROMPT.format(question=question, chunks=chunks_block)
     try:
