@@ -48,15 +48,35 @@ class FakeProvider:
             # Echo the original question as the query.
             q = prompt.split("Original question:", 1)[-1].split("\n", 1)[0].strip()
             return q or "query"
+        _stop = {"the", "a", "an", "of", "is", "do", "how", "many", "what",
+                 "for", "to", "in", "my", "i", "get", "and", "does", "are",
+                 "can", "at", "this", "that", "on", "if"}
+
+        def _relevant(question: str, chunk: str) -> bool:
+            words = {w.strip("?.,") for w in question.lower().split()
+                     if len(w) > 3 and w not in _stop}
+            return any(w in chunk.lower() for w in words)
+
+        if "json array" in p and "relevance grader" in p:
+            # Batched grader (v3.2): grade each numbered chunk, return JSON.
+            import json as _json
+            import re as _re
+            question = prompt.split("Question:", 1)[-1].split("Chunks:", 1)[0]
+            block = prompt.split("Chunks:", 1)[-1].split("Rules", 1)[0]
+            parts = _re.split(r"\[(\d+)\]", block)
+            verdicts = []
+            # parts = ['', '1', 'text1', '2', 'text2', ...]
+            for k in range(1, len(parts) - 1, 2):
+                idx = int(parts[k])
+                text = parts[k + 1]
+                verdicts.append({"index": idx,
+                                 "relevant": "YES" if _relevant(question, text) else "NO"})
+            return _json.dumps(verdicts)
         if "relevance grader" in p:
             # YES if the question shares a meaningful word with the chunk.
-            question = prompt.split("Question:", 1)[-1].split("Chunk:", 1)[0].lower()
-            chunk = prompt.split("Chunk:", 1)[-1].lower()
-            stop = {"the", "a", "an", "of", "is", "do", "how", "many", "what",
-                    "for", "to", "in", "my", "i", "get", "and", "does", "are",
-                    "can", "at", "this", "that", "on", "if"}
-            words = {w.strip("?.,") for w in question.split() if len(w) > 3 and w not in stop}
-            return "YES" if any(w in chunk for w in words) else "NO"
+            question = prompt.split("Question:", 1)[-1].split("Chunk:", 1)[0]
+            chunk = prompt.split("Chunk:", 1)[-1]
+            return "YES" if _relevant(question, chunk) else "NO"
         if "context chunks" in p:
             # Generation prompt -> produce an answer that cites chunk [1].
             return "Based on the provided context, here is the answer [1]."

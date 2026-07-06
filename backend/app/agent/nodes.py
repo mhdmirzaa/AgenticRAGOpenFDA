@@ -335,38 +335,38 @@ async def rerank_node(state: RagState) -> dict:
 
 
 async def grade_node(state: RagState) -> dict:
-    """Grade each candidate chunk for relevance."""
-    provider = get_provider()
+    """Grade candidate chunks for relevance.
+
+    Performance (v3.2): grade ALL reranked candidates in a SINGLE batched LLM
+    call (one prompt -> a JSON verdict list) instead of one call per candidate.
+    The drug-aware grading logic is identical — only the call pattern changes.
+    If the batch response can't be parsed (or the batch call errors), we degrade
+    to the original one-call-per-chunk path, so a flaky batch never breaks a turn.
+
+    `grade_top_n` (config, 0 = all) optionally caps how many of the reranked
+    candidates are graded — a latency/token lever that composes with batching.
+    """
+    settings = get_settings()
     question = state["question"]
     candidates = state.get("candidates", [])
+    if settings.grade_top_n and settings.grade_top_n > 0:
+        candidates = candidates[:settings.grade_top_n]
 
-    graded = []
-    grade_details = []
-
-    for chunk in candidates:
-        prompt = GRADE_PROMPT.format(
-            question=question,
-            chunk_text=chunk["text"][:1500],
+    if not candidates:
+        trace_step = TraceStep(
+            node="grade",
+            input=f"grading 0 chunks for: {question}",
+            output="passed: 0/0 (no candidates)",
         )
-        try:
-            response = await provider.complete(prompt)
-            is_relevant = "YES" in response.strip().upper()
-            label = "YES" if is_relevant else "NO"
-        except Exception:
-            # A grader failure fails the chunk CLOSED (excluded): we never
-            # generate from evidence we couldn't verify. If every grade fails,
-            # the empty set drives a clean refusal.
-            is_relevant = False
-            label = "ERR"
+        return {"graded": [], "trace": state.get("trace", []) + [trace_step]}
 
-        grade_details.append(f"{chunk['chunk_id']}={label}")
-
-        if is_relevant:
-            graded.append(chunk)
+    graded, grade_details, how = await _grade_batch(question, candidates)
+    if graded is None:  # batch unusable -> degrade to per-chunk grading
+        graded, grade_details, how = await _grade_per_chunk(question, candidates)
 
     trace_step = TraceStep(
         node="grade",
-        input=f"grading {len(candidates)} chunks for: {question}",
+        input=f"grading {len(candidates)} chunks for: {question} (via {how})",
         output=f"passed: {len(graded)}/{len(candidates)} | {', '.join(grade_details)}",
     )
 
@@ -374,6 +374,89 @@ async def grade_node(state: RagState) -> dict:
         "graded": graded,
         "trace": state.get("trace", []) + [trace_step],
     }
+
+
+async def _grade_batch(question: str, candidates: list[dict]):
+    """One LLM call grading every candidate. Returns (graded, details, "batch")
+    on success, or (None, None, None) if the response can't be trusted (caller
+    then falls back to per-chunk grading)."""
+    from app.agent.prompts import GRADE_BATCH_PROMPT
+
+    provider = get_provider()
+    chunks_block = "\n\n".join(
+        f"[{i}] {c['text'][:1500]}" for i, c in enumerate(candidates, 1)
+    )
+    prompt = GRADE_BATCH_PROMPT.format(question=question, chunks=chunks_block)
+    try:
+        response = await provider.complete(prompt)
+    except Exception:
+        return None, None, None
+
+    verdicts = _parse_batch_verdicts(response, len(candidates))
+    if verdicts is None:
+        return None, None, None
+
+    graded, details = [], []
+    for i, chunk in enumerate(candidates, 1):
+        is_relevant = verdicts.get(i, False)
+        details.append(f"{chunk['chunk_id']}={'YES' if is_relevant else 'NO'}")
+        if is_relevant:
+            graded.append(chunk)
+    return graded, details, "batch"
+
+
+def _parse_batch_verdicts(response: str, n: int) -> dict | None:
+    """Parse a batch grader reply into {index: bool}. Returns None (=> caller
+    falls back) if the reply is not a usable verdict list covering all n chunks."""
+    import json as _json
+
+    if not response or not response.strip():
+        return None
+    text = response.strip()
+    # Extract the JSON array even if the model wrapped it in prose/code fences.
+    start, end = text.find("["), text.rfind("]")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    try:
+        arr = _json.loads(text[start:end + 1])
+    except Exception:
+        return None
+    if not isinstance(arr, list) or len(arr) != n:
+        return None
+
+    verdicts: dict[int, bool] = {}
+    for item in arr:
+        if not isinstance(item, dict) or "index" not in item or "relevant" not in item:
+            return None
+        try:
+            idx = int(item["index"])
+        except (TypeError, ValueError):
+            return None
+        verdicts[idx] = "YES" in str(item["relevant"]).strip().upper()
+    # Every chunk 1..n must have a verdict (no silent drops).
+    if set(verdicts) != set(range(1, n + 1)):
+        return None
+    return verdicts
+
+
+async def _grade_per_chunk(question: str, candidates: list[dict]):
+    """Fallback: original one-LLM-call-per-candidate grading. Fails a chunk
+    CLOSED on a grader error (we never generate from unverified evidence)."""
+    provider = get_provider()
+    graded, details = [], []
+    for chunk in candidates:
+        prompt = GRADE_PROMPT.format(question=question, chunk_text=chunk["text"][:1500])
+        try:
+            response = await provider.complete(prompt)
+            is_relevant = "YES" in response.strip().upper()
+            label = "YES" if is_relevant else "NO"
+        except Exception:
+            is_relevant = False
+            label = "ERR"
+        details.append(f"{chunk['chunk_id']}={label}")
+        if is_relevant:
+            graded.append(chunk)
+    return graded, details, "per-chunk"
 
 
 async def decide_node(state: RagState) -> dict:

@@ -57,6 +57,21 @@ Rules:
 
 Does this chunk actually help answer the question? Respond with exactly one word: YES or NO"""
 
+GRADE_BATCH_PROMPT = """You are a relevance grader. Given a question and several NUMBERED text chunks from FDA drug labels, decide for EACH chunk whether it actually helps answer the question.
+
+Question: {question}
+
+Chunks:
+{chunks}
+
+Rules (apply to every chunk):
+- The chunk must be about the SAME drug the question asks about. A chunk about a DIFFERENT drug is NOT relevant, even if it covers the same topic (e.g. a dosage section for another drug does not answer a dosage question about this drug).
+- Exception: if the question is about a drug INTERACTION or comparison between drugs, a chunk about any of the drugs named in the question counts as relevant.
+- The chunk must address the topic asked (warnings, dosage, interactions, indications, etc.).
+
+Return ONLY a JSON array, one object per chunk, in the same order, with no prose before or after:
+[{{"index": 1, "relevant": "YES"}}, {{"index": 2, "relevant": "NO"}}]"""
+
 GENERATE_PROMPT = """You are a careful FDA drug-information assistant. Answer the question using ONLY the provided FDA drug-label context chunks, and cite every claim to the exact label section that supports it.
 
 Question: {question}

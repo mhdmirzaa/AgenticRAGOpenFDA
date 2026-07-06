@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     # Retrieval params
     top_k: int = 8
     rerank_top_n: int = 4
+    # Grade at most this many reranked candidates (0 = grade all of them). A
+    # latency/token lever (v3.2): with batched grading it shrinks the single
+    # grader prompt; the default 0 preserves the "grade every reranked chunk"
+    # behavior so evidence/citations are unchanged.
+    grade_top_n: int = 0
     max_iters: int = 3  # agent loop hard cap
 
     # Hybrid RRF fusion weights (ENHANCE item 2: retrieval robustness).
