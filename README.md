@@ -139,17 +139,25 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -
 OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode optimized
 ```
 
-Headline (grown corpus, 2026-07-06): **baseline dense-only wins** — Hit@1 **0.760** vs
-0.700, MRR **0.787** vs 0.713, faithfulness **0.950** vs 0.892. The optimized hybrid+rerank
+Headline (grown corpus, 2026-07-06): **baseline dense-only wins** — Hit@1 **0.800** vs
+0.720, MRR **0.812** vs 0.750, faithfulness **0.951** vs 0.950. The optimized hybrid+rerank
 path **underperforms** here: on a corpus where every drug shares identical section names,
 BM25 fusion and a general-domain cross-encoder both pull the *wrong drug's* same-named
 section into the top ranks, which strong dense embeddings avoid. Root-caused with a
 retrieval-only diagnostic and reported honestly — not tuned away (see `docs/metrics.md`).
 
+## Performance (v3.2)
+
+The real wins are on latency, all measured live: **batched grading** (one LLM call grades all
+reranked candidates instead of one each) — **~12,438 → ~2,080 ms per grading step (5.98×)**; a
+**final-answer cache** for exact-repeat stateless questions — **cold ~14,079 ms → warm <1 ms**;
+the existing retrieval cache — **cold ~1,905 ms → warm ~0.78 ms**; and the reranker is **baked
+into the Docker image** (loaded offline) so optimized mode never cold-starts a download.
+
 ## Tests
 
 ```bash
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 96 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 186 passed
 ```
 
 ## Adapted from the production course / what was skipped
