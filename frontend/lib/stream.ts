@@ -69,6 +69,17 @@ export interface StreamChatOptions {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// Demo API key sent as X-API-Key when the backend has AUTH_ENABLED=1. Empty in
+// local dev (auth off) so the app works with no key. For a public demo this may
+// be a NEXT_PUBLIC_ value; a private deployment should proxy through a server
+// route that injects the key server-side (see docs/DEPLOYMENT.md).
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
+
+/** Merge the auth header into a header bag (no-op when no key is configured). */
+function authHeaders(base: Record<string, string> = {}): Record<string, string> {
+  return API_KEY ? { ...base, "X-API-Key": API_KEY } : base;
+}
+
 /**
  * Stream a /chat turn, surfacing live pipeline stages + graded evidence
  * alongside answer tokens. `optimized` defaults to true (agentic path).
@@ -85,7 +96,7 @@ export async function streamChat(
   try {
     res = await fetch(`${API_BASE}/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         question,
         optimized,
@@ -155,7 +166,7 @@ export async function streamChat(
 export async function fetchTrace(
   traceId: string
 ): Promise<{ trace_id: string; steps: TraceStep[] }> {
-  const res = await fetch(`${API_BASE}/trace/${traceId}`);
+  const res = await fetch(`${API_BASE}/trace/${traceId}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Trace fetch failed: ${res.status}`);
   return res.json();
 }
@@ -164,7 +175,7 @@ export async function fetchTrace(
 export async function triggerFdaIngest(): Promise<any> {
   const res = await fetch(`${API_BASE}/ingest/fda`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({}),
   });
   if (!res.ok) throw new Error(`FDA ingest failed: ${res.status}`);
@@ -179,7 +190,7 @@ export async function growCorpus(): Promise<{
 }> {
   const res = await fetch(`${API_BASE}/ingest/fda/grow`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({}),
   });
   if (!res.ok) throw new Error(`Corpus growth failed: ${res.status}`);
@@ -207,7 +218,10 @@ export async function fetchCorpusCount(): Promise<number | null> {
 /** Create a new chat session; returns its id (or null if persistence is down). */
 export async function createSession(): Promise<string | null> {
   try {
-    const res = await fetch(`${API_BASE}/sessions`, { method: "POST" });
+    const res = await fetch(`${API_BASE}/sessions`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
     if (!res.ok) return null;
     return (await res.json()).session_id ?? null;
   } catch {
@@ -218,7 +232,9 @@ export async function createSession(): Promise<string | null> {
 /** Load a session's message history. */
 export async function fetchMessages(sessionId: string): Promise<StoredMessage[]> {
   try {
-    const res = await fetch(`${API_BASE}/sessions/${sessionId}/messages`);
+    const res = await fetch(`${API_BASE}/sessions/${sessionId}/messages`, {
+      headers: authHeaders(),
+    });
     if (!res.ok) return [];
     return (await res.json()).messages ?? [];
   } catch {
