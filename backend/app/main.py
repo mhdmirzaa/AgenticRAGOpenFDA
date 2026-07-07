@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.health import router as health_router
@@ -21,6 +21,7 @@ from app.api.ask import router as ask_router
 from app.api.trace import router as trace_router
 from app.api.sessions import router as sessions_router
 from app.config import get_settings
+from app.security import security_gate
 
 logger = logging.getLogger(__name__)
 
@@ -99,19 +100,23 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS for Next.js / Streamlit frontend
+# CORS — explicit frontend-origin allowlist (never "*" with credentials). The
+# origins come from config (CORS_ORIGINS); add the prod origin there for deploy.
+_cors_origins = [o.strip() for o in get_settings().cors_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8501", "*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
-# Include routers
+# /health is PUBLIC (no auth/rate-limit). Every cost/mutating router is gated by
+# `security_gate` (API-key auth when AUTH_ENABLED + per-caller/per-IP rate limit).
+_gate = [Depends(security_gate)]
 app.include_router(health_router, tags=["health"])
-app.include_router(ingest_router, tags=["ingestion"])
-app.include_router(chat_router, tags=["chat"])
-app.include_router(ask_router, tags=["chat"])
-app.include_router(trace_router, tags=["trace"])
-app.include_router(sessions_router, tags=["sessions"])
+app.include_router(ingest_router, tags=["ingestion"], dependencies=_gate)
+app.include_router(chat_router, tags=["chat"], dependencies=_gate)
+app.include_router(ask_router, tags=["chat"], dependencies=_gate)
+app.include_router(trace_router, tags=["trace"], dependencies=_gate)
+app.include_router(sessions_router, tags=["sessions"], dependencies=_gate)

@@ -70,6 +70,31 @@ class Settings(BaseSettings):
     # Safety guardrail (medical domain). First node in the graph. [PRD v3.0 M4a]
     enable_guardrail: bool = True
 
+    # ---- Security (security-hardening pass) ----------------------------------
+    # API-key auth on cost/mutating endpoints. OFF by default so local dev + the
+    # offline test suite work unchanged; the prod compose profile sets it ON.
+    auth_enabled: bool = False
+    # Comma-separated accepted keys (X-API-Key). Env only, never hardcode.
+    api_keys: str = ""
+    # Rate limiting (fixed-window; Redis-backed when REDIS_URL set, else memory).
+    # OFF by default (like auth) so the offline suite + local dev aren't throttled;
+    # the prod compose profile sets it ON alongside AUTH_ENABLED.
+    rate_limit_enabled: bool = False
+    rate_limit_llm_per_min: int = 20      # /chat, /ask-agentic (LLM cost)
+    rate_limit_ingest_per_min: int = 5    # /ingest* (expensive)
+    rate_limit_default_per_min: int = 120  # /sessions, /trace, other authed
+    # Input caps (DoS + prompt-bloat defense). Enforced by Pydantic + middleware.
+    max_question_chars: int = 4000
+    max_body_bytes: int = 65_536          # 64 KB request-body ceiling
+    # CORS allowlist — explicit origins only (never "*" with credentials).
+    cors_origins: str = "http://localhost:3000,http://localhost:8501"
+    # HSTS (prod only; behind TLS termination). Off by default for plain-HTTP dev.
+    hsts_enabled: bool = False
+    # Telegram webhook shared secret (when running in webhook mode, not polling).
+    telegram_webhook_secret: str = ""
+    # API key the Telegram bot presents to the backend when AUTH_ENABLED.
+    backend_api_key: str = ""
+
     # Caching (item 7). Empty REDIS_URL => in-memory LRU (degrades gracefully).
     redis_url: str = ""
     cache_ttl_seconds: int = 3600
