@@ -47,8 +47,10 @@ def test_backward_compatible_default_weights():
 def _store_with_stub_hits(bm25_hits, knn_hits):
     """An OpenSearchStore whose _bm25/_knn are replaced with fixed results."""
     store = OpenSearchStore(client=None, index="test", dim=8)
-    store._bm25 = lambda query_text, size: list(bm25_hits)
-    store._knn = lambda query_embedding, size: list(knn_hits)
+    # drug_filter is accepted (scoped retrieval) but ignored by these unscoped
+    # fusion/anchor tests.
+    store._bm25 = lambda query_text, size, drug_filter=None: list(bm25_hits)
+    store._knn = lambda query_embedding, size, drug_filter=None: list(knn_hits)
     return store
 
 

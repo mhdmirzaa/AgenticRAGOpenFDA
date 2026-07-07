@@ -25,6 +25,9 @@ class RagState(TypedDict, total=False):
     is_sufficient: bool              # grade decision
     refused: bool                    # whether agent refused to answer
     use_hybrid: bool                 # optimized mode: dense+BM25 hybrid retrieval + rerank
+    use_scoping: bool                # metadata-scoped retrieval on/off (eval lever)
+    scope: dict                      # resolved drug scope {kind, drug_keys, display}
+    scope_path: str                  # which retrieval path ran: scoped | unfiltered
     blocked: bool                    # guardrail blocked the question (safety)
     block_category: str              # SELFHARM | MISUSE | ADVICE (when blocked)
     block_message: str               # the tone-appropriate refusal text

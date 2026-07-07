@@ -60,12 +60,23 @@ class VectorStore:
         self,
         query_embedding: list[float],
         n_results: int = 8,
+        drug_filter: set[str] | None = None,
     ) -> list[RetrievedChunk]:
-        """Query the collection by embedding vector."""
+        """Query the collection by embedding vector.
+
+        `drug_filter` (a set of normalized drug_keys) scopes the search to those
+        drugs via a metadata `where` clause — the Chroma-fallback equivalent of
+        the OpenSearch drug filter (metadata-scoped retrieval).
+        """
+        where = None
+        if drug_filter:
+            keys = sorted(drug_filter)
+            where = {"drug_key": keys[0]} if len(keys) == 1 else {"drug_key": {"$in": keys}}
         results = self._collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results,
             include=["documents", "metadatas", "distances"],
+            **({"where": where} if where else {}),
         )
 
         chunks: list[RetrievedChunk] = []

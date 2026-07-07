@@ -86,6 +86,16 @@ class Settings(BaseSettings):
     langfuse_secret_key: str = ""
     langfuse_host: str = ""
 
+    # Metadata-scoped retrieval (scoped-retrieval branch). Restrict the candidate
+    # set to the drug(s) a question is about BEFORE similarity search, removing
+    # cross-drug hard negatives on the homogeneous FDA-label corpus (§14). Fully
+    # degrade-safe: unresolved -> unfiltered; scoped-too-few -> auto-retry
+    # unfiltered (never below today's recall). Disable with ENABLE_SCOPING=0.
+    enable_scoping: bool = True
+    # If a scoped search returns fewer than this many candidates, retry UNFILTERED
+    # (a drug barely represented in the index must never starve retrieval).
+    scope_min_results: int = 3
+
     # Retrieval params
     top_k: int = 8
     rerank_top_n: int = 4

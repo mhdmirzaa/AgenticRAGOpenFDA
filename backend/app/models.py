@@ -77,8 +77,10 @@ class ChatStageEvent(BaseModel):
     """Live agent-stage event for the evidence panel (additive, non-breaking).
 
     Emitted as the agent progresses so the UI can animate a stage timeline in
-    real time. `stage` is one of: safety, route, search, grade, decide,
-    generate, refuse, blocked. `status` is "active" or "done".
+    real time. `stage` is one of: safety, route, scope, search, grade, decide,
+    generate, refuse, blocked. `status` is "active" or "done". The `scope` stage
+    reports the resolved drug scope for metadata-scoped retrieval (e.g.
+    "Scope: doxycycline" or "Scope: all").
     """
     type: str = "stage"
     stage: str

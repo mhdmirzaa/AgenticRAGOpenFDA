@@ -61,6 +61,12 @@ class OpenSearchStore:
                     "section_title": {"type": "keyword"},
                     "source_url": {"type": "keyword"},
                     "label_id": {"type": "keyword"},
+                    # Metadata-scoped retrieval: drug identity as keyword fields.
+                    # `drug_key` is the normalized (lowercase) generic used by the
+                    # scoped `terms` filter; drug_name/brand_name are for display.
+                    "drug_name": {"type": "keyword"},
+                    "brand_name": {"type": "keyword"},
+                    "drug_key": {"type": "keyword"},
                     "embedding": {
                         "type": "knn_vector",
                         "dimension": self._dim,
@@ -106,6 +112,9 @@ class OpenSearchStore:
                     "section_title": meta.get("section_title", ""),
                     "source_url": meta.get("source_url", ""),
                     "label_id": meta.get("label_id", ""),
+                    "drug_name": meta.get("drug_name", ""),
+                    "brand_name": meta.get("brand_name", ""),
+                    "drug_key": meta.get("drug_key", ""),
                     "chunk_id": cid,
                 },
             })
@@ -125,35 +134,50 @@ class OpenSearchStore:
             "score": score,
         }
 
-    def _bm25(self, query_text: str, size: int) -> list[dict]:
-        body = {"size": size, "query": {"match": {"text": query_text}}}
+    @staticmethod
+    def _terms_filter(drug_filter):
+        """OpenSearch `terms` clause restricting to a set of drug_keys, or None."""
+        if not drug_filter:
+            return None
+        return {"terms": {"drug_key": sorted(drug_filter)}}
+
+    def _bm25(self, query_text: str, size: int, drug_filter=None) -> list[dict]:
+        match = {"match": {"text": query_text}}
+        terms = self._terms_filter(drug_filter)
+        query = {"bool": {"must": match, "filter": terms}} if terms else match
+        body = {"size": size, "query": query}
         res = self._client.search(index=self._index, body=body)
         return [self._hit_to_dict(h, h.get("_score", 0.0))
                 for h in res["hits"]["hits"]]
 
-    def _knn(self, query_embedding, size: int) -> list[dict]:
-        body = {
-            "size": size,
-            "query": {"knn": {"embedding": {"vector": query_embedding, "k": size}}},
-        }
+    def _knn(self, query_embedding, size: int, drug_filter=None) -> list[dict]:
+        knn = {"embedding": {"vector": query_embedding, "k": size}}
+        terms = self._terms_filter(drug_filter)
+        if terms:
+            # Efficient filtered kNN (OpenSearch 2.4+): the filter is applied
+            # DURING the ANN search, not as a post-filter, so recall inside the
+            # scoped set is preserved.
+            knn["embedding"]["filter"] = terms
+        body = {"size": size, "query": {"knn": knn}}
         res = self._client.search(index=self._index, body=body)
         return [self._hit_to_dict(h, h.get("_score", 0.0))
                 for h in res["hits"]["hits"]]
 
-    def dense_search(self, query_embedding, top_k: int = 8) -> list[dict]:
-        """kNN-only search (baseline mode)."""
+    def dense_search(self, query_embedding, top_k: int = 8,
+                     drug_filter=None) -> list[dict]:
+        """kNN-only search (baseline mode), optionally scoped to a drug set."""
         try:
-            return self._knn(query_embedding, top_k)
+            return self._knn(query_embedding, top_k, drug_filter)
         except Exception as e:
             logger.warning("OpenSearch kNN search failed: %s", e)
             return []
 
     def hybrid_search(self, query_text: str, query_embedding,
-                      top_k: int = 8) -> list[dict]:
-        """BM25 + kNN, merged with RRF (optimized mode)."""
+                      top_k: int = 8, drug_filter=None) -> list[dict]:
+        """BM25 + kNN, merged with RRF (optimized mode), optionally drug-scoped."""
         try:
-            bm25 = self._bm25(query_text, top_k * 2)
-            knn = self._knn(query_embedding, top_k * 2)
+            bm25 = self._bm25(query_text, top_k * 2, drug_filter)
+            knn = self._knn(query_embedding, top_k * 2, drug_filter)
         except Exception as e:
             logger.warning("OpenSearch hybrid search failed: %s", e)
             return []

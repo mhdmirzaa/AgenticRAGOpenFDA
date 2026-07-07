@@ -14,6 +14,7 @@ interface StageTimelineProps {
 const PIPELINE: { key: string; label: string; icon: string }[] = [
   { key: "safety", label: "Safety check", icon: "🛡️" },
   { key: "route", label: "Route question", icon: "🧭" },
+  { key: "scope", label: "Scope to drug", icon: "🎯" },
   { key: "search", label: "Search labels", icon: "🔎" },
   { key: "grade", label: "Grade evidence", icon: "⚖️" },
   { key: "decide", label: "Decide", icon: "🤔" },

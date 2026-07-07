@@ -157,7 +157,7 @@ into the Docker image** (loaded offline) so optimized mode never cold-starts a d
 ## Tests
 
 ```bash
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 186 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 219 passed
 ```
 
 ## Adapted from the production course / what was skipped

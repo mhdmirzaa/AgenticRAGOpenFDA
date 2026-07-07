@@ -116,3 +116,15 @@ def test_chat_generate_emits_generate_stage(client):
     events = _read_sse(client, "How many annual leave days do full-time staff get?")
     stages = {e["stage"] for e in events if e.get("type") == "stage"}
     assert "generate" in stages
+
+
+def test_chat_emits_scope_stage(client):
+    """Metadata-scoped retrieval surfaces a 'Scope: …' stage in the SSE timeline.
+
+    The offline corpus has no drug labels, so the scope resolves to 'all'
+    (unfiltered) — the stage must still be emitted so the UI can show it.
+    """
+    events = _read_sse(client, "How many annual leave days do full-time staff get?")
+    scope = [e for e in events if e.get("type") == "stage" and e.get("stage") == "scope"]
+    assert scope, "expected a scope stage event"
+    assert "Scope:" in scope[0]["detail"]

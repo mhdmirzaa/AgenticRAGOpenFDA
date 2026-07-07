@@ -119,8 +119,8 @@ fabricated.** All latency figures are real, measured live against the grown inde
 | 3 | **Final-answer cache** | Cache the whole answer for an exact-repeat, stateless `(question, mode)`; streaming replays the full SSE event sequence so the UI trace renders identically on a warm hit. History-bearing follow-ups never cached. Redis/memory, short TTL, degrade-safe. | **cold ~14,079 ms → warm <1 ms** | `test_answer_cache.py` (6 tests) incl. a live `/ask-agentic` repeat served from cache |
 | 4 | **Reranker baked into image** | Pre-download `BAAI/bge-reranker-base` at Docker build; `HF_HUB_OFFLINE=1` forces offline loads at runtime. | no cold HF download at demo | verified: reranker loads offline in-container and scores a pair |
 
-**Backend suite: 186 tests pass offline** (168 v3.1/grow baseline + 12 batched-grading + 6
-answer-cache). **Live re-verified (2026-07-06):** Playwright **4/4** against the rebuilt stack,
+**Backend suite: 219 tests pass offline** (168 v3.1/grow baseline + 12 batched-grading + 6
+answer-cache + 33 metadata-scoping — §14a). **Live re-verified (2026-07-06):** Playwright **4/4** against the rebuilt stack,
 and the golden-set eval re-run on the grown index (§14) — the dense-wins finding is unchanged,
 confirming batched grading preserves grading behavior. Frontend `tsc --noEmit` / `next build`
 clean.
@@ -386,13 +386,14 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**186 backend tests pass** offline
-(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 168 (grow
-pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The grow pass added corpus/eval-guard tests
+**219 backend tests pass** offline
+(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 186 (v3.2),
+168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The grow pass added corpus/eval-guard tests
 (`test_growth`, `test_reconcile`, `test_seed_corpus`, `test_golden_set`,
 `test_openai_embed_guard`); the v3.2 perf pass (§1b) added `test_grade_batch` (11) and
-`test_answer_cache` (6). **Playwright e2e: 4/4** against the live UI (re-confirmed on the
-running stack 2026-07-06, §13a/§1b).
+`test_answer_cache` (6); the scoped-retrieval pass (§14a) added `test_scoping` (20),
+`test_scoped_retrieval` (12), and one scope-stage SSE test. **Playwright e2e: 4/4** against the
+live UI (re-confirmed on the running stack 2026-07-06, §13a/§1b).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -409,6 +410,7 @@ running stack 2026-07-06, §13a/§1b).
 | **Retrieval robustness (v3.1)** | dense-favored weighted RRF, agreement still wins, dense-anchor keeps the strongest dense hit | `test_retrieval_robustness.py` |
 | **Guardrail sharpness (v3.1)** | LLM catches paraphrased self-harm/misuse, dosing paraphrase stays SAFE, drug-aware grader filters wrong-drug | `test_guardrail_sharpness.py` |
 | **Resilience (v3.1)** | route/rewrite/retrieve/grade/generate all degrade on outage; full turn survives total LLM outage as a clean refusal | `test_resilience.py` |
+| **Metadata scoping (§14a)** | drug tagging (embed-tagged/store-clean + `drug_key`), entity resolution (NAMED, brand→generic, word-boundary, CONDITION-constrained + degrade-safe), OpenSearch `terms` filter plumbing, scoped→unfiltered fallback, scope SSE stage | `test_scoping.py`, `test_scoped_retrieval.py`, `test_ask.py` |
 
 ---
 
@@ -547,6 +549,80 @@ the image and loaded offline (`HF_HUB_OFFLINE=1`) so optimized mode never cold-s
 download at demo time.
 
 Raw results: `eval/last_run_baseline.json`, `eval/last_run_optimized.json`.
+
+## 14a. Metadata-scoped retrieval (scoped-retrieval branch)
+
+**The §14 diagnostic named the disease; this pass applies the textbook cure.** The measured
+root cause of the grow-pass regression is **cross-drug confusion** on a homogeneous corpus:
+every FDA label shares identical section names, so the *same section of the wrong drug*
+crowds out the right one (`MINOCYCLINE#contraindications` vs `DOXYCYCLINE#contraindications`).
+This is **vector-search dilution**, and the published fix is **metadata scoping** — restrict
+the candidate set to the relevant drug(s) *before* the similarity search rather than hoping
+the ranker untangles them after. (Wyoming DOT retrieval study: P@10 **0.77 → 0.86** with
+metadata pre-filtering; the pattern recurs across RAG literature — e.g. Anthropic's
+*Contextual Retrieval*, which prepends chunk-level context before embedding.)
+
+**What was built (all backend Python except one small Next.js touch):**
+
+1. **Drug-tagged embeddings + structured fields (SRAG).** Each label chunk is embedded from a
+   drug/section-**tagged** copy of its text (`"[DRUG: doxycycline | SECTION: contraindications]
+   …"`) so the vector encodes drug identity even more explicitly, while the **stored/displayed
+   text stays clean** (citations + evidence panel unchanged). A normalized `drug_key` keyword
+   field is added to OpenSearch (and Chroma metadata) for exact filtering. Non-label corpora
+   (no `drug_name`) embed unchanged — legacy-safe.
+2. **Entity resolution** (`app/retrieval/scoping.py`) — one cheap, **cached** `gpt-4.1-mini`
+   step, no new provider: **NAMED** (explicit drug, brand→generic, word-boundary match against
+   the indexed catalog), **CONDITION** (symptom→candidate generics, *constrained to the indexed
+   catalog so it can't invent a drug*), or **NONE**. Any failure → NONE.
+3. **Scoped retrieval + safety fallback** — NAMED/CONDITION restrict BM25 + kNN with a
+   `terms` filter on `drug_key`, then rerank *within* the scoped set. If a scoped search
+   returns fewer than `scope_min_results` (or the drug isn't indexed) it **auto-retries
+   UNFILTERED**, so recall is provably **≥ today**. The path that ran (`scoped` /
+   `unfiltered(scoped-too-few)`) is recorded in the trace.
+4. **Surfaced scope** — a `Scope: <drug>` (or `Scope: all`) stage in the evidence-panel
+   timeline + the agent trace (the single frontend change).
+
+**Honest expectation (set before building, per the task).** The §14 diagnostic already shows
+dense-only *largely* avoids cross-drug confusion (3-large encodes drug identity), and v3.2's
+drug-tagged batch grader already rejects wrong-drug chunks. So scoping should **most help the
+optimized/hybrid path** — removing the BM25 wrong-drug crowding that pulls it below dense —
+plausibly bringing **optimized ≥ dense** (fixing the "optimization underperforms" story),
+with a **smaller** dense lift. A modest, defensible gain is the expected outcome; a small gain
+is itself an honest result.
+
+**Re-measure — four configs, to isolate scoping's effect** (`use_scoping` is an explicit eval
+lever so nothing else moves):
+
+```bash
+# live stack up, OPENAI_API_KEY set, FDA index REBUILT so chunks carry drug_key
+#   (POST /ingest/fda — required: the tag + drug_key are index-time)
+OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode baseline  --no-scoping   # dense-unscoped
+OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode baseline  --scoped       # dense-scoped
+OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode optimized --no-scoping   # optimized-unscoped
+OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode optimized --scoped       # optimized-scoped
+```
+
+| Config | Hit@1 | Hit@3 | Hit@5 | MRR | Citation | Refusal | Faithfulness |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| dense · unscoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| dense · scoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| optimized · unscoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| optimized · scoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+
+> **Status — numbers pending a live re-measure (NOT fabricated).** The four-config eval
+> requires the grown **332-label OpenSearch index rebuilt** with the new drug tags + `drug_key`
+> (the tag and key are written at index time, so the pre-scoping Chroma/OpenSearch index cannot
+> be reused). That rebuild (openFDA fetch + re-embedding 3,054 chunks via `text-embedding-3-large`)
+> plus a live OpenSearch cluster were not available in the implementation environment, so per the
+> project's own honesty rule **no numbers are entered above** — the cells are filled only by an
+> actual run of the four commands, which decides success. Expected shape:
+> **optimized-scoped ≥ dense** (the real win) and **dense-scoped ≥ dense-unscoped** (modest);
+> if a slice doesn't improve, report and diagnose it — no golden-set overfitting.
+
+The implementation is fully covered by **32 new offline tests** (entity resolution incl.
+brand→generic and word-boundary; CONDITION constrained to the catalog + degrade-safe; the
+OpenSearch `terms` filter plumbing; the scoped→unfiltered fallback; tagged-embed/clean-store
+indexing) — see §12. Toggle the whole feature with `ENABLE_SCOPING=0`.
 
 ---
 
@@ -812,7 +888,7 @@ course repo. These are decisions about *how the system is put together*:
   our approach keeps the model a configuration detail.
 - **Offline-deterministic test approach.** The suite runs with **no API key**: a `FakeProvider`
   (real local MiniLM embeddings + rule-based LLM replies keyed on prompt phrases) drives the
-  real graph against a temp store, so all 186 tests are deterministic and CI-friendly,
+  real graph against a temp store, so all 219 tests are deterministic and CI-friendly,
   complemented by live e2e (Playwright) against the running stack.
 - **Config approach: one Pydantic-settings source, bare `.env`.** A single `Settings` object
   loads config regardless of CWD; values are kept comment-free after we learned docker's
@@ -850,7 +926,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 186 backend tests + 4 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 219 backend tests + 4 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -890,7 +966,7 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large \
   python -m eval.run --mode optimized
 
 # 5. tests
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 186 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 219 passed
 cd frontend && npx tsc --noEmit && npm run build                               # clean
 PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test                  # 4/4 (stack must be up)
 ```

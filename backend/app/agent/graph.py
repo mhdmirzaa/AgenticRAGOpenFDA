@@ -111,8 +111,11 @@ def get_compiled_graph():
     return _compiled_graph
 
 
-def _initial_state(question: str, use_hybrid: bool) -> RagState:
+def _initial_state(question: str, use_hybrid: bool,
+                   use_scoping: bool | None = None) -> RagState:
     """Build a fresh initial state for a run."""
+    if use_scoping is None:
+        use_scoping = get_settings().enable_scoping
     return {
         "question": question,
         "query": "",
@@ -127,6 +130,9 @@ def _initial_state(question: str, use_hybrid: bool) -> RagState:
         "is_sufficient": False,
         "refused": False,
         "use_hybrid": use_hybrid,
+        "use_scoping": use_scoping,
+        "scope": {},
+        "scope_path": "",
         "blocked": False,
         "block_category": "",
         "block_message": "",
@@ -141,10 +147,16 @@ def _persist_trace(state: RagState) -> None:
         store_trace(trace_id, state.get("trace", []))
 
 
-async def run_agent(question: str, use_hybrid: bool = False) -> RagState:
-    """Run the full agent pipeline (non-streaming). Returns final state."""
+async def run_agent(question: str, use_hybrid: bool = False,
+                    use_scoping: bool | None = None) -> RagState:
+    """Run the full agent pipeline (non-streaming). Returns final state.
+
+    `use_scoping` toggles metadata-scoped retrieval (defaults to the config
+    setting); the eval harness sets it explicitly to isolate scoping's effect.
+    """
     compiled = get_compiled_graph()
-    final_state = await compiled.ainvoke(_initial_state(question, use_hybrid))
+    final_state = await compiled.ainvoke(
+        _initial_state(question, use_hybrid, use_scoping))
     _persist_trace(final_state)
     return final_state
 
@@ -237,12 +249,20 @@ async def _run_agent_events(
                      "detail": "Needs FDA-label search"})
 
     # 3) Retrieval / grading loop.
+    scope_emitted = False
     while True:
         yield ("stage", {"type": "stage", "stage": "search", "status": "active",
                          "detail": "Searching FDA labels"})
         state.update(await rewrite_node(state))
         state.update(await retrieve_node(state))
         state.update(await rerank_node(state))
+        # Surface the resolved drug scope once (metadata-scoped retrieval): the
+        # evidence panel shows "Scope: doxycycline" or "Scope: all".
+        if not scope_emitted:
+            scope_emitted = True
+            scope = state.get("scope") or {}
+            yield ("stage", {"type": "stage", "stage": "scope", "status": "done",
+                             "detail": f"Scope: {scope.get('display', 'all')}"})
         yield ("stage", {"type": "stage", "stage": "search", "status": "done",
                          "detail": f"Found {len(state.get('candidates', []))} candidates"})
 

@@ -52,15 +52,23 @@ async def judge_faithfulness(question: str, answer: str, graded: list) -> float:
     return 1.0 if "YES" in verdict.strip().upper() else 0.0
 
 
-async def run_golden_set(mode: str = "baseline") -> dict:
+async def run_golden_set(mode: str = "baseline", scoped: bool | None = None) -> dict:
     """Run all golden set questions and compute metrics.
 
     baseline  -> dense-only retrieval, score-truncate (no BM25, no cross-encoder)
     optimized -> hybrid dense+BM25 (RRF) + cross-encoder rerank
+
+    `scoped` toggles metadata-scoped retrieval so the four configs
+    (dense/optimized × scoped/unscoped) can be measured independently and
+    scoping's effect isolated (item 5). None -> the config default.
     """
     from app.agent.graph import run_agent
 
     use_hybrid = mode == "optimized"
+    if scoped is None:
+        from app.config import get_settings
+        scoped = get_settings().enable_scoping
+    scope_tag = "scoped" if scoped else "unscoped"
 
     golden_path = Path(__file__).parent / "golden.jsonl"
     questions = []
@@ -74,7 +82,8 @@ async def run_golden_set(mode: str = "baseline") -> dict:
         print(f"\nRunning {q['id']}: {q['question']}")
 
         try:
-            state = await run_agent(q["question"], use_hybrid=use_hybrid)
+            state = await run_agent(q["question"], use_hybrid=use_hybrid,
+                                    use_scoping=scoped)
 
             answer = state.get("answer", "")
             citations = state.get("citations", [])
@@ -107,6 +116,8 @@ async def run_golden_set(mode: str = "baseline") -> dict:
                 "question": q["question"],
                 "answer": answer,
                 "refused": refused,
+                "scope": state.get("scope", {}),
+                "scope_path": state.get("scope_path", ""),
                 "retrieved_sources": retrieved_sources,
                 "citations": cit_dicts,
                 "expected_sources": q.get("expected_sources", []),
@@ -139,8 +150,13 @@ async def run_golden_set(mode: str = "baseline") -> dict:
     valid = [r for r in results if "error" not in r]
     faith_vals = [r["faithfulness"] for r in valid if r.get("faithfulness") is not None]
     if valid:
+        scoped_n = sum(1 for r in valid
+                       if str(r.get("scope_path", "")).startswith("scoped"))
         agg = {
             "mode": mode,
+            "scoped": scoped,
+            "scope_tag": scope_tag,
+            "scoped_questions": scoped_n,
             "total_questions": len(questions),
             "successful": len(valid),
             "avg_hit_at_1": sum(r["hit_at_1"] for r in valid) / len(valid),
@@ -154,11 +170,12 @@ async def run_golden_set(mode: str = "baseline") -> dict:
             "faithfulness_n": len(faith_vals),
         }
     else:
-        agg = {"mode": mode, "total_questions": len(questions), "successful": 0}
+        agg = {"mode": mode, "scoped": scoped, "scope_tag": scope_tag,
+               "total_questions": len(questions), "successful": 0}
 
     # Print summary
     print("\n" + "=" * 60)
-    print(f"GOLDEN SET RESULTS ({mode})")
+    print(f"GOLDEN SET RESULTS ({mode} / {scope_tag})")
     print("=" * 60)
     for k, v in agg.items():
         if isinstance(v, float):
@@ -167,7 +184,11 @@ async def run_golden_set(mode: str = "baseline") -> dict:
             print(f"  {k}: {v}")
 
     payload = {"aggregate": agg, "details": results}
-    out_path = Path(__file__).parent / f"last_run_{mode}.json"
+    # Unscoped runs keep the legacy filename (last_run_baseline.json /
+    # last_run_optimized.json) so existing tooling/reports still resolve; scoped
+    # runs get a suffixed file so all four configs can coexist.
+    suffix = "" if not scoped else "_scoped"
+    out_path = Path(__file__).parent / f"last_run_{mode}{suffix}.json"
     out_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
     print(f"\nSaved detailed results -> {out_path}")
 
@@ -179,9 +200,15 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Run golden set evaluation")
     parser.add_argument("--mode", choices=["baseline", "optimized"], default="baseline")
+    scope_grp = parser.add_mutually_exclusive_group()
+    scope_grp.add_argument("--scoped", dest="scoped", action="store_true",
+                           help="metadata-scoped retrieval ON")
+    scope_grp.add_argument("--no-scoping", dest="scoped", action="store_false",
+                           help="metadata-scoped retrieval OFF (baseline-honest)")
+    parser.set_defaults(scoped=None)
     args = parser.parse_args()
 
-    asyncio.run(run_golden_set(args.mode))
+    asyncio.run(run_golden_set(args.mode, scoped=args.scoped))
 
 
 if __name__ == "__main__":

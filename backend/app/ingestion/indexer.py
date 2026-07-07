@@ -16,6 +16,7 @@ async def index_chunks(chunks: list) -> int:
 
     provider = get_provider()
     vs = get_vectorstore()
+    from app.retrieval.scoping import tag_text, normalize_drug_key
 
     # Batch embed for efficiency
     batch_size = 20
@@ -26,14 +27,22 @@ async def index_chunks(chunks: list) -> int:
 
     for i in range(0, len(chunks), batch_size):
         batch = chunks[i:i + batch_size]
-        texts = [c.text for c in batch]
+        # Metadata-scoped retrieval (item 1): embed a drug/section-TAGGED copy of
+        # the text so the vector encodes drug identity even more strongly, but
+        # STORE the clean text (citations + evidence panel stay unchanged). Only
+        # real drug labels (metadata carries drug_name) are tagged; a chunk with
+        # no drug (e.g. handbook) embeds as-is (legacy-safe, embeddings unchanged).
+        texts = [
+            tag_text(c.metadata.get("drug_name", ""), c.section, c.text)
+            for c in batch
+        ]
 
         embeddings = await provider.embed_batch(texts)
 
         for chunk, embedding in zip(batch, embeddings):
             all_ids.append(chunk.chunk_id)
             all_embeddings.append(embedding)
-            all_documents.append(chunk.text)
+            all_documents.append(chunk.text)  # clean text for display/citations
             meta = {
                 "source": chunk.source,
                 "section": chunk.section,
@@ -46,6 +55,10 @@ async def index_chunks(chunks: list) -> int:
                 val = chunk.metadata.get(key)
                 if val is not None and val != "":
                     meta[key] = val
+            # Normalized drug key for exact metadata filtering (scoped retrieval).
+            drug_key = normalize_drug_key(chunk.metadata.get("drug_name", ""))
+            if drug_key:
+                meta["drug_key"] = drug_key
             all_metadatas.append(meta)
 
     # Primary store: OpenSearch when configured (course parity); otherwise the

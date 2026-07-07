@@ -17,9 +17,9 @@ export interface Citation {
 
 /** A live pipeline-stage event, emitted as the agent runs. */
 export interface StageEvent {
-  stage: string;                 // safety | route | search | grade | decide | generate | refuse | blocked
+  stage: string;                 // safety | route | scope | search | grade | decide | generate | refuse | blocked
   status: "active" | "done";
-  detail?: string;
+  detail?: string;               // for `scope`: "Scope: doxycycline" or "Scope: all"
 }
 
 /** A retrieved-and-graded evidence chunk, emitted once after grading. */

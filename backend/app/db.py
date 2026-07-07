@@ -168,6 +168,19 @@ def get_known_label_ids() -> set[str]:
         return {row[0] for row in s.execute(select(DrugLabel.label_id)).all()}
 
 
+def get_indexed_drug_names() -> list[tuple[str, str]]:
+    """(generic_name, brand_name) for every indexed label — the drug catalog.
+
+    Feeds metadata-scoped retrieval's entity resolution (NAMED matching +
+    CONDITION constraint). Blank names are skipped by the caller.
+    """
+    with _session() as s:
+        rows = s.execute(
+            select(DrugLabel.drug_name, DrugLabel.brand_name)
+        ).all()
+        return [(r[0] or "", r[1] or "") for r in rows]
+
+
 # ------------------------------------------------------------- KV / watermark
 def get_kv(key: str, default: str = "") -> str:
     """Read a small ingestion-state value (e.g. the growth watermark)."""

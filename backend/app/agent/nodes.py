@@ -183,82 +183,153 @@ async def rewrite_node(state: RagState) -> dict:
     }
 
 
+async def _retrieve_candidates(query: str, use_hybrid: bool,
+                               drug_filter: set[str] | None) -> list[dict]:
+    """Run one retrieval pass (dense or hybrid), optionally scoped to drugs.
+
+    `drug_filter` (normalized drug_keys) restricts the candidate set BEFORE the
+    similarity search — the metadata-scoping fix for cross-drug dilution. None
+    means the unscoped path (unchanged behavior).
+    """
+    settings = get_settings()
+    out: list[dict] = []
+
+    # Primary store: OpenSearch (BM25 + kNN, native hybrid RRF) when active.
+    from app.retrieval.opensearch_store import get_opensearch_store
+    store = get_opensearch_store()
+    if store is not None:
+        from app.retrieval.cache import cached_embed
+        query_embedding = await cached_embed(query)
+        if use_hybrid:
+            return store.hybrid_search(query, query_embedding,
+                                       top_k=settings.top_k, drug_filter=drug_filter)
+        return store.dense_search(query_embedding, top_k=settings.top_k,
+                                  drug_filter=drug_filter)
+
+    # Fallback store: embedded Chroma + rank-bm25.
+    if use_hybrid:
+        from app.retrieval.hybrid import get_hybrid_retriever
+        retriever = get_hybrid_retriever()
+        retriever.ensure_index()
+        merged = await retriever.retrieve(query, top_k=settings.top_k)
+        for r in merged:
+            meta = r.metadata or {}
+            # rank-bm25 has no native metadata filter; post-filter the merged
+            # results by drug_key so the scoped path still narrows to the drug.
+            if drug_filter and (meta.get("drug_key") or "") not in drug_filter:
+                continue
+            out.append({
+                "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
+                "section": r.section, "score": r.rrf_score,
+                "source_url": meta.get("source_url", ""),
+                "section_title": meta.get("section_title", ""),
+            })
+    else:
+        from app.retrieval.cache import cached_embed
+        query_embedding = await cached_embed(query)
+        vs = get_vectorstore()
+        results = vs.query(query_embedding, n_results=settings.top_k,
+                           drug_filter=drug_filter)
+        for r in results:
+            meta = r.metadata or {}
+            out.append({
+                "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
+                "section": r.section, "score": r.score,
+                "source_url": meta.get("source_url", ""),
+                "section_title": meta.get("section_title", ""),
+            })
+    return out
+
+
+async def _resolve_scope_for_state(state: RagState):
+    """Resolve (once per turn) which drug(s) the question is about.
+
+    Returns a Scope. Reuses a scope already stashed in state (so re-retrieval
+    loops don't re-run entity resolution). Off (or any failure) -> NONE scope.
+    """
+    from app.retrieval.scoping import Scope, get_drug_catalog, resolve_scope_cached
+
+    cached = state.get("scope")
+    if cached:
+        return Scope.from_dict(cached)
+
+    settings = get_settings()
+    if not state.get("use_scoping", settings.enable_scoping):
+        return Scope()
+    try:
+        catalog = get_drug_catalog()
+        return await resolve_scope_cached(state["question"], catalog)
+    except Exception:  # noqa: BLE001 - resolution never breaks retrieval
+        return Scope()
+
+
 async def retrieve_node(state: RagState) -> dict:
-    """Retrieve candidates from the vector store.
+    """Retrieve candidates from the vector store, drug-scoped when possible.
 
     Optimized mode (use_hybrid) merges dense + BM25 via RRF; baseline mode does
     dense-only similarity search. Query embeddings are cached across retries.
+
+    Metadata scoping (scoped-retrieval): if the question resolves to a drug set
+    (NAMED / CONDITION), the candidate set is restricted to those drugs BEFORE
+    similarity search — removing the wrong-drug hard negatives that dilute a
+    homogeneous corpus. Safety fallback: a scoped search returning fewer than
+    `scope_min_results` auto-retries UNFILTERED, so recall is never worse than
+    today. The path that ran (scoped | unfiltered) is recorded in the trace.
     """
     settings = get_settings()
     query = state.get("query", state["question"])
     use_hybrid = state.get("use_hybrid", False)
-    mode = "hybrid(dense+BM25)" if use_hybrid else "dense"
+    base_mode = "hybrid(dense+BM25)" if use_hybrid else "dense"
 
-    async def _compute() -> list[dict]:
-        out: list[dict] = []
+    scope = await _resolve_scope_for_state(state)
+    drug_filter = scope.drug_keys if scope.is_filtered else None
 
-        # Primary store: OpenSearch (BM25 + kNN, native hybrid RRF) when active.
-        from app.retrieval.opensearch_store import get_opensearch_store
-        store = get_opensearch_store()
-        if store is not None:
-            from app.retrieval.cache import cached_embed
-            query_embedding = await cached_embed(query)
-            if use_hybrid:
-                return store.hybrid_search(query, query_embedding, top_k=settings.top_k)
-            return store.dense_search(query_embedding, top_k=settings.top_k)
-
-        # Fallback store: embedded Chroma + rank-bm25.
-        if use_hybrid:
-            from app.retrieval.hybrid import get_hybrid_retriever
-            retriever = get_hybrid_retriever()
-            retriever.ensure_index()
-            merged = await retriever.retrieve(query, top_k=settings.top_k)
-            for r in merged:
-                meta = r.metadata or {}
-                out.append({
-                    "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
-                    "section": r.section, "score": r.rrf_score,
-                    "source_url": meta.get("source_url", ""),
-                    "section_title": meta.get("section_title", ""),
-                })
-        else:
-            from app.retrieval.cache import cached_embed
-            query_embedding = await cached_embed(query)
-            vs = get_vectorstore()
-            results = vs.query(query_embedding, n_results=settings.top_k)
-            for r in results:
-                meta = r.metadata or {}
-                out.append({
-                    "chunk_id": r.chunk_id, "text": r.text, "source": r.source,
-                    "section": r.section, "score": r.score,
-                    "source_url": meta.get("source_url", ""),
-                    "section_title": meta.get("section_title", ""),
-                })
-        return out
-
-    # Retrieval-results cache (item 7): repeated (mode, query) skips embed+search.
-    # Resilience (item 5): an embedding-API or store outage must not crash the
-    # turn — it degrades to zero candidates, which the loop turns into a clean
-    # refusal rather than a 500 / raw error.
+    # Retrieval-results cache (item 7): key includes the scope so a scoped and an
+    # unscoped run of the same query never collide.
     from app.retrieval.cache import cached_retrieval
+    scope_key = "+".join(sorted(scope.drug_keys)) if scope.is_filtered else "all"
+
     retrieval_error = None
+    scope_path = "unfiltered"
     try:
-        candidates = await cached_retrieval(query, mode, _compute)
+        if drug_filter:
+            candidates = await cached_retrieval(
+                query, f"{base_mode}|scope:{scope_key}",
+                lambda: _retrieve_candidates(query, use_hybrid, drug_filter),
+            )
+            scope_path = "scoped"
+            # Safety fallback: too few scoped hits -> retry UNFILTERED so a
+            # sparsely-indexed drug can never starve the answer.
+            if len(candidates) < settings.scope_min_results:
+                candidates = await cached_retrieval(
+                    query, base_mode,
+                    lambda: _retrieve_candidates(query, use_hybrid, None),
+                )
+                scope_path = "unfiltered(scoped-too-few)"
+        else:
+            candidates = await cached_retrieval(
+                query, base_mode,
+                lambda: _retrieve_candidates(query, use_hybrid, None),
+            )
     except Exception as e:  # noqa: BLE001 - degrade to empty, never crash
         candidates = []
         retrieval_error = e
 
-    output = (f"found {len(candidates)} candidates: "
-              f"{[c['chunk_id'] for c in candidates]}") if retrieval_error is None \
+    output = (f"found {len(candidates)} candidates via {scope_path} "
+              f"(scope: {scope.display}): {[c['chunk_id'] for c in candidates]}") \
+        if retrieval_error is None \
         else f"retrieval unavailable ({retrieval_error}); degraded to 0 candidates"
     trace_step = TraceStep(
         node="retrieve",
-        input=f"query={query}, top_k={settings.top_k}, mode={mode}",
+        input=f"query={query}, top_k={settings.top_k}, mode={base_mode}, "
+              f"scope={scope.kind}",
         output=output,
     )
 
     return {
         "candidates": candidates,
+        "scope": scope.to_dict(),
+        "scope_path": scope_path,
         "trace": state.get("trace", []) + [trace_step],
     }
 
