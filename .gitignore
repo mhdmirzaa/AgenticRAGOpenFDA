@@ -19,3 +19,11 @@ maistorage.db
 
 # local machine compose overrides (port remaps etc.)
 docker-compose.override.yml
+
+# eval scratch artifacts (local run logs + backup/prev snapshots + scoped-run
+# outputs). The canonical results (eval/last_run_baseline.json,
+# eval/last_run_optimized.json, eval/scoped_eval_2026-07-07/) stay tracked.
+eval/_*.log
+eval/*.bak.json
+eval/*.prev.json
+eval/last_run_*_scoped.json
