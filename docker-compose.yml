@@ -127,6 +127,10 @@ services:
     environment:
       BACKEND_URL: http://backend:8000
       TELEGRAM__BOT_TOKEN: ${TELEGRAM__BOT_TOKEN:-}
+    # It reuses the backend image (which has an HTTP healthcheck for :8000) but
+    # runs the polling worker with no HTTP server — disable the inherited check.
+    healthcheck:
+      disable: true
     restart: "no"
     depends_on: [backend]
 

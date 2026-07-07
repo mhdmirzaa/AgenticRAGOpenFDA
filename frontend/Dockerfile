@@ -12,6 +12,10 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Next's standalone server.js binds to $HOSTNAME (Docker auto-sets it to the
+# container id) — pin it to 0.0.0.0 so it listens on all interfaces, otherwise
+# the in-container localhost healthcheck can't reach it and it reads "unhealthy".
+ENV HOSTNAME=0.0.0.0 PORT=3000
 # Copy only the self-contained standalone server + static assets.
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
