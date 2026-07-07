@@ -15,6 +15,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.health import router as health_router
+from app.api.metrics import router as metrics_router
 from app.api.ingest import router as ingest_router
 from app.api.chat import router as chat_router
 from app.api.ask import router as ask_router
@@ -30,6 +31,12 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Startup and shutdown lifecycle."""
     settings = get_settings()
+    # Structured logging (JSON in prod) before anything else logs (item 3).
+    try:
+        from app.logging_config import configure_logging
+        configure_logging(settings.json_logs)
+    except Exception:  # noqa: BLE001 - logging setup must never block startup
+        pass
     logger.info(f"Starting MaiStorage with provider={settings.llm_provider}")
 
     # Initialize the persistence layer (Postgres/SQLite). Non-fatal if down.
@@ -103,24 +110,40 @@ app = FastAPI(
 
 @app.middleware("http")
 async def request_id_and_errors(request, call_next):
-    """Tag every request with an id and convert unhandled errors to a generic
-    500 (security item 8). No stack trace / internal detail ever reaches the
-    client — the real error is logged server-side against the request id.
+    """Tag every request with an id, record metrics + a structured access log,
+    and convert unhandled errors to a generic 500 (security item 8 + observability
+    item 3). No stack trace / internal detail ever reaches the client — the real
+    error is logged server-side against the request id.
     """
+    import time as _time
     import uuid as _uuid
     from fastapi.responses import JSONResponse
+    from app.metrics import get_metrics
 
     rid = _uuid.uuid4().hex[:16]
     request.state.request_id = rid
+    path = request.url.path
+    path_class = path.split("/", 2)[1] if "/" in path[1:] else (path.strip("/") or "root")
+    started = _time.perf_counter()
     try:
         response = await call_next(request)
+        status = response.status_code
     except Exception:  # noqa: BLE001 - never leak internals to the client
-        logger.exception("unhandled error [rid=%s] %s %s",
-                         rid, request.method, request.url.path)
+        logger.exception("unhandled error [rid=%s] %s %s", rid, request.method, path)
         response = JSONResponse(
             {"detail": "Internal server error.", "request_id": rid},
             status_code=500,
         )
+        status = 500
+
+    latency_ms = round((_time.perf_counter() - started) * 1000, 2)
+    get_metrics().record_request(path_class, status, latency_ms)
+    # Structured access log (JSON when JSON_LOGS=1). Never logs the request body.
+    logger.info(
+        "request",
+        extra={"request_id": rid, "method": request.method, "path": path,
+               "status": status, "latency_ms": latency_ms},
+    )
     response.headers["X-Request-ID"] = rid
     return response
 
@@ -176,6 +199,7 @@ app.add_middleware(
 # `security_gate` (API-key auth when AUTH_ENABLED + per-caller/per-IP rate limit).
 _gate = [Depends(security_gate)]
 app.include_router(health_router, tags=["health"])
+app.include_router(metrics_router, tags=["metrics"])  # public (like /health)
 app.include_router(ingest_router, tags=["ingestion"], dependencies=_gate)
 app.include_router(chat_router, tags=["chat"], dependencies=_gate)
 app.include_router(ask_router, tags=["chat"], dependencies=_gate)

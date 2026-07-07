@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -75,5 +78,5 @@ def _load_pdf(path: Path) -> str:
         doc.close()
         return "\n".join(text_parts)
     except ImportError:
-        print(f"Warning: PyMuPDF not installed, skipping {path.name}")
+        logger.warning("PyMuPDF not installed, skipping %s", path.name)
         return ""

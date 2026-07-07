@@ -90,6 +90,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://localhost:8501"
     # HSTS (prod only; behind TLS termination). Off by default for plain-HTTP dev.
     hsts_enabled: bool = False
+    # Structured JSON logs (prod). Off by default so local dev logs stay readable.
+    json_logs: bool = False
     # Telegram webhook shared secret (when running in webhook mode, not polling).
     telegram_webhook_secret: str = ""
     # API key the Telegram bot presents to the backend when AUTH_ENABLED.

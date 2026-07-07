@@ -89,6 +89,10 @@ async def chat(request: ChatRequest):
             elif event.get("type") == "done":
                 citations = event.get("citations", [])
                 trace_id = event.get("trace_id")
+                from app.metrics import get_metrics
+                get_metrics().record_outcome(
+                    refused=bool(event.get("refused")),
+                    blocked=bool(event.get("blocked")))
             elif event.get("type") == "error":
                 errored = True
             collected.append(event)

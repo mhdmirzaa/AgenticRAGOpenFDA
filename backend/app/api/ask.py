@@ -60,4 +60,8 @@ async def ask_agentic(request: AskRequest) -> AskResponse:
     _persist(session_id, "assistant", result["answer"],
              citations=result["citations"], trace_id=result["trace_id"])
 
+    from app.metrics import get_metrics
+    get_metrics().record_outcome(refused=bool(result.get("refused")),
+                                 blocked=bool(result.get("blocked")))
+
     return AskResponse(**result)
