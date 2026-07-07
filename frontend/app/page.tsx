@@ -17,7 +17,7 @@ export default function Page() {
           <h1 className="font-sans text-xl font-semibold tracking-tight text-ink-900 dark:text-ink-50">
             Formulary
           </h1>
-          <p className="label-mono mt-0.5 text-ink-400">
+          <p className="label-mono mt-0.5 text-ink-500 dark:text-ink-400">
             FDA drug reference · agentic retrieval
           </p>
         </div>

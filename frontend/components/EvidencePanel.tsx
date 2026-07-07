@@ -43,7 +43,7 @@ export default function EvidencePanel({
             }`}
           />
           <span className="label-mono text-ink-700 dark:text-ink-200">Assay</span>
-          <span className="label-mono text-ink-400 dark:text-ink-500">
+          <span className="label-mono text-ink-500 dark:text-ink-400">
             {live ? "reading" : "idle"}
           </span>
         </div>
@@ -76,7 +76,7 @@ export default function EvidencePanel({
           <>
             {hasActivity && (
               <div>
-                <h3 className="label-mono mb-2 text-ink-400 dark:text-ink-500">
+                <h3 className="label-mono mb-2 text-ink-500 dark:text-ink-500">
                   Retrieval assay
                 </h3>
                 <StageTimeline stages={stages} live={live} />
@@ -86,7 +86,7 @@ export default function EvidencePanel({
             {chunks.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="label-mono text-ink-400 dark:text-ink-500">
+                  <h3 className="label-mono text-ink-500 dark:text-ink-500">
                     Monograph citations
                   </h3>
                   <div className="flex items-center gap-1.5">
