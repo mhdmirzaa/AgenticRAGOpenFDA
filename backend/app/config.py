@@ -86,8 +86,10 @@ class Settings(BaseSettings):
     # Input caps (DoS + prompt-bloat defense). Enforced by Pydantic + middleware.
     max_question_chars: int = 4000
     max_body_bytes: int = 65_536          # 64 KB request-body ceiling
-    # CORS allowlist — explicit origins only (never "*" with credentials).
-    cors_origins: str = "http://localhost:3000,http://localhost:8501"
+    # CORS allowlist — explicit origins only (never "*" with credentials). Both
+    # 3000 (default) and 3005 (docker-compose.override port when 3000 is taken)
+    # are allowed for local dev; prod sets the real origin via CORS_ORIGINS.
+    cors_origins: str = "http://localhost:3000,http://localhost:3005,http://localhost:8501"
     # HSTS (prod only; behind TLS termination). Off by default for plain-HTTP dev.
     hsts_enabled: bool = False
     # Structured JSON logs (prod). Off by default so local dev logs stay readable.

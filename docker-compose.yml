@@ -98,6 +98,9 @@ services:
       # inside the stack regardless of the (bare) .env value used for local runs.
       OPENSEARCH_URL: http://opensearch:9200
       OPENSEARCH_INDEX: fda_labels
+      # Allow the browser origin(s). The override maps the frontend to host :3005
+      # (when :3000 is taken); include both so cross-origin SSE isn't blocked.
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3005,http://localhost:8501
     volumes:
       - ./corpus:/corpus
       - chroma_data:/app/chroma_db
