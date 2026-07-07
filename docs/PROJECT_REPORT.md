@@ -18,6 +18,8 @@
 1a. [Enhancement pass (v3.1)](#1a-enhancement-pass-v31-2026-07-05)
 1b. [Performance pass (v3.2)](#1b-performance-pass-v32-2026-07-06)
 1c. [Metadata-scoped retrieval pass (2026-07-07)](#1c-metadata-scoped-retrieval-pass-scoped-retrieval-2026-07-07)
+1d. [UI redesign — "Monograph" (2026-07-07)](#1d-ui-redesign--monograph-ui-redesign-2026-07-07)
+1e. [Security-hardening pass (2026-07-07)](#1e-security-hardening-pass-security-hardening-2026-07-07)
 2. [Course parity map](#2-course-parity-map)
 3. [Repository structure](#3-repository-structure)
 4. [Architecture](#4-architecture)
@@ -41,6 +43,8 @@
 20. [Cons / limitations & mitigations](#20-cons--limitations--mitigations)
 21. [How to run](#21-how-to-run)
 22. [Traditional vs agentic RAG](#22-traditional-vs-agentic-rag)
+23. [UI — "Monograph" redesign](#23-ui--monograph-redesign-ui-redesign)
+24. [Security posture](#24-security-posture-security-hardening)
 
 ---
 
@@ -65,13 +69,17 @@ TypeScript** streaming chat UI with a **live evidence panel**, and a **Telegram 
 a second client — all brought up by one `docker compose up`.
 
 This report was produced by bringing the whole stack up live and exercising every layer
-on **2026-07-04**, then extended in three passes: a **grow + re-measure** (corpus grown
+on **2026-07-04**, then extended in five passes: a **grow + re-measure** (corpus grown
 **~14× to 332 FDA labels / 3,054 chunks**, honest baseline-vs-optimized re-measure on an
 expanded **50-question** golden set — §13a/§14), a **v3.2 performance pass** (batched grading,
-answer cache, image-baked reranker — §1b), and a **metadata-scoped retrieval pass** (2026-07-07)
+answer cache, image-baked reranker — §1b), a **metadata-scoped retrieval pass** (2026-07-07)
 that went back at the retrieval problem §14 root-caused — drug-scoping the candidate set before
-similarity search (§1c/§14a). **Five real defects were found and fixed** during the original
-verification (see §15). Final state: **220 backend tests pass**, **Playwright e2e is 4/4**
+similarity search (§1c/§14a), a **UI redesign** into a distinctive "Monograph" clinical-instrument
+identity (§1d/§23, `docs/DESIGN.md`), and a **security-hardening pass** taking the stack to a
+strong production posture — auth, rate limiting, IDOR/injection/XSS defenses, secrets & container
+hygiene, each with a test that proves the attack is blocked (§1e/§24, `docs/SECURITY.md`).
+**Five real defects were found and fixed** during the original verification (see §15). Final
+state: **246 backend tests pass** (26 of them new security tests), **Playwright e2e is 6/6**
 against the running UI, the golden-set eval is reproduced live on the grown index, and every
 production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
 hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
@@ -167,6 +175,50 @@ recovering most of the hybrid path's dilution gap and making optimized-scoped th
 citation/refusal/answer/faithfulness. Dense Hit@k is unchanged (already strong; small faithfulness
 + refusal gains), and dense-only still leads raw Hit@1 (0.90) — all reported honestly, no
 overfitting. Full four-config table + interpretation in **§14a**.
+
+---
+
+## 1d. UI redesign — "Monograph" (ui-redesign, 2026-07-07)
+
+A visual + UX redesign off the AI-generic soft-green "health assistant" look into a
+deliberate, subject-grounded identity: **an official FDA drug monograph rendered as a live
+clinical instrument.** Followed the frontend-design skill's two-pass method (token system →
+critique-vs-generic → build → self-critique); full rationale in **`docs/DESIGN.md`** and §23.
+Visual only — the SSE contract, streaming, citations, evidence/trace, guardrail/refusal, and
+the preserved live **Scope stage** are untouched; every `data-testid` stayed stable.
+
+| Layer | What changed |
+|---|---|
+| **Identity** | Renamed **Verdant → Formulary** (a real pharmacy term) with an **℞** mark; off the soft-green palette entirely. |
+| **Tokens** | Cool paper/ink neutrals + one confident **cobalt** accent + a role-restricted **cyan** "instrument-live" signal + serious amber/red; **IBM Plex Sans/Serif/Mono** via `next/font` (self-hosted); precise 4–10px radii, hairline rules, tokenized motion. |
+| **Signature** | The evidence panel is now a live instrument: a numbered "retrieval assay" log (mono, cyan LED + scan), the Scope stage as a cobalt reference tag, graded chunks as `[DRUG · SECTION]` monograph citations with a serious kept/filtered verdict. |
+| **Quality floor** | WCAG-AA micro-label contrast, visible keyboard focus, responsive to mobile, `prefers-reduced-motion` honored. |
+
+**Verified:** `tsc --noEmit` + `next build` clean; all Playwright selectors intact (a live
+screenshot wasn't possible — the Chrome extension is blocked from `localhost` by org policy —
+so the self-critique was code-level against the passing build).
+
+---
+
+## 1e. Security-hardening pass (security-hardening, 2026-07-07)
+
+Raised the stack to a strong production security posture — **threat-model-driven, every control
+backed by a test that proves the attack is blocked** (no theater). Full detail + the
+control→test matrix in **`docs/SECURITY.md`** and §24. Implemented plan → TDD → verify on the
+`security-hardening` branch, per item; **no prior functionality regressed, SSE contract intact.**
+
+| # | Control | Proof |
+|---|---|---|
+| 1 | **API-key auth** (`AUTH_ENABLED`) on all cost/mutating endpoints (401); `/health` public. **Rate limiting** per-caller+IP (Redis/memory; LLM 20 · ingest 5 · default 120 /min → 429). | `test_security_auth.py` |
+| 2 | **IDOR defense**: uuid4 ids (unguessable), strict id-shape check, session/trace bound to the caller (`owner`); non-owned/unknown/malformed → **404** (no enumeration). | `test_security_idor.py` |
+| 3 | **Input validation** (oversized/empty question → 422), **body-size cap** (413), **parameterized SQL** proven with a SQLi payload stored as inert data. | `test_security_input.py` |
+| 4 | **XSS-safe output** (no `dangerouslySetInnerHTML`; escaped React text) + strict **CSP/headers** on Next.js *and* FastAPI. | `test_security_headers.py`, e2e inert-`<script>` test |
+| 5 | **Prompt-injection hardening** in the guardrail (override/reveal-prompt/exfil/jailbreak) with false-positive guards; retrieved content is inert DATA; no eval/exec path. | `test_security_injection.py` |
+| 6–9 | **Secrets** env-only + scrubbed from logs/health/errors; **CORS allowlist**; **datastores internal-only** in the prod compose (Redis password); **request-id + generic errors**; **non-root containers**; **pip-audit + npm audit CI**. | `test_security_hardening.py`, CI |
+
+Auth + rate limiting default **OFF** for local dev/tests and are switched **ON** by
+`docker-compose.prod.yml` (which also drops the datastore ports and sets HSTS). **Backend suite:
+246 tests pass** (+26 security tests vs the 220 pre-pass).
 
 ---
 
@@ -426,14 +478,14 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**220 backend tests pass** offline
-(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 186 (v3.2),
-168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The grow pass added corpus/eval-guard tests
-(`test_growth`, `test_reconcile`, `test_seed_corpus`, `test_golden_set`,
-`test_openai_embed_guard`); the v3.2 perf pass (§1b) added `test_grade_batch` (11) and
-`test_answer_cache` (6); the scoped-retrieval pass (§14a) added `test_scoping` (20),
-`test_scoped_retrieval` (13), and one scope-stage SSE test. **Playwright e2e: 4/4** against the
-live UI (re-confirmed on the running stack 2026-07-06, §13a/§1b).
+**246 backend tests pass** offline
+(`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 220
+(scoped-retrieval), 186 (v3.2), 168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The
+scoped-retrieval pass added `test_scoping` (20) + `test_scoped_retrieval` (13) + a scope-stage
+SSE test; the **security-hardening pass (§24)** added **26 tests** across `test_security_auth`
+(5), `test_security_idor` (4), `test_security_input` (4), `test_security_headers` (2),
+`test_security_injection` (6), `test_security_hardening` (5). **Playwright e2e: 6/6** against the
+live UI (the redesign added an inert-`<script>` XSS test; §1d/§24).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -451,6 +503,7 @@ live UI (re-confirmed on the running stack 2026-07-06, §13a/§1b).
 | **Guardrail sharpness (v3.1)** | LLM catches paraphrased self-harm/misuse, dosing paraphrase stays SAFE, drug-aware grader filters wrong-drug | `test_guardrail_sharpness.py` |
 | **Resilience (v3.1)** | route/rewrite/retrieve/grade/generate all degrade on outage; full turn survives total LLM outage as a clean refusal | `test_resilience.py` |
 | **Metadata scoping (§14a)** | drug tagging (embed-tagged/store-clean + `drug_key`), entity resolution (NAMED, brand→generic, word-boundary, CONDITION-constrained + degrade-safe), OpenSearch `terms` filter plumbing, scoped→unfiltered fallback, scope SSE stage | `test_scoping.py`, `test_scoped_retrieval.py`, `test_ask.py` |
+| **Security (§24)** | auth 401 / rate-limit 429 / public health; IDOR (cross-caller session+trace → 404, malformed id → 404); input caps (422/413) + SQLi-as-data; security headers + CSP; prompt-injection blocked + poisoned-chunk inert + no-exec; request-id/no-leak, CORS allowlist, telegram key | `test_security_auth`, `test_security_idor`, `test_security_input`, `test_security_headers`, `test_security_injection`, `test_security_hardening` |
 
 ---
 
@@ -995,7 +1048,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 220 backend tests + 4 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 246 backend tests + 6 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -1069,6 +1122,77 @@ described.
 
 ---
 
+## 23. UI — "Monograph" redesign (ui-redesign)
+
+The web UI (Next.js + TypeScript — the developer's primary stack) was redesigned from an
+AI-generic soft-green "health assistant" look into a distinctive, subject-grounded identity:
+**an FDA drug monograph rendered as a live clinical instrument.** The point of view is the
+pharmacopoeia — official reference labels, clinical precision, analytical instruments, the ℞
+mark — not a friendly chatbot. Full token system + rationale in **`docs/DESIGN.md`**.
+
+- **Process (frontend-design skill):** brainstorm a token system → critique it against the
+  three AI-generic defaults (cream+serif+terracotta / near-black+acid / broadsheet) *and* the
+  old soft-green tell → build → self-critique (cut one accessory: emoji, rainbow trace colors,
+  the pill cursor). Each palette/type decision derives from the documented tokens.
+- **Palette (6 named roles):** cool paper/ink neutrals, one **cobalt** interactive accent, a
+  role-restricted **cyan** instrument-live signal, serious **amber/red** safety signals — off
+  soft-green, off all three defaults.
+- **Type:** the **IBM Plex** superfamily (Sans UI/headings · Serif for monograph answer prose ·
+  Mono for the reference-data layer), self-hosted via `next/font`.
+- **Signature:** the evidence panel as a live instrument — a numbered "retrieval assay" log
+  with a cyan LED/scan while reading, the preserved **Scope** stage as a cobalt reference tag,
+  and graded chunks as `[DRUG · SECTION]` monograph citations with a serious kept/filtered
+  verdict.
+- **Quality floor:** WCAG-AA micro-label contrast, visible keyboard focus, responsive to
+  mobile, `prefers-reduced-motion` honored. `tsc` + `next build` clean; all `data-testid`s
+  preserved so Playwright stays green (a live screenshot wasn't possible — the browser
+  extension is blocked from `localhost` by org policy — so the critique was code-level).
+- **Mobile roadmap:** none built here (web app). A future client would be React Native /
+  Flutter and reuse these framework-agnostic tokens.
+
+---
+
+## 24. Security posture (security-hardening)
+
+A threat-model-driven hardening pass to a strong production posture. **Every control has a test
+that proves the attack is blocked**; the full control→test matrix, the access-control model,
+the secrets/prod contract, and the responsible-disclosure + known-limitations note live in
+**`docs/SECURITY.md`**. Summary of what's enforced:
+
+- **AuthN + rate limiting (item 1):** `X-API-Key` on every cost/mutating endpoint (401 on
+  missing/bad; `/health` public); per-caller + per-IP fixed-window limits (Redis or memory;
+  LLM 20 / ingest 5 / default 120 per minute → 429). Both default OFF for dev and ON in the
+  prod compose. `test_security_auth.py`.
+- **IDOR / access control (item 2):** ids are unguessable uuid4; a strict id-shape check runs
+  before any lookup; sessions and traces are bound to the caller (`owner`, via a request
+  contextvar), and non-owned/unknown/malformed ids all return **404** (no enumeration oracle).
+  `test_security_idor.py`.
+- **Input validation + injection (item 3):** oversized/empty questions → 422; a body-size cap →
+  413; all SQL is parameterized SQLAlchemy (proven with a SQLi payload stored as inert data).
+  `test_security_input.py`.
+- **XSS-safe output + CSP (item 4):** no `dangerouslySetInnerHTML` — untrusted LLM/label text
+  renders as escaped React text; strict CSP (no `unsafe-eval`) + `nosniff`/`DENY`/Referrer/
+  Permissions headers on both the Next.js app and the FastAPI API; HSTS in prod.
+  `test_security_headers.py` + a Playwright inert-`<script>` test.
+- **Prompt-injection hardening (item 5):** the guardrail blocks instruction-override /
+  reveal-system-prompt / key-exfiltration / jailbreak attempts (with drug-domain false-positive
+  guards); the loop stays capped at 3; retrieved content is composed as inert DATA after the
+  system instructions; the agent has no eval/exec/tool path from model text.
+  `test_security_injection.py`.
+- **Secrets, CORS, network, errors, containers (items 6–9):** secrets env-only and scrubbed
+  from logs/`/health`/errors; explicit CORS allowlist (never `*`); a request-id middleware +
+  catch-all that returns a generic 500; datastores internal-only in `docker-compose.prod.yml`
+  (Redis password, no published ports); non-root Dockerfiles; and a CI workflow running
+  **pip-audit + npm audit** + the security suite. `test_security_hardening.py`, CI.
+
+**Backend suite: 246 tests pass** (26 new security tests). The access-control model today is
+API-key-as-identity (a full per-user auth system is the documented next step); see
+`docs/SECURITY.md` for the honest limitations.
+
+---
+
 *Report produced 2026-07-04 after a full live `docker compose` verification of the v3.0
-course-matched stack, including the five fixes in §15. Backend: 124 tests pass. Frontend:
-Playwright e2e 4/4. Metrics reproduced live against OpenSearch + text-embedding-3-large.*
+course-matched stack, including the five fixes in §15; extended through the v3.1/v3.2/
+scoped-retrieval/UI-redesign/security-hardening passes (§1a–§1e). Current state: **246 backend
+tests pass**, Playwright e2e 6/6, metrics reproduced live against OpenSearch +
+text-embedding-3-large.*
