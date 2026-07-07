@@ -9,7 +9,33 @@ Contracts (keep stable -- frontend lib/stream.ts depends on these):
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+
+def _validate_question(v: str) -> str:
+    """Reject empty / oversized questions (security item 3, input validation).
+
+    A hard character cap (config `max_question_chars`) blunts prompt-bloat DoS and
+    keeps LLM cost bounded; the value is validated as data, never interpolated
+    into SQL or a shell.
+    """
+    v = (v or "").strip()
+    if not v:
+        raise ValueError("question must not be empty")
+    from app.config import get_settings
+    cap = get_settings().max_question_chars
+    if len(v) > cap:
+        raise ValueError(f"question exceeds the {cap}-character limit")
+    return v
+
+
+def _validate_optional_id(v: str | None) -> str | None:
+    """Bound the session_id length so a path/param can't smuggle a huge value."""
+    if v is None:
+        return None
+    if len(v) > 128:
+        raise ValueError("session_id too long")
+    return v
 
 
 class ChatRequest(BaseModel):
@@ -18,11 +44,17 @@ class ChatRequest(BaseModel):
     optimized: bool = True  # use hybrid+rerank retrieval (default on for the demo)
     session_id: str | None = None  # optional: persist + load conversation memory
 
+    _v_q = field_validator("question")(_validate_question)
+    _v_s = field_validator("session_id")(_validate_optional_id)
+
 
 class AskRequest(BaseModel):
     """Non-streaming agentic request (course-parity /ask-agentic + Telegram)."""
     question: str
     session_id: str | None = None
+
+    _v_q = field_validator("question")(_validate_question)
+    _v_s = field_validator("session_id")(_validate_optional_id)
 
 
 class Citation(BaseModel):

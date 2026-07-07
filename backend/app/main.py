@@ -100,6 +100,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.middleware("http")
+async def limit_request_body(request, call_next):
+    """Reject oversized request bodies early (security item 3 — DoS/abuse).
+
+    A declared Content-Length over the cap is refused with 413 before the body is
+    read into memory.
+    """
+    from fastapi.responses import JSONResponse
+    cl = request.headers.get("content-length")
+    if cl and cl.isdigit() and int(cl) > get_settings().max_body_bytes:
+        return JSONResponse({"detail": "Request body too large."}, status_code=413)
+    return await call_next(request)
+
 # CORS — explicit frontend-origin allowlist (never "*" with credentials). The
 # origins come from config (CORS_ORIGINS); add the prod origin there for deploy.
 _cors_origins = [o.strip() for o in get_settings().cors_origins.split(",") if o.strip()]
