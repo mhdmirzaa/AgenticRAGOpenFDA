@@ -7,108 +7,122 @@ type RowStatus = "pending" | "active" | "done" | "skipped";
 interface StageTimelineProps {
   /** Accumulated stage events for the current turn, in arrival order. */
   stages: StageEvent[];
-  /** True while the turn is still streaming (keeps the terminal node pulsing). */
+  /** True while the turn is still streaming (keeps the terminal node live). */
   live: boolean;
 }
 
-const PIPELINE: { key: string; label: string; icon: string }[] = [
-  { key: "safety", label: "Safety check", icon: "🛡️" },
-  { key: "route", label: "Route question", icon: "🧭" },
-  { key: "scope", label: "Scope to drug", icon: "🎯" },
-  { key: "search", label: "Search labels", icon: "🔎" },
-  { key: "grade", label: "Grade evidence", icon: "⚖️" },
-  { key: "decide", label: "Decide", icon: "🤔" },
+// The real, ordered agent pipeline — a numbered sequence is honest here.
+const PIPELINE: { key: string; label: string }[] = [
+  { key: "safety", label: "Safety" },
+  { key: "route", label: "Route" },
+  { key: "scope", label: "Scope" },
+  { key: "search", label: "Search" },
+  { key: "grade", label: "Grade" },
+  { key: "decide", label: "Decide" },
 ];
 
-function StageRow({
-  icon,
+/** Status glyph — a precise instrument mark, not an emoji. */
+function StatusMark({ status, tone }: { status: RowStatus; tone: "ink" | "danger" | "caution" | "cobalt" }) {
+  if (status === "active") {
+    return (
+      <span className="relative flex h-2.5 w-2.5 items-center justify-center" aria-hidden>
+        <span className="absolute h-2.5 w-2.5 rounded-full bg-cyan-500 animate-led-pulse" />
+      </span>
+    );
+  }
+  const toneClass =
+    tone === "danger"
+      ? "text-danger-500"
+      : tone === "caution"
+      ? "text-caution-600 dark:text-caution-400"
+      : tone === "cobalt"
+      ? "text-cobalt-600 dark:text-cobalt-300"
+      : "text-cyan-600 dark:text-cyan-400";
+  return (
+    <span
+      aria-hidden
+      className={`flex h-2.5 w-2.5 items-center justify-center text-[0.7rem] leading-none ${
+        status === "done" ? toneClass : "text-ink-300 dark:text-ink-600"
+      }`}
+    >
+      {status === "done" ? "✓" : status === "skipped" ? "–" : "·"}
+    </span>
+  );
+}
+
+function Row({
+  index,
   label,
-  detail,
   status,
-  tone = "sage",
-  testId,
+  detail,
   stageKey,
-  connector = false,
+  tone = "ink",
+  testId = "stage-row",
   terminal = false,
 }: {
-  icon: string;
+  index?: string;
   label: string;
-  detail?: string;
   status: RowStatus;
-  tone?: "sage" | "red" | "amber" | "teal";
+  detail?: string;
+  stageKey: string;
+  tone?: "ink" | "danger" | "caution" | "cobalt";
   testId?: string;
-  stageKey?: string;
-  /** Draw a connecting rail down to the next row. */
-  connector?: boolean;
-  /** Terminal rows get a soft tinted band so the outcome is unmistakable. */
   terminal?: boolean;
 }) {
-  const toneRing =
-    tone === "red"
-      ? "border-red-400 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300"
-      : tone === "amber"
-      ? "border-amber-400 bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300"
-      : tone === "teal"
-      ? "border-teal-400 bg-teal-100 text-teal-600 dark:bg-teal-500/20 dark:text-teal-300"
-      : "border-sage-400 bg-sage-100 text-sage-600 dark:bg-sage-500/20 dark:text-sage-300";
+  const dim = status === "pending" || status === "skipped";
+  const labelColor = terminal
+    ? tone === "danger"
+      ? "text-danger-700 dark:text-danger-300"
+      : tone === "caution"
+      ? "text-caution-700 dark:text-caution-300"
+      : "text-cobalt-700 dark:text-cobalt-200"
+    : dim
+    ? "text-ink-400 dark:text-ink-600"
+    : "text-ink-800 dark:text-ink-100";
 
-  const terminalBand =
-    terminal && tone === "red"
-      ? "rounded-lg bg-red-50/80 px-2 py-1.5 ring-1 ring-red-200 dark:bg-red-500/10 dark:ring-red-500/30"
-      : terminal && tone === "amber"
-      ? "rounded-lg bg-amber-50/80 px-2 py-1.5 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/30"
-      : terminal && tone === "teal"
-      ? "rounded-lg bg-teal-50/80 px-2 py-1.5 ring-1 ring-teal-200 dark:bg-teal-500/10 dark:ring-teal-500/30"
+  const bandBg =
+    terminal && tone === "danger"
+      ? "bg-danger-50 dark:bg-danger-500/10"
+      : terminal && tone === "caution"
+      ? "bg-caution-50 dark:bg-caution-400/10"
+      : terminal
+      ? "bg-cobalt-50 dark:bg-cobalt-400/10"
       : "";
+
+  // Special-case the Scope readout: render its resolved drug as a reference tag.
+  const scopeValue =
+    stageKey === "scope" && detail?.startsWith("Scope:")
+      ? detail.replace(/^Scope:\s*/, "")
+      : null;
 
   return (
     <li
       data-testid={testId}
       data-stage={stageKey}
       data-status={status}
-      className={`relative flex items-start gap-3 ${terminalBand} ${
-        status === "skipped" ? "opacity-40" : ""
-      }`}
+      className={`relative flex items-center gap-2.5 overflow-hidden px-3 py-2 ${bandBg} ${
+        status === "active" ? "animate-row-in" : ""
+      } ${dim ? "opacity-55" : ""}`}
     >
-      {/* Connecting rail to the next step. */}
-      {connector && (
-        <span
-          aria-hidden
-          className="timeline-connector absolute bottom-0 left-[13px] top-8 w-0.5 rounded-full"
-        />
+      {status === "active" && (
+        <span aria-hidden className="scan-line pointer-events-none absolute inset-0 animate-scan" />
       )}
-      <div className="relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center">
-        {status === "active" && (
-          <span
-            className={`absolute inset-0 rounded-full ${
-              tone === "red" ? "bg-red-400" : tone === "amber" ? "bg-amber-400" : "bg-sage-400"
-            } animate-pulse-ring`}
-          />
+      <span className="w-5 shrink-0 text-right font-mono text-[0.7rem] tabular-nums text-ink-300 dark:text-ink-600">
+        {index}
+      </span>
+      <StatusMark status={status} tone={tone} />
+      <span className={`label-mono w-16 shrink-0 ${labelColor}`}>{label}</span>
+      <span className="min-w-0 flex-1 truncate font-mono text-[0.72rem] text-ink-500 dark:text-ink-400">
+        {scopeValue ? (
+          <span className="rounded-sm bg-cobalt-100 px-1.5 py-0.5 text-cobalt-700 dark:bg-cobalt-400/20 dark:text-cobalt-200">
+            {scopeValue}
+          </span>
+        ) : status === "pending" ? (
+          ""
+        ) : (
+          detail
         )}
-        <span
-          className={`relative flex h-7 w-7 items-center justify-center rounded-full border text-xs transition-all duration-300 ${
-            status === "done" || status === "active"
-              ? toneRing
-              : "border-dashed border-sage-300 bg-transparent text-sage-400 dark:border-sage-700 dark:text-sage-600"
-          }`}
-        >
-          {status === "done" ? "✓" : status === "skipped" ? "–" : icon}
-        </span>
-      </div>
-      <div className="min-w-0 flex-1 pb-3">
-        <div
-          className={`text-sm font-semibold transition-colors ${
-            status === "pending"
-              ? "text-sage-400 dark:text-sage-600"
-              : "text-sage-900 dark:text-sage-100"
-          } ${status === "active" ? "animate-pulse" : ""}`}
-        >
-          {label}
-        </div>
-        {detail && status !== "pending" && status !== "skipped" && (
-          <div className="mt-0.5 text-xs text-sage-600 dark:text-sage-400">{detail}</div>
-        )}
-      </div>
+      </span>
     </li>
   );
 }
@@ -126,59 +140,53 @@ export default function StageTimeline({ stages, live }: StageTimelineProps) {
   const rowStatus = (key: string): RowStatus => {
     const e = byStage.get(key);
     if (e) return e.status === "done" ? "done" : "active";
-    // No event yet: pending while live/early, skipped once a terminal fired.
     return terminalReached ? "skipped" : "pending";
   };
 
-  const hasTerminal = !!(blocked || refused || generate);
-
   return (
-    <ol data-testid="stage-timeline" className="relative">
+    <ol
+      data-testid="stage-timeline"
+      className="divide-y divide-ink-100 overflow-hidden rounded-md border border-ink-100 bg-paper-sunken dark:divide-ink-800 dark:border-ink-800 dark:bg-paper-dark-sunken"
+    >
       {PIPELINE.map((s, i) => (
-        <StageRow
+        <Row
           key={s.key}
           stageKey={s.key}
-          testId="stage-row"
-          icon={s.icon}
+          index={String(i + 1).padStart(2, "0")}
           label={s.label}
           status={rowStatus(s.key)}
           detail={byStage.get(s.key)?.detail}
-          // Rail runs between all pipeline rows, and on into the terminal row.
-          connector={i < PIPELINE.length - 1 || hasTerminal}
         />
       ))}
 
       {blocked && (
-        <StageRow
+        <Row
           testId="terminal-blocked"
           stageKey="blocked"
-          icon="🛑"
-          label="Safety check → blocked"
-          tone="red"
+          label="Blocked"
+          tone="danger"
           terminal
           status={blocked.status === "done" ? "done" : "active"}
-          detail={blocked.detail || "This request was blocked to keep you safe."}
+          detail={blocked.detail || "Request blocked to keep you safe."}
         />
       )}
       {refused && !blocked && (
-        <StageRow
+        <Row
           testId="terminal-refuse"
           stageKey="refuse"
-          icon="⚠️"
-          label="Not enough evidence → declined"
-          tone="amber"
+          label="Declined"
+          tone="caution"
           terminal
           status={refused.status === "done" ? "done" : "active"}
           detail={refused.detail || "The indexed FDA labels don't cover this."}
         />
       )}
       {generate && !blocked && !refused && (
-        <StageRow
+        <Row
           testId="terminal-generate"
           stageKey="generate"
-          icon="✍️"
-          label="Writing answer"
-          tone="teal"
+          label="Compose"
+          tone="cobalt"
           terminal
           status={generate.status === "done" || !live ? "done" : "active"}
           detail={generate.detail || "Composing a cited answer from graded evidence."}

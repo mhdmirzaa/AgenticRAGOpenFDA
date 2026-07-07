@@ -29,46 +29,56 @@ export default function EvidencePanel({
   return (
     <section
       data-testid="evidence-panel"
-      className="flex h-full flex-col overflow-hidden rounded-2xl border border-sage-200 bg-sage-50/70 dark:border-sage-800 dark:bg-sage-900/40"
+      className="flex h-full flex-col overflow-hidden rounded-lg border border-ink-200 bg-paper-sunken dark:border-ink-800 dark:bg-paper-dark"
     >
-      {/* Header + live corpus indicator */}
-      <div className="flex items-center justify-between gap-2 border-b border-sage-200 px-4 py-3 dark:border-sage-800">
+      {/* Instrument header — an assay readout with a live LED. */}
+      <div className="flex items-center justify-between gap-2 border-b border-ink-200 bg-paper-raised px-4 py-2.5 dark:border-ink-800 dark:bg-paper-dark-raised">
         <div className="flex items-center gap-2">
           <span
+            aria-hidden
             className={`h-2 w-2 rounded-full ${
-              live ? "animate-pulse bg-sage-500" : "bg-sage-300 dark:bg-sage-600"
+              live
+                ? "bg-cyan-500 animate-led-pulse"
+                : "bg-ink-300 dark:bg-ink-600"
             }`}
           />
-          <h2 className="text-sm font-semibold text-sage-900 dark:text-sage-100">
-            Live evidence
-          </h2>
+          <span className="label-mono text-ink-700 dark:text-ink-200">Assay</span>
+          <span className="label-mono text-ink-400 dark:text-ink-500">
+            {live ? "reading" : "idle"}
+          </span>
         </div>
         <span
           data-testid="corpus-indicator"
-          className="rounded-full bg-sage-100 px-2.5 py-1 text-[11px] font-medium text-sage-700 dark:bg-sage-800 dark:text-sage-300"
+          className="label-mono text-ink-500 dark:text-ink-400"
         >
           {corpusCount == null
             ? "corpus offline"
-            : `${corpusCount.toLocaleString()} label chunks · growing daily`}
+            : `${corpusCount.toLocaleString()} chunks`}
         </span>
       </div>
 
       <div className="soft-scroll flex-1 space-y-4 overflow-y-auto p-4">
         {!hasActivity && chunks.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center text-sage-500 dark:text-sage-400">
-            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-100 text-2xl dark:bg-sage-800">
-              🔬
+          <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+            <div
+              aria-hidden
+              className="mb-3 flex h-11 w-11 items-center justify-center rounded-md border border-ink-200 font-mono text-lg text-ink-400 dark:border-ink-700 dark:text-ink-500"
+            >
+              ≣
             </div>
-            <p className="max-w-[15rem] text-sm leading-relaxed">
-              Ask a question and watch the assistant think — safety check,
-              retrieval, and self-grading appear here in real time, then settle
-              into the exact FDA-label evidence behind the answer.
+            <p className="max-w-[15rem] text-sm leading-relaxed text-ink-500 dark:text-ink-400">
+              The assay runs here. Ask a question and watch each step — safety,
+              scope, retrieval, self-grading — resolve in real time, then settle
+              into the exact FDA-label citations behind the answer.
             </p>
           </div>
         ) : (
           <>
             {hasActivity && (
               <div>
+                <h3 className="label-mono mb-2 text-ink-400 dark:text-ink-500">
+                  Retrieval assay
+                </h3>
                 <StageTimeline stages={stages} live={live} />
               </div>
             )}
@@ -76,15 +86,15 @@ export default function EvidencePanel({
             {chunks.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-sage-500 dark:text-sage-400">
-                    Graded evidence
+                  <h3 className="label-mono text-ink-400 dark:text-ink-500">
+                    Monograph citations
                   </h3>
                   <div className="flex items-center gap-1.5">
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                      {passCount} passed
+                    <span className="label-mono rounded-sm bg-cyan-100 px-1.5 py-0.5 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-200">
+                      {passCount} kept
                     </span>
                     {failCount > 0 && (
-                      <span className="rounded-full bg-sage-100 px-2 py-0.5 text-[11px] font-medium text-sage-500 dark:bg-sage-800 dark:text-sage-400">
+                      <span className="label-mono rounded-sm bg-ink-100 px-1.5 py-0.5 text-ink-500 dark:bg-ink-800 dark:text-ink-400">
                         {failCount} filtered
                       </span>
                     )}

@@ -7,18 +7,13 @@ interface TracePanelProps {
   traceId: string;
 }
 
-const NODE_COLORS: Record<string, string> = {
-  safety: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
-  route: "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300",
-  rewrite: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
-  retrieve: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
-  search: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
-  rerank: "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300",
-  grade: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300",
-  decide: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
-  generate: "bg-teal-100 text-teal-800 dark:bg-teal-500/15 dark:text-teal-300",
-  refuse: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+// Two terminal nodes carry weight (a refusal is worth seeing); everything else
+// reads in one quiet ink tag — an instrument log, not a rainbow.
+const NODE_TONE: Record<string, string> = {
+  refuse: "bg-danger-100 text-danger-700 dark:bg-danger-500/15 dark:text-danger-300",
+  generate: "bg-cobalt-100 text-cobalt-700 dark:bg-cobalt-400/20 dark:text-cobalt-200",
 };
+const NODE_DEFAULT = "bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300";
 
 export default function TracePanel({ traceId }: TracePanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,38 +34,38 @@ export default function TracePanel({ traceId }: TracePanelProps) {
     <div className="ml-1 mt-1">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="text-xs font-medium text-sage-500 hover:text-sage-700 hover:underline dark:text-sage-400 dark:hover:text-sage-200"
+        className="label-mono text-ink-400 hover:text-ink-600 hover:underline dark:text-ink-500 dark:hover:text-ink-200"
       >
         {isOpen ? "Hide" : "Show"} agent trace
       </button>
       {isOpen && (
-        <div className="mt-2 rounded-lg border border-sage-100 bg-sage-50/60 p-3 dark:border-sage-800 dark:bg-sage-900/60">
+        <div className="mt-2 rounded-md border border-ink-100 bg-paper-sunken p-3 dark:border-ink-800 dark:bg-paper-dark-sunken">
           {loading ? (
-            <div className="text-sm text-sage-400">Loading trace…</div>
+            <div className="label-mono text-ink-400">loading trace…</div>
           ) : steps.length === 0 ? (
-            <div className="text-sm text-sage-400">No trace data</div>
+            <div className="label-mono text-ink-400">no trace data</div>
           ) : (
-            <div className="space-y-2">
+            <ol className="space-y-2">
               {steps.map((step, i) => (
-                <div key={i} className="flex gap-2 text-sm">
+                <li key={i} className="flex gap-2 text-sm">
                   <span
-                    className={`whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium ${
-                      NODE_COLORS[step.node] || "bg-sage-100 text-sage-800 dark:bg-sage-800 dark:text-sage-200"
+                    className={`label-mono h-fit whitespace-nowrap rounded-sm px-1.5 py-0.5 ${
+                      NODE_TONE[step.node] || NODE_DEFAULT
                     }`}
                   >
                     {step.node}
                   </span>
-                  <div className="min-w-0">
-                    <div className="truncate text-sage-500 dark:text-sage-400" title={step.input}>
-                      In: {step.input.substring(0, 120)}
+                  <div className="min-w-0 font-mono text-[0.72rem]">
+                    <div className="truncate text-ink-400 dark:text-ink-500" title={step.input}>
+                      in&nbsp; {step.input.substring(0, 120)}
                     </div>
-                    <div className="truncate text-sage-700 dark:text-sage-300" title={step.output}>
-                      Out: {step.output.substring(0, 120)}
+                    <div className="truncate text-ink-700 dark:text-ink-300" title={step.output}>
+                      out {step.output.substring(0, 120)}
                     </div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           )}
         </div>
       )}

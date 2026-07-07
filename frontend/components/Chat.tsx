@@ -35,6 +35,9 @@ const EXAMPLES = [
   "What are the contraindications of warfarin?",
 ];
 
+const toolbarBtn =
+  "rounded-md border border-ink-200 px-2.5 py-1 font-mono text-[0.7rem] font-medium text-ink-600 transition-colors hover:border-ink-300 hover:bg-paper-sunken disabled:opacity-50 dark:border-ink-700 dark:text-ink-300 dark:hover:bg-ink-800";
+
 export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -43,7 +46,7 @@ export default function Chat() {
   const [corpusCount, setCorpusCount] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Current-turn live evidence state (drives the right-hand panel).
+  // Current-turn live evidence state (drives the right-hand instrument panel).
   const [stages, setStages] = useState<StageEvent[]>([]);
   const [evidence, setEvidence] = useState<EvidenceChunk[]>([]);
   const [highlightedChunkId, setHighlightedChunkId] = useState<string | null>(null);
@@ -113,12 +116,12 @@ export default function Chat() {
       );
       refreshCorpus();
     } catch (e: any) {
-      setStatusText(`FDA ingest failed: ${e.message}`);
+      setStatusText(`Couldn't fetch FDA labels — ${e.message}. Check the backend is running.`);
     }
   };
 
   const handleGrow = async () => {
-    setStatusText("Growing corpus…");
+    setStatusText("Growing the corpus…");
     try {
       const result = await growCorpus();
       setStatusText(
@@ -126,7 +129,7 @@ export default function Chat() {
       );
       refreshCorpus();
     } catch (e: any) {
-      setStatusText(`Corpus growth failed: ${e.message}`);
+      setStatusText(`Couldn't grow the corpus — ${e.message}. Check the backend is running.`);
     }
   };
 
@@ -205,36 +208,28 @@ export default function Chat() {
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <Disclaimer />
 
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,26rem)]">
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,27rem)]">
         {/* LEFT — conversation */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-sage-200 bg-white shadow-sm dark:border-sage-800 dark:bg-sage-900">
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-ink-200 bg-paper-raised shadow-card dark:border-ink-800 dark:bg-paper-dark-raised">
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sage-100 px-4 py-2.5 dark:border-sage-800">
-            <span className="text-xs text-sage-500 dark:text-sage-400">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 px-4 py-2.5 dark:border-ink-800">
+            <span className="label-mono text-ink-500 dark:text-ink-400">
               {statusText ??
                 (corpusCount == null
-                  ? "Connecting to backend…"
+                  ? "connecting to backend…"
                   : `${corpusCount.toLocaleString()} FDA label chunks indexed`)}
             </span>
             <div className="flex items-center gap-1.5">
-              <button
-                onClick={handleNewChat}
-                disabled={isStreaming}
-                className="rounded-lg border border-sage-200 px-2.5 py-1 text-xs font-medium text-sage-700 transition hover:bg-sage-50 disabled:opacity-50 dark:border-sage-700 dark:text-sage-200 dark:hover:bg-sage-800"
-              >
-                New chat
+              <button onClick={handleNewChat} disabled={isStreaming} className={toolbarBtn}>
+                New session
               </button>
-              <button
-                onClick={handleIngest}
-                disabled={isStreaming}
-                className="rounded-lg border border-sage-200 px-2.5 py-1 text-xs font-medium text-sage-700 transition hover:bg-sage-50 disabled:opacity-50 dark:border-sage-700 dark:text-sage-200 dark:hover:bg-sage-800"
-              >
-                Fetch FDA Labels
+              <button onClick={handleIngest} disabled={isStreaming} className={toolbarBtn}>
+                Sync labels
               </button>
               <button
                 onClick={handleGrow}
                 disabled={isStreaming}
-                className="rounded-lg bg-sage-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sage-700 disabled:opacity-50"
+                className="rounded-md bg-cobalt-600 px-2.5 py-1 font-mono text-[0.7rem] font-semibold text-white transition-colors hover:bg-cobalt-700 disabled:opacity-50"
               >
                 Grow corpus
               </button>
@@ -244,24 +239,31 @@ export default function Chat() {
           {/* Messages */}
           <div className="soft-scroll flex-1 space-y-4 overflow-y-auto p-4">
             {messages.length === 0 && (
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-100 text-2xl dark:bg-sage-800">
-                  💬
+              <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+                <div
+                  aria-hidden
+                  className="mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-ink-200 font-serif text-2xl text-cobalt-600 dark:border-ink-700 dark:text-cobalt-300"
+                >
+                  ℞
                 </div>
-                <p className="text-lg font-semibold text-sage-800 dark:text-sage-100">
-                  How can I help you understand a medication?
+                <p className="font-sans text-base font-semibold text-ink-900 dark:text-ink-100">
+                  Look up a drug in the FDA labels
                 </p>
-                <p className="mt-1 max-w-sm text-sm text-sage-500 dark:text-sage-400">
-                  Ask about an FDA-approved drug — indications, warnings, dosage,
-                  or interactions. Every answer is grounded in official label text.
+                <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-ink-500 dark:text-ink-400">
+                  Ask about indications, warnings, dosage, or interactions. Every
+                  answer is grounded in official label text, with the retrieval
+                  shown as a live assay on the right.
                 </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <div className="mt-5 flex flex-col items-stretch gap-1.5">
                   {EXAMPLES.map((q) => (
                     <button
                       key={q}
                       onClick={() => send(q)}
-                      className="rounded-full border border-sage-200 px-3 py-1.5 text-sm text-sage-700 transition hover:border-sage-300 hover:bg-sage-50 dark:border-sage-700 dark:text-sage-200 dark:hover:bg-sage-800"
+                      className="group flex items-center gap-2 rounded-md border border-ink-200 px-3 py-2 text-left text-sm text-ink-700 transition-colors hover:border-cobalt-400 hover:bg-cobalt-50 dark:border-ink-700 dark:text-ink-200 dark:hover:border-cobalt-400/60 dark:hover:bg-cobalt-400/10"
                     >
+                      <span className="font-mono text-xs text-cobalt-500 group-hover:text-cobalt-600 dark:text-cobalt-300">
+                        ▸
+                      </span>
                       {q}
                     </button>
                   ))}
@@ -297,28 +299,28 @@ export default function Chat() {
           {/* Input */}
           <form
             onSubmit={handleSubmit}
-            className="flex items-center gap-2 border-t border-sage-100 p-3 dark:border-sage-800"
+            className="flex items-center gap-2 border-t border-ink-100 p-3 dark:border-ink-800"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about a drug's warnings, dosage, interactions…"
-              className="flex-1 rounded-xl border border-sage-200 bg-sage-50 px-4 py-2.5 text-sm text-sage-900 outline-none transition placeholder:text-sage-400 focus:border-sage-400 focus:bg-white focus:ring-2 focus:ring-sage-200 dark:border-sage-700 dark:bg-sage-950 dark:text-sage-50 dark:focus:bg-sage-900 dark:focus:ring-sage-700"
+              className="flex-1 rounded-md border border-ink-200 bg-paper-sunken px-3.5 py-2.5 text-sm text-ink-900 outline-none transition-colors placeholder:text-ink-400 focus:border-cobalt-400 focus:bg-paper-raised dark:border-ink-700 dark:bg-paper-dark-sunken dark:text-ink-50 dark:focus:bg-paper-dark-raised"
               disabled={isStreaming}
             />
             <button
               type="submit"
               disabled={isStreaming || !input.trim()}
-              className="rounded-xl bg-sage-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sage-700 disabled:opacity-50"
+              className="rounded-md bg-cobalt-600 px-5 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-cobalt-700 disabled:opacity-50"
             >
               Send
             </button>
           </form>
         </div>
 
-        {/* RIGHT — live evidence panel */}
-        <div className="h-[26rem] min-h-0 lg:h-auto">{evidencePanel}</div>
+        {/* RIGHT — live instrument panel */}
+        <div className="h-[27rem] min-h-0 lg:h-auto">{evidencePanel}</div>
       </div>
     </div>
   );
