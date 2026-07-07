@@ -6,7 +6,7 @@
 **Reference architecture:** jamwithai/production-agentic-rag-course (arXiv Paper Curator), adapted to the FDA drug domain.
 **Domain:** FDA drug-information assistant over official **openFDA** drug-label text.
 **Stack:** openFDA · Apache Airflow (daily) · **OpenSearch (BM25 + kNN, hybrid RRF)** · Redis · Langfuse · FastAPI (SSE) · **Next.js + TypeScript** web UI ("Leaflet", emerald medical-hub, **light default + dark toggle**) **+ Telegram bot** · Docker Compose · **OpenAI `gpt-4.1-mini`** + **`text-embedding-3-large` (3072-d)**. Chroma is retained as a graceful offline fallback store.
-**Status:** ✅ **Ready to submit — all work consolidated on `main`.** The v3.0 course-matched build was verified end-to-end on a live `docker compose` stack (2026-07-04: 124 backend tests, Playwright 4/4, live eval, every production layer exercised), then extended through the passes in §1a–§1f + the §14a scoping/calibration and §23 UI follow-ups. **Current state:** **271 backend tests pass** offline & deterministically (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 pytest`); `tsc --noEmit` + `next build` clean; **Playwright e2e green with all `data-testid`s intact (6 specs)**; the golden-set eval reproduced live on the scoped index; and the **Telegram bot verified live** (connects, long-polls, and relays every message through the full guarded agentic pipeline — see §9). Highlights since v3.0: **metadata-scoped retrieval** (optimized Hit@1 0.80→0.86, §14a), a **strong security posture** (auth/rate-limit/IDOR/injection/XSS, `docs/SECURITY.md`), **production readiness** (CI, structured logging + `/metrics`, deploy story — `docs/DEPLOYMENT.md`/`OPERATIONS.md`), a **growth-safe dynamic drug catalog**, **calibrated refusals** (faithfulness ≥0.95), and the warm **"Leaflet"** emerald UI with a light-default/dark theme toggle (`docs/DESIGN.md`).
+**Status:** ✅ **Ready to submit — all work consolidated on `main`.** The v3.0 course-matched build was verified end-to-end on a live `docker compose` stack (2026-07-04: 124 backend tests, Playwright 4/4, live eval, every production layer exercised), then extended through the passes in §1a–§1f + the §14a scoping/calibration and §23 UI follow-ups. **Current state:** **271 backend tests pass** offline & deterministically (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 pytest`); `tsc --noEmit` + `next build` clean; **Playwright e2e: 5 specs, all `data-testid`s preserved** (last live run 4/4 on 2026-07-06; selectors kept intact through the redesigns, not re-run live since); the golden-set eval reproduced live on the scoped index; and the **Telegram bot verified live** (connects, long-polls, and relays every message through the full guarded agentic pipeline — see §9). Highlights since v3.0: **metadata-scoped retrieval** (optimized Hit@1 0.80→0.86, §14a), a **strong security posture** (auth/rate-limit/IDOR/injection/XSS, `docs/SECURITY.md`), **production readiness** (CI, structured logging + `/metrics`, deploy story — `docs/DEPLOYMENT.md`/`OPERATIONS.md`), a **growth-safe dynamic drug catalog**, **calibrated refusals** (faithfulness ≥0.95), and the warm **"Leaflet"** emerald UI with a light-default/dark theme toggle (`docs/DESIGN.md`).
 
 > This report supersedes the v2.0 "production-stack" report. The migration delta is
 > summarized in `docs/CHANGES_V3.md`; the requirements are in `docs/PRD.md` (v3.0).
@@ -44,7 +44,7 @@
 20. [Cons / limitations & mitigations](#20-cons--limitations--mitigations)
 21. [How to run](#21-how-to-run)
 22. [Traditional vs agentic RAG](#22-traditional-vs-agentic-rag)
-23. [UI — "Monograph" redesign](#23-ui--monograph-redesign-ui-redesign)
+23. [UI redesigns and theming (→ "Leaflet" + light/dark)](#23-ui-redesigns-and-theming-monograph--leaflet--lightdark)
 24. [Security posture](#24-security-posture-security-hardening)
 25. [Production readiness](#25-production-readiness-production-hardening)
 
@@ -86,10 +86,10 @@ wiring, a CI pipeline, structured logging + a `/metrics` endpoint, and a full de
 correct as the corpus grows (**dynamic drug catalog**, §14a) and **calibrate two over-cautious
 behaviors** — a guardrail that over-blocked general "what treats X" questions and an
 over-refusal when relevant chunks passed (§14a, re-measured: faithfulness ≥0.95, refusal
-unchanged).
+unchanged). The UI was then redesigned into the warm **"Leaflet"** emerald medical hub with a
+light-default/dark theme toggle (§23), and the **Telegram bot** was live-verified + hardened (§9).
 **Five real defects were found and fixed** during the original verification (see §15). Final
-state: **271 backend tests pass** (51 of them new security/observability/scoping/calibration/telegram tests), **Playwright e2e
-is 6/6** against the running UI, the golden-set eval is reproduced live on the grown index, and
+state: **271 backend tests pass** (51 of them new security/observability/scoping/calibration/telegram tests), **Playwright e2e is 5 specs** with all `data-testid`s intact (last verified live at 4/4, §13a), the golden-set eval is reproduced live on the grown index, and
 every production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
 hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
 away — §14); the v3.2 pass delivered the real wins on **latency** — **5.98× faster grading** and
@@ -113,7 +113,7 @@ was implemented plan → test → verify on the `enhance-pass` branch and commit
 | 4 | **UI polish** | Timeline connector rail + smooth active→done transitions; terminal states (blocked/refuse/generate) get a tinted ring band; PASS evidence gets an emerald accent while FAIL is de-emphasized; PASS/FAIL summary pills; `prefers-reduced-motion` honored. All Playwright `data-testid`s preserved. | `tsc --noEmit` clean · `next build` clean |
 | 5 | **Error handling & resilience** | Every agent node degrades instead of crashing: route-LLM down → attempt retrieval; rewrite down → raw question; retrieval/embed down → 0 candidates → clean refusal; grader down → chunk fails **closed**; generation down → graceful disclaimer-bearing refusal (non-streaming **and** mid-stream); top-level stream error → friendly message, raw error only in logs. | `test_resilience.py` (7 tests) incl. a full turn surviving a total LLM outage as a clean refusal |
 
-**Backend suite: 150 tests pass offline** (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`), up from 124 — the 26 additions are the five new test modules above. Frontend `tsc --noEmit` and `next build` are clean. *(The later grow pass, §13a, added corpus/eval-guard tests bringing the current total to **168**.)*
+**Backend suite: 150 tests pass offline** (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`), up from 124 — the 26 additions are the five new test modules above. Frontend `tsc --noEmit` and `next build` are clean. *(The later grow pass, §13a, added corpus/eval-guard tests bringing the total at that point to **168**.)*
 
 **Honestly not re-run in this pass (require the live Docker + OpenAI stack, which was not available in the enhancement environment):**
 - **Playwright e2e** — all selectors/`data-testid`s were preserved, so the existing 4/4 spec should stay green, but it must be re-run against the running stack to reconfirm.
@@ -305,7 +305,7 @@ maistorage/
 ├── frontend/                        Next.js + TypeScript UI (warm soft-green split view)
 │   ├── components/                  Chat, EvidencePanel, StageTimeline, EvidenceChunkCard, Message, Citations, TracePanel, Disclaimer
 │   ├── lib/stream.ts                SSE client: token/stage/evidence/done; /ask, /grow, /health, /sessions
-│   ├── e2e/chat.spec.ts             Playwright e2e (disclaimer, streaming+citations, blocked, refusal)
+│   ├── e2e/chat.spec.ts             Playwright e2e (disclaimer, streaming+citations, blocked, refusal, XSS-safety)
 │   └── playwright.config.ts / Dockerfile
 ├── airflow/dags/fda_ingestion_dag.py   @daily: fetch → extract → dedupe → index_and_record → grow_corpus (delegates writes to backend)
 ├── eval/                            Golden-set harness: run.py, metrics.py, golden.jsonl (50 Qs), reconcile_golden.py, GROW_RUNBOOK.md, last_run_*.json
@@ -550,8 +550,7 @@ SSE test; the **security-hardening pass (§24)** added **26 tests** across `test
 (5), `test_security_idor` (4), `test_security_input` (4), `test_security_headers` (2),
 `test_security_injection` (6), `test_security_hardening` (5); the **production-hardening pass
 (§25)** added `test_dynamic_catalog` (5) + `test_calibration` (8) + `test_metrics` (4: public Prometheus `/metrics`, counters increment, refusal
-recorded, JSON log formatter). **Playwright e2e: 6/6** against the live UI (the redesign added an
-inert-`<script>` XSS test; §1d/§24).
+recorded, JSON log formatter). **Playwright e2e: 5 specs** (disclaimer, streaming+citations, blocked, refusal, and an inert-`<script>` XSS test — §24); all `data-testid`s preserved through the redesigns; the last live run was 4/4 (2026-07-06, §13a).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -906,12 +905,12 @@ driver; dropped chromadb from Airflow's pip. Re-verified: the DAG run is **SUCCE
 | Req | Status | Evidence |
 |---|---|---|
 | 1. Agentic RAG retrieves correctly (measured) | ✅ Met | `agent/graph.py`,`nodes.py`; live Hit@1 0.882, Hit@3 0.941, MRR 0.912 |
-| 2. Working prototype / demo | ✅ Met | Next.js split-view UI streams via SSE; Playwright e2e 4/4 live |
+| 2. Working prototype / demo | ✅ Met | Next.js split-view UI streams via SSE; Playwright e2e (5 specs; last live run 4/4) |
 | 3. Discussion of flow | ✅ Met | PRD §2–4, this report §4–8, `/trace/{id}` |
 | 4. Investigation of the system | ✅ Met | trace endpoint + Langfuse spans + live evidence panel |
 | 5. Traditional vs agentic RAG | ✅ Met | §20; embodied in guardrail/grade/re-retrieve/refuse |
 | 6. Open-source libraries | ✅ Met | LangGraph, OpenSearch, rank-bm25, sentence-transformers, FastAPI, SQLAlchemy, Airflow, Redis, Langfuse, python-telegram-bot, Playwright |
-| 7. Test cases explained | ✅ Met | 150 backend tests + 4 Playwright e2e (§12) |
+| 7. Test cases explained | ✅ Met | 271 backend tests + 5 Playwright e2e specs (§12) |
 
 **Bonus**
 
@@ -1163,7 +1162,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 271 backend tests + 6 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 271 backend tests + 5 Playwright e2e specs, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -1203,7 +1202,7 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large \
   python -m eval.run --mode optimized
 
 # 5. tests
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 220 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 271 passed
 cd frontend && npx tsc --noEmit && npm run build                               # clean
 PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test                  # 4/4 (stack must be up)
 ```
@@ -1237,7 +1236,7 @@ described.
 
 ---
 
-## 23. UI — "Monograph" redesign (ui-redesign)
+## 23. UI redesigns and theming (Monograph → "Leaflet" + light/dark)
 
 The web UI (Next.js + TypeScript — the developer's primary stack) was redesigned from an
 AI-generic soft-green "health assistant" look into a distinctive, subject-grounded identity:
@@ -1358,6 +1357,7 @@ Native / Flutter) must proxy auth through a token exchange — never embed the A
 
 *Report produced 2026-07-04 after a full live `docker compose` verification of the v3.0
 course-matched stack, including the five fixes in §15; extended through the v3.1/v3.2/
-scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f), plus a
-dynamic-catalog + refusal-calibration follow-ups (§14a). Current state: **271 backend tests
-pass**, Playwright e2e 6/6, metrics reproduced live against OpenSearch + text-embedding-3-large.*
+scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f), plus the
+dynamic-catalog, refusal-calibration, "Leaflet" UI, Telegram-verify, and theme-toggle follow-ups
+(§9/§14a/§23), all consolidated on `main`. Current state: **271 backend tests pass**, Playwright
+e2e 5 specs (last live 4/4), metrics reproduced live against OpenSearch + text-embedding-3-large.*
