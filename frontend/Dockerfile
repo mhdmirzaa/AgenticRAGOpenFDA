@@ -23,6 +23,8 @@ COPY --from=builder /app/.next/static ./.next/static
 
 USER node
 EXPOSE 3000
+# Use 127.0.0.1 (IPv4), not `localhost` — Alpine resolves localhost to ::1 (IPv6)
+# first, but the Next server binds IPv4 (0.0.0.0), so a localhost probe fails.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1
+  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 CMD ["node", "server.js"]
