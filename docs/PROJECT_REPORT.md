@@ -6,7 +6,7 @@
 **Reference architecture:** jamwithai/production-agentic-rag-course (arXiv Paper Curator), adapted to the FDA drug domain.
 **Domain:** FDA drug-information assistant over official **openFDA** drug-label text.
 **Stack:** openFDA · Apache Airflow (daily) · **OpenSearch (BM25 + kNN, hybrid RRF)** · Redis · Langfuse · FastAPI (SSE) · **Next.js + TypeScript** web UI ("Leaflet", emerald medical-hub, **light default + dark toggle**) **+ Telegram bot** · Docker Compose · **OpenAI `gpt-4.1-mini`** + **`text-embedding-3-large` (3072-d)**. Chroma is retained as a graceful offline fallback store.
-**Status:** ✅ **Ready to submit — all work consolidated on `main`.** The v3.0 course-matched build was verified end-to-end on a live `docker compose` stack (2026-07-04: 124 backend tests, Playwright 4/4, live eval, every production layer exercised), then extended through the passes in §1a–§1f + the §14a scoping/calibration and §23 UI follow-ups. **Current state:** **271 backend tests pass** offline & deterministically (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 pytest`); `tsc --noEmit` + `next build` clean; **Playwright e2e: 5 specs, all `data-testid`s preserved** (last live run 4/4 on 2026-07-06; selectors kept intact through the redesigns, not re-run live since); the golden-set eval reproduced live on the scoped index; and the **Telegram bot verified live** (connects, long-polls, and relays every message through the full guarded agentic pipeline — see §9). Highlights since v3.0: **metadata-scoped retrieval** (optimized Hit@1 0.80→0.86, §14a), a **strong security posture** (auth/rate-limit/IDOR/injection/XSS, `docs/SECURITY.md`), **production readiness** (CI, structured logging + `/metrics`, deploy story — `docs/DEPLOYMENT.md`/`OPERATIONS.md`), a **growth-safe dynamic drug catalog**, **calibrated refusals** (faithfulness ≥0.95), and the warm **"Leaflet"** emerald UI with a light-default/dark theme toggle (`docs/DESIGN.md`).
+**Status:** ✅ **Ready to submit — all work consolidated on `main`.** The v3.0 course-matched build was verified end-to-end on a live `docker compose` stack (2026-07-04: 124 backend tests, Playwright 4/4, live eval, every production layer exercised), then extended through the passes in §1a–§1f + the §14a scoping/calibration and §23 UI follow-ups. **Current state:** **271 backend tests pass** offline & deterministically (`DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 pytest`); `tsc --noEmit` + `next build` clean; **Playwright e2e: 5/5 passed live** (2026-07-08, on a stack rebuilt from `main` — §13b); the golden-set eval reproduced live on the scoped index; and the **Telegram bot verified live** (connects, long-polls, and relays every message through the full guarded agentic pipeline — see §9). Highlights since v3.0: **metadata-scoped retrieval** (optimized Hit@1 0.80→0.86, §14a), a **strong security posture** (auth/rate-limit/IDOR/injection/XSS, `docs/SECURITY.md`), **production readiness** (CI, structured logging + `/metrics`, deploy story — `docs/DEPLOYMENT.md`/`OPERATIONS.md`), a **growth-safe dynamic drug catalog**, **calibrated refusals** (faithfulness ≥0.95), and the warm **"Leaflet"** emerald UI with a light-default/dark theme toggle (`docs/DESIGN.md`).
 
 > This report supersedes the v2.0 "production-stack" report. The migration delta is
 > summarized in `docs/CHANGES_V3.md`; the requirements are in `docs/PRD.md` (v3.0).
@@ -34,6 +34,7 @@
 12. [Test strategy & results](#12-test-strategy--results)
 13. [Live full-stack verification (2026-07-04)](#13-live-full-stack-verification-2026-07-04)
 13a. [Grow + re-measure verification (2026-07-06)](#13a-grow--re-measure-verification-2026-07-06)
+13b. [Consolidation + live verification (2026-07-08)](#13b-consolidation--live-verification-2026-07-08)
 14. [Metrics (real, reproducible)](#14-metrics-real-reproducible)
 14a. [Metadata-scoped retrieval results (2026-07-07)](#14a-metadata-scoped-retrieval-scoped-retrieval-branch)
 15. [Defects found & fixed during verification](#15-defects-found--fixed-during-verification)
@@ -89,7 +90,7 @@ over-refusal when relevant chunks passed (§14a, re-measured: faithfulness ≥0.
 unchanged). The UI was then redesigned into the warm **"Leaflet"** emerald medical hub with a
 light-default/dark theme toggle (§23), and the **Telegram bot** was live-verified + hardened (§9).
 **Five real defects were found and fixed** during the original verification (see §15). Final
-state: **271 backend tests pass** (51 of them new security/observability/scoping/calibration/telegram tests), **Playwright e2e is 5 specs** with all `data-testid`s intact (last verified live at 4/4, §13a), the golden-set eval is reproduced live on the grown index, and
+state: **271 backend tests pass** (51 of them new security/observability/scoping/calibration/telegram tests), **Playwright e2e is 5/5 live** on the rebuilt-from-`main` stack (2026-07-08, §13b), the golden-set eval is reproduced live on the grown index, and
 every production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
 hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
 away — §14); the v3.2 pass delivered the real wins on **latency** — **5.98× faster grading** and
@@ -550,7 +551,7 @@ SSE test; the **security-hardening pass (§24)** added **26 tests** across `test
 (5), `test_security_idor` (4), `test_security_input` (4), `test_security_headers` (2),
 `test_security_injection` (6), `test_security_hardening` (5); the **production-hardening pass
 (§25)** added `test_dynamic_catalog` (5) + `test_calibration` (8) + `test_metrics` (4: public Prometheus `/metrics`, counters increment, refusal
-recorded, JSON log formatter). **Playwright e2e: 5 specs** (disclaimer, streaming+citations, blocked, refusal, and an inert-`<script>` XSS test — §24); all `data-testid`s preserved through the redesigns; the last live run was 4/4 (2026-07-06, §13a).
+recorded, JSON log formatter). **Playwright e2e: 5/5 passed live** (disclaimer, streaming+citations, blocked, refusal, and an inert-`<script>` XSS test — §24), re-run 2026-07-08 against the rebuilt-from-`main` stack (§13b).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -623,6 +624,31 @@ test first failed by timeout while the 50-question optimized eval was concurrent
 the OpenAI `gpt-4.1-mini` endpoint (the streamed turn exceeded the 90 s test timeout). Re-run
 without the eval contention, it passed in 26.9 s — the failure was resource contention, not a
 UI/backend defect. No code change was needed.
+
+---
+
+## 13b. Consolidation + live verification (2026-07-08)
+
+After consolidating every branch onto **`main`**, the whole stack was brought up **freshly built
+from `main`** (`docker compose up -d --build`) and verified end-to-end — precisely to catch
+anything that only shows up in a real container build / cross-origin run rather than the offline
+suite.
+
+| Check | Result |
+|---|---|
+| **Backend test suite** (in-process) | ✅ **271 / 271 passed** — confirms no logic regressed on `main` |
+| **Image build from `main`** | ✅ backend (non-root + reranker baked) + frontend (multi-stage Next standalone) |
+| **Backend health** | ✅ `healthy` — `gpt-4.1-mini`, OpenSearch reachable |
+| **Index populated** | ✅ **2,935 chunks, all with `drug_key`** (the drug-tagged index intact) |
+| **Playwright e2e (live)** | ✅ **5 / 5 passed** — disclaimer, streaming+citations→chunk highlight, guardrail-blocked, unanswerable refusal, inert-`<script>` XSS |
+| **Container health** | ✅ backend / frontend / OpenSearch / Postgres **healthy**; telegram-bot up |
+| **Light/dark theme** | ✅ driven live via Playwright — **light on first load** (`html.light`, bg `#f4faf6`), toggle → **dark** (`html.dark`, bg `#0d1512`, persisted to `localStorage`), reload stays dark, toggle back → light |
+
+**Four real container/config bugs were found by this pass and fixed** — none were application-logic
+regressions; all were latent in the production-hardening Dockerfiles / CORS that had **never been
+docker-built or run cross-origin before** (see §15.6–15.9). This is exactly what a full-stack
+verification is for: the offline suite was green, but the *container* reality wasn't until these
+were fixed. After the fixes, the rebuilt-from-`main` stack is healthy end-to-end.
 
 ---
 
@@ -864,8 +890,9 @@ the numbers above — a real-world reminder that the single-writer discipline ma
 
 ## 15. Defects found & fixed during verification
 
-All five were real defects only the live run surfaced; each is fixed and (where
-applicable) covered by a new test.
+**Nine** real defects that only the live runs surfaced — five in the original 2026-07-04
+full-stack verification (15.1–15.5), four in the 2026-07-08 consolidation verification
+(15.6–15.9, §13b). Each is fixed and (where applicable) covered by a new test.
 
 **15.1 `.env` inline comments broke docker `env_file`.** Docker's `env_file` does not
 strip inline `#` comments, so `OPENSEARCH_URL=  # comment` loaded the comment *as the
@@ -896,6 +923,34 @@ with `ModuleNotFoundError: chromadb`. **Fix:** made `app.ingestion` and `app.ret
 `__init__` **lazy** (PEP 562 `__getattr__`) so the read-only worker never needs a store
 driver; dropped chromadb from Airflow's pip. Re-verified: the DAG run is **SUCCESS**.
 
+### Found by the 2026-07-08 consolidation verification (§13b)
+
+Four container/config defects that only a real `docker compose up --build` from `main` surfaces
+— all latent in the production-hardening Dockerfiles / CORS, none an application-logic regression:
+
+**15.6 Frontend image build failed (`COPY /app/public`).** The multi-stage Next-standalone
+Dockerfile copies `/app/public`, but the app had no `public/` directory, so the build errored
+(`"/app/public": not found`). **Fix:** added `frontend/public/.gitkeep` (the canonical standalone
+layout). *(commit `8208162`)*
+
+**15.7 CORS blocked the containerized frontend.** The compose override maps the frontend to host
+`:3005` (when `:3000` is taken), but the security-hardening CORS allowlist only had `:3000`/`:8501`
+— so the browser blocked every cross-origin SSE/fetch, and the streaming/blocked/refuse Playwright
+specs failed even though the agent itself worked (direct `/ask-agentic` returned a cited answer).
+**Fix:** added `http://localhost:3005` to the allowlist (config default + base compose env +
+`.env.example`); prod still sets the real origin. *(commit `6924729`)*
+
+**15.8 Frontend healthcheck reported "unhealthy" while serving fine.** Two compounding issues:
+Next's standalone `server.js` binds to `$HOSTNAME` (Docker auto-sets it to the container id), so it
+listened on eth0 but not localhost; and Alpine resolves `localhost` to IPv6 `::1` first while the
+server is IPv4. **Fix:** pin `HOSTNAME=0.0.0.0` and probe `127.0.0.1` in the healthcheck. A
+mis-reported "unhealthy" would make a prod orchestrator route away from a working container.
+*(commits `2efcf12`, `d8c905d`)*
+
+**15.9 Telegram-bot always "unhealthy."** It reuses the backend image (which `HEALTHCHECK`s
+`:8000/health`) but runs the polling worker with no HTTP server. **Fix:** disable the inherited
+healthcheck for that service in compose. *(commit `2efcf12`)*
+
 ---
 
 ## 16. Assessment Q1 alignment audit
@@ -905,12 +960,12 @@ driver; dropped chromadb from Airflow's pip. Re-verified: the DAG run is **SUCCE
 | Req | Status | Evidence |
 |---|---|---|
 | 1. Agentic RAG retrieves correctly (measured) | ✅ Met | `agent/graph.py`,`nodes.py`; live Hit@1 0.882, Hit@3 0.941, MRR 0.912 |
-| 2. Working prototype / demo | ✅ Met | Next.js split-view UI streams via SSE; Playwright e2e (5 specs; last live run 4/4) |
+| 2. Working prototype / demo | ✅ Met | Next.js split-view UI streams via SSE; Playwright e2e 5/5 live (2026-07-08, §13b) |
 | 3. Discussion of flow | ✅ Met | PRD §2–4, this report §4–8, `/trace/{id}` |
 | 4. Investigation of the system | ✅ Met | trace endpoint + Langfuse spans + live evidence panel |
 | 5. Traditional vs agentic RAG | ✅ Met | §20; embodied in guardrail/grade/re-retrieve/refuse |
 | 6. Open-source libraries | ✅ Met | LangGraph, OpenSearch, rank-bm25, sentence-transformers, FastAPI, SQLAlchemy, Airflow, Redis, Langfuse, python-telegram-bot, Playwright |
-| 7. Test cases explained | ✅ Met | 271 backend tests + 5 Playwright e2e specs (§12) |
+| 7. Test cases explained | ✅ Met | 271 backend tests + 5/5 Playwright e2e live (§12/§13b) |
 
 **Bonus**
 
@@ -1162,7 +1217,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 271 backend tests + 5 Playwright e2e specs, run offline/deterministically and
+- **Well-tested:** 271 backend tests + 5/5 Playwright e2e (live 2026-07-08), run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -1282,6 +1337,10 @@ fresh load is deterministically **light** (emerald-on-white, crisp **WCAG-AA** t
 dark-tuned grey labels were bumped to pass on white); a header **sun/moon toggle** flips to the
 polished near-black dark look and **persists** the choice, with next-themes' blocking script
 preventing any flash-of-wrong-theme. All `data-testid`s preserved; `tsc` + `next build` clean.
+**Live-verified 2026-07-08** (Playwright, against the containerized UI on `:3005`): first load is
+**light** (`html.light`, body `#f4faf6`), the header toggle flips to **dark** (`html.dark`, body
+`#0d1512`) and persists to `localStorage`, a reload stays dark, and toggling back returns to light
+— the identity holds in both themes (§13b).
 
 ---
 
@@ -1360,4 +1419,4 @@ course-matched stack, including the five fixes in §15; extended through the v3.
 scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f), plus the
 dynamic-catalog, refusal-calibration, "Leaflet" UI, Telegram-verify, and theme-toggle follow-ups
 (§9/§14a/§23), all consolidated on `main`. Current state: **271 backend tests pass**, Playwright
-e2e 5 specs (last live 4/4), metrics reproduced live against OpenSearch + text-embedding-3-large.*
+e2e 5/5 live (2026-07-08, §13b), metrics reproduced live against OpenSearch + text-embedding-3-large.*
