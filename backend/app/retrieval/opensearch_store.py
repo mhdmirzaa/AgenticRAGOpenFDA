@@ -151,14 +151,30 @@ class OpenSearchStore:
                 for h in res["hits"]["hits"]]
 
     def _knn(self, query_embedding, size: int, drug_filter=None) -> list[dict]:
-        knn = {"embedding": {"vector": query_embedding, "k": size}}
         terms = self._terms_filter(drug_filter)
         if terms:
-            # Efficient filtered kNN (OpenSearch 2.4+): the filter is applied
-            # DURING the ANN search, not as a post-filter, so recall inside the
-            # scoped set is preserved.
-            knn["embedding"]["filter"] = terms
-        body = {"size": size, "query": {"knn": knn}}
+            # Scoped kNN: EXACT (brute-force) search over just the filtered drug
+            # set via script_score + `knn_score`. The default kNN engine rejects a
+            # filter *inside* the ANN clause (HTTP 400), and an exact search over a
+            # single drug's handful of chunks is both cheap and more accurate than
+            # ANN — exactly what metadata scoping wants.
+            body = {
+                "size": size,
+                "query": {"script_score": {
+                    "query": {"bool": {"filter": terms}},
+                    "script": {
+                        "source": "knn_score", "lang": "knn",
+                        "params": {"field": "embedding",
+                                   "query_value": query_embedding,
+                                   "space_type": "cosinesimil"},
+                    },
+                }},
+            }
+        else:
+            # Unscoped: fast approximate kNN over the whole index.
+            body = {"size": size,
+                    "query": {"knn": {"embedding": {"vector": query_embedding,
+                                                    "k": size}}}}
         res = self._client.search(index=self._index, body=body)
         return [self._hit_to_dict(h, h.get("_score", 0.0))
                 for h in res["hits"]["hits"]]

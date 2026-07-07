@@ -72,12 +72,25 @@ def test_bm25_body_no_filter_is_plain_match():
     assert "bool" not in client.body["query"]
 
 
-def test_knn_body_includes_filter():
+def test_knn_scoped_uses_exact_script_score_with_filter():
+    # Scoped kNN must be an EXACT script_score search pre-filtered by drug_key —
+    # the default engine rejects a filter inside the ANN clause (HTTP 400).
     client = _FakeClient()
     store = OpenSearchStore(client=client, index="t", dim=8)
     store._knn([0.0] * 8, 8, drug_filter={"aspirin", "warfarin"})
-    knn = client.body["query"]["knn"]["embedding"]
-    assert knn["filter"] == {"terms": {"drug_key": ["aspirin", "warfarin"]}}
+    ss = client.body["query"]["script_score"]
+    assert ss["query"]["bool"]["filter"] == {
+        "terms": {"drug_key": ["aspirin", "warfarin"]}}
+    assert ss["script"]["source"] == "knn_score"
+    assert ss["script"]["params"]["field"] == "embedding"
+
+
+def test_knn_unscoped_uses_ann():
+    client = _FakeClient()
+    store = OpenSearchStore(client=client, index="t", dim=8)
+    store._knn([0.0] * 8, 8, drug_filter=None)
+    assert client.body["query"]["knn"]["embedding"]["k"] == 8
+    assert "script_score" not in client.body["query"]
 
 
 def test_dense_search_forwards_drug_filter():
