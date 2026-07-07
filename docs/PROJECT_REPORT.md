@@ -1261,6 +1261,6 @@ Native / Flutter) must proxy auth through a token exchange — never embed the A
 
 *Report produced 2026-07-04 after a full live `docker compose` verification of the v3.0
 course-matched stack, including the five fixes in §15; extended through the v3.1/v3.2/
-scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f). Current
-state: **250 backend tests pass**, Playwright e2e 6/6, metrics reproduced live against
-OpenSearch + text-embedding-3-large.*
+scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f), plus a
+dynamic-catalog follow-up keeping scoping growth-safe (§14a). Current state: **255 backend tests
+pass**, Playwright e2e 6/6, metrics reproduced live against OpenSearch + text-embedding-3-large.*
