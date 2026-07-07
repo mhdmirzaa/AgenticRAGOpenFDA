@@ -20,6 +20,7 @@
 1c. [Metadata-scoped retrieval pass (2026-07-07)](#1c-metadata-scoped-retrieval-pass-scoped-retrieval-2026-07-07)
 1d. [UI redesign — "Monograph" (2026-07-07)](#1d-ui-redesign--monograph-ui-redesign-2026-07-07)
 1e. [Security-hardening pass (2026-07-07)](#1e-security-hardening-pass-security-hardening-2026-07-07)
+1f. [Production-hardening pass (2026-07-07)](#1f-production-hardening-pass-production-hardening-2026-07-07)
 2. [Course parity map](#2-course-parity-map)
 3. [Repository structure](#3-repository-structure)
 4. [Architecture](#4-architecture)
@@ -45,6 +46,7 @@
 22. [Traditional vs agentic RAG](#22-traditional-vs-agentic-rag)
 23. [UI — "Monograph" redesign](#23-ui--monograph-redesign-ui-redesign)
 24. [Security posture](#24-security-posture-security-hardening)
+25. [Production readiness](#25-production-readiness-production-hardening)
 
 ---
 
@@ -69,7 +71,7 @@ TypeScript** streaming chat UI with a **live evidence panel**, and a **Telegram 
 a second client — all brought up by one `docker compose up`.
 
 This report was produced by bringing the whole stack up live and exercising every layer
-on **2026-07-04**, then extended in five passes: a **grow + re-measure** (corpus grown
+on **2026-07-04**, then extended in six passes: a **grow + re-measure** (corpus grown
 **~14× to 332 FDA labels / 3,054 chunks**, honest baseline-vs-optimized re-measure on an
 expanded **50-question** golden set — §13a/§14), a **v3.2 performance pass** (batched grading,
 answer cache, image-baked reranker — §1b), a **metadata-scoped retrieval pass** (2026-07-07)
@@ -77,11 +79,14 @@ that went back at the retrieval problem §14 root-caused — drug-scoping the ca
 similarity search (§1c/§14a), a **UI redesign** into a distinctive "Monograph" clinical-instrument
 identity (§1d/§23, `docs/DESIGN.md`), and a **security-hardening pass** taking the stack to a
 strong production posture — auth, rate limiting, IDOR/injection/XSS defenses, secrets & container
-hygiene, each with a test that proves the attack is blocked (§1e/§24, `docs/SECURITY.md`).
+hygiene, each with a test that proves the attack is blocked (§1e/§24, `docs/SECURITY.md`), and a
+**production-hardening pass** closing the last "prototype → deployable" gaps — frontend auth
+wiring, a CI pipeline, structured logging + a `/metrics` endpoint, and a full deployment story
+(§1f/§25, `docs/DEPLOYMENT.md` + `docs/OPERATIONS.md`).
 **Five real defects were found and fixed** during the original verification (see §15). Final
-state: **246 backend tests pass** (26 of them new security tests), **Playwright e2e is 6/6**
-against the running UI, the golden-set eval is reproduced live on the grown index, and every
-production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
+state: **250 backend tests pass** (30 of them new security/observability tests), **Playwright e2e
+is 6/6** against the running UI, the golden-set eval is reproduced live on the grown index, and
+every production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
 hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
 away — §14); the v3.2 pass delivered the real wins on **latency** — **5.98× faster grading** and
 an answer cache that makes exact repeats **instant** (§1b, §14); and metadata scoping **recovers
@@ -219,6 +224,25 @@ control→test matrix in **`docs/SECURITY.md`** and §24. Implemented plan → T
 Auth + rate limiting default **OFF** for local dev/tests and are switched **ON** by
 `docker-compose.prod.yml` (which also drops the datastore ports and sets HSTS). **Backend suite:
 246 tests pass** (+26 security tests vs the 220 pre-pass).
+
+---
+
+## 1f. Production-hardening pass (production-hardening, 2026-07-07)
+
+Closed the last gaps between "great prototype" and "live-production-ready." The auth + rate
+limiting + secrets + prod-compose skeleton already landed in the security pass (§1e), so this
+pass implemented **only the remaining concerns** — full detail in **`docs/DEPLOYMENT.md`** and
+**`docs/OPERATIONS.md`**, consolidated in §25.
+
+| Concern | What was added |
+|---|---|
+| **Frontend auth wiring** | `lib/stream.ts` sends `X-API-Key` (from `NEXT_PUBLIC_API_KEY`) on every backend call; omitted when unset so local dev is unchanged. |
+| **CI/CD** | `.github/workflows/ci.yml` — a blocking `backend` job (full pytest) + `frontend` job (`tsc` + `next build`) with dep caching, plus an on-demand Playwright `e2e` job; alongside the existing `security.yml` (pip-audit + npm audit + security suite). |
+| **Observability** | Structured **JSON logging** (`JSON_LOGS=1`) with a per-request access line (`request_id`/path/status/latency); a public **`/metrics`** Prometheus endpoint (requests, p50/p95 latency, answers/refusals/blocked, cache-hit ratios); documented **alert thresholds** (error/latency/cost/refusal/auth-abuse). |
+| **Deployment** | Slim **Next standalone** multi-stage frontend image; `docker-compose.prod.yml` now has a **healthcheck + resource limits + restart** on every app service; **DEPLOYMENT.md** (registry build/push, single-host run, TLS proxy, first-run ingest, a Kubernetes sketch). |
+
+**Backend suite: 250 tests pass** (+4 observability tests). No prior functionality regressed;
+the SSE contract is intact.
 
 ---
 
@@ -478,14 +502,16 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**246 backend tests pass** offline
+**250 backend tests pass** offline
 (`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 220
 (scoped-retrieval), 186 (v3.2), 168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The
 scoped-retrieval pass added `test_scoping` (20) + `test_scoped_retrieval` (13) + a scope-stage
 SSE test; the **security-hardening pass (§24)** added **26 tests** across `test_security_auth`
 (5), `test_security_idor` (4), `test_security_input` (4), `test_security_headers` (2),
-`test_security_injection` (6), `test_security_hardening` (5). **Playwright e2e: 6/6** against the
-live UI (the redesign added an inert-`<script>` XSS test; §1d/§24).
+`test_security_injection` (6), `test_security_hardening` (5); the **production-hardening pass
+(§25)** added `test_metrics` (4: public Prometheus `/metrics`, counters increment, refusal
+recorded, JSON log formatter). **Playwright e2e: 6/6** against the live UI (the redesign added an
+inert-`<script>` XSS test; §1d/§24).
 
 | Level | Coverage | Files |
 |---|---|---|
@@ -504,6 +530,7 @@ live UI (the redesign added an inert-`<script>` XSS test; §1d/§24).
 | **Resilience (v3.1)** | route/rewrite/retrieve/grade/generate all degrade on outage; full turn survives total LLM outage as a clean refusal | `test_resilience.py` |
 | **Metadata scoping (§14a)** | drug tagging (embed-tagged/store-clean + `drug_key`), entity resolution (NAMED, brand→generic, word-boundary, CONDITION-constrained + degrade-safe), OpenSearch `terms` filter plumbing, scoped→unfiltered fallback, scope SSE stage | `test_scoping.py`, `test_scoped_retrieval.py`, `test_ask.py` |
 | **Security (§24)** | auth 401 / rate-limit 429 / public health; IDOR (cross-caller session+trace → 404, malformed id → 404); input caps (422/413) + SQLi-as-data; security headers + CSP; prompt-injection blocked + poisoned-chunk inert + no-exec; request-id/no-leak, CORS allowlist, telegram key | `test_security_auth`, `test_security_idor`, `test_security_input`, `test_security_headers`, `test_security_injection`, `test_security_hardening` |
+| **Observability (§25)** | public Prometheus `/metrics`, request counters increment, refusal recorded, JSON log formatter emits valid JSON | `test_metrics.py` |
 
 ---
 
@@ -1010,7 +1037,7 @@ course repo. These are decisions about *how the system is put together*:
   our approach keeps the model a configuration detail.
 - **Offline-deterministic test approach.** The suite runs with **no API key**: a `FakeProvider`
   (real local MiniLM embeddings + rule-based LLM replies keyed on prompt phrases) drives the
-  real graph against a temp store, so all 220 tests are deterministic and CI-friendly,
+  real graph against a temp store, so all 250 tests are deterministic and CI-friendly,
   complemented by live e2e (Playwright) against the running stack.
 - **Config approach: one Pydantic-settings source, bare `.env`.** A single `Settings` object
   loads config regardless of CWD; values are kept comment-free after we learned docker's
@@ -1048,7 +1075,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 246 backend tests + 6 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 250 backend tests + 6 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -1191,8 +1218,39 @@ API-key-as-identity (a full per-user auth system is the documented next step); s
 
 ---
 
+## 25. Production readiness (production-hardening)
+
+Where the project stands against the "great prototype → genuinely deployable" bar, after the
+security (§24) + production passes. Full runbooks in **`docs/DEPLOYMENT.md`** and
+**`docs/OPERATIONS.md`**.
+
+| Concern | Status | Evidence |
+|---|---|---|
+| **AuthN + rate limiting** | ✅ enforced on all cost/mutating endpoints; frontend sends the key | §24; `test_security_auth.py`; `lib/stream.ts` |
+| **CI/CD** | ✅ full backend suite + frontend `tsc`/`build` block every push; on-demand Playwright e2e; pip-audit + npm audit | `.github/workflows/ci.yml`, `security.yml` |
+| **Observability** | ✅ structured JSON logs (`request_id`/latency/status), Prometheus `/metrics` (requests, p50/p95, refusal/cache rates), documented alert thresholds; Langfuse for tracing | `app/metrics.py`, `app/logging_config.py`, `test_metrics.py`, `docs/OPERATIONS.md` |
+| **Secrets** | ✅ env-only, `.env` gitignored, `.env.example` placeholders, secrets-manager contract + rotation documented | `docs/OPERATIONS.md` / `SECURITY.md` |
+| **Deployment** | ✅ `docker-compose.prod.yml` (auth+rate+HSTS+JSON-logs, internal-only datastores, healthchecks + resource limits + restart on every service); slim non-root images (backend `-slim`, frontend Next standalone multi-stage); registry + single-host + Kubernetes runbook | `docker-compose.prod.yml`, Dockerfiles, `docs/DEPLOYMENT.md` |
+
+**One command** brings up the hardened stack:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.redis.yml -f docker-compose.prod.yml up --build -d
+```
+
+— authed, rate-limited, TLS-terminated at a proxy, healthchecked, JSON-logging, metrics-scraped.
+
+**Documented roadmap (honest, not hidden):** a full per-user auth system (OIDC/JWT) beyond the
+API-key identity; a shared trace store when scaling horizontally; wiring the alerter to a
+notifier (the metrics + thresholds ship, the notifier is per-environment glue); and a Helm chart
+/ managed datastores for a multi-node Kubernetes deploy. A future **mobile client** (React
+Native / Flutter) must proxy auth through a token exchange — never embed the API key
+(`docs/SECURITY.md`).
+
+---
+
 *Report produced 2026-07-04 after a full live `docker compose` verification of the v3.0
 course-matched stack, including the five fixes in §15; extended through the v3.1/v3.2/
-scoped-retrieval/UI-redesign/security-hardening passes (§1a–§1e). Current state: **246 backend
-tests pass**, Playwright e2e 6/6, metrics reproduced live against OpenSearch +
-text-embedding-3-large.*
+scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f). Current
+state: **250 backend tests pass**, Playwright e2e 6/6, metrics reproduced live against
+OpenSearch + text-embedding-3-large.*
