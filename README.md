@@ -160,11 +160,17 @@ reranked candidates instead of one each) — **~12,438 → ~2,080 ms per grading
 the existing retrieval cache — **cold ~1,905 ms → warm ~0.78 ms**; and the reranker is **baked
 into the Docker image** (loaded offline) so optimized mode never cold-starts a download.
 
-## Tests
+## Tests & CI
 
 ```bash
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 220 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 250 passed
 ```
+
+**Continuous integration** (`.github/workflows/`): `ci.yml` runs the full backend
+suite + frontend `tsc --noEmit` + `next build` on every push/PR (Playwright e2e is
+an on-demand job); `security.yml` runs `pip-audit` + `npm audit` + the security
+suite. A failure in any blocking job fails the build. See `docs/DEPLOYMENT.md` and
+`docs/OPERATIONS.md` for the production story.
 
 ## Adapted from the production course / what was skipped
 

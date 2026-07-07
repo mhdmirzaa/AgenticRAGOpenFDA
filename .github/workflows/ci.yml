@@ -1,0 +1,90 @@
+name: ci
+
+# Build gate: the full backend test suite + frontend typecheck/build on every
+# push and PR. Playwright e2e is a separate, on-demand job (needs a live stack +
+# an OpenAI key). A failure in any blocking job fails the build.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install backend (dev)
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+      - name: Backend test suite
+        working-directory: backend
+        # DISABLE_RERANKER avoids the large cross-encoder download; the small
+        # MiniLM used by the offline FakeProvider is fetched on first run.
+        env:
+          LLM_PROVIDER: local
+          DISABLE_RERANKER: "1"
+        run: python -m pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        working-directory: frontend
+        run: npm ci || npm install
+      - name: Typecheck
+        working-directory: frontend
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: frontend
+        run: npx next build
+
+  e2e:
+    # On-demand only: Playwright drives the real agent, so it needs a live stack
+    # and an OPENAI_API_KEY secret. Run via the Actions "Run workflow" button.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Start backend
+        working-directory: backend
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_PROVIDER: openai
+        run: |
+          pip install ".[dev]"
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/health && break; sleep 2; done
+          curl -X POST http://localhost:8000/ingest/fda
+      - name: Start frontend + run Playwright
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: |
+          npm ci || npm install
+          npx playwright install --with-deps chromium
+          npm run build
+          nohup npm start &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 && break; sleep 2; done
+          npm run test:e2e
