@@ -163,7 +163,7 @@ into the Docker image** (loaded offline) so optimized mode never cold-starts a d
 ## Tests & CI
 
 ```bash
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 255 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 263 passed
 ```
 
 **Continuous integration** (`.github/workflows/`): `ci.yml` runs the full backend
