@@ -55,7 +55,9 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
       POSTGRES_DB: maistorage
-    ports: ["5432:5432"]
+    # Bound to loopback only — reachable from the host for dev, never from the
+    # network (security item 7). Prod (docker-compose.prod.yml) drops it entirely.
+    ports: ["127.0.0.1:5432:5432"]
     volumes: ["pg_data:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d maistorage"]
@@ -74,7 +76,8 @@ services:
     ulimits:
       memlock: { soft: -1, hard: -1 }
       nofile: { soft: 65536, hard: 65536 }
-    ports: ["9200:9200"]
+    # Loopback-only (security item 7); prod drops the mapping (internal network).
+    ports: ["127.0.0.1:9200:9200"]
     volumes: ["opensearch_data:/usr/share/opensearch/data"]
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"'"]

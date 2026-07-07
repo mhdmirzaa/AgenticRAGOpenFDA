@@ -1,4 +1,4 @@
-# MaiStorage backend — built at M8. Multi-stage kept simple for demo.
+# MaiStorage backend — built at M8; hardened (non-root) in security-hardening.
 FROM python:3.11-slim
 WORKDIR /app
 COPY pyproject.toml .
@@ -16,5 +16,15 @@ RUN python -c "from sentence_transformers import CrossEncoder; CrossEncoder('BAA
 ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
 COPY app ./app
+
+# Run as a non-root user (security item 9). Pre-create the chroma dir so the
+# named volume inherits non-root ownership on first mount.
+RUN useradd -m -u 10001 appuser \
+    && mkdir -p /app/chroma_db \
+    && chown -R appuser:appuser /app /opt/hf-cache
+USER appuser
+
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=4).status==200 else 1)" || exit 1
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

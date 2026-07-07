@@ -102,6 +102,30 @@ app = FastAPI(
 
 
 @app.middleware("http")
+async def request_id_and_errors(request, call_next):
+    """Tag every request with an id and convert unhandled errors to a generic
+    500 (security item 8). No stack trace / internal detail ever reaches the
+    client — the real error is logged server-side against the request id.
+    """
+    import uuid as _uuid
+    from fastapi.responses import JSONResponse
+
+    rid = _uuid.uuid4().hex[:16]
+    request.state.request_id = rid
+    try:
+        response = await call_next(request)
+    except Exception:  # noqa: BLE001 - never leak internals to the client
+        logger.exception("unhandled error [rid=%s] %s %s",
+                         rid, request.method, request.url.path)
+        response = JSONResponse(
+            {"detail": "Internal server error.", "request_id": rid},
+            status_code=500,
+        )
+    response.headers["X-Request-ID"] = rid
+    return response
+
+
+@app.middleware("http")
 async def security_headers(request, call_next):
     """Attach hardening headers to every API response (security item 4).
 

@@ -53,7 +53,9 @@ async def ask_agentic(request: AskRequest) -> AskResponse:
     try:
         result = await run_agent_answer(request.question, history=history)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"agent failed: {e}")
+        # Log the real error server-side; return a generic message (item 8).
+        logger.exception("ask-agentic failed: %s", e)
+        raise HTTPException(status_code=503, detail="The assistant is temporarily unavailable.")
 
     _persist(session_id, "assistant", result["answer"],
              citations=result["citations"], trace_id=result["trace_id"])

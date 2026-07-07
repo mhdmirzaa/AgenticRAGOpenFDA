@@ -1,0 +1,54 @@
+# Production hardening overlay (security-hardening item 7/9).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.redis.yml \
+#                  -f docker-compose.prod.yml up --build -d
+#
+# Turns on auth + rate limiting + HSTS, keeps the datastores OFF the network
+# (no published ports — reachable only over the internal compose network), sets
+# a Redis password, and adds restart policies. Terminate TLS at a reverse proxy
+# in front of `frontend`/`backend` (see docs/SECURITY.md).
+#
+# Required env (from a secrets manager, NEVER committed):
+#   API_KEYS, BACKEND_API_KEY, OPENAI_API_KEY, REDIS_PASSWORD, CORS_ORIGINS
+
+services:
+  postgres:
+    # Drop the host port binding entirely: internal network only.
+    ports: !reset []
+
+  opensearch:
+    ports: !reset []
+    environment:
+      # Keep the security plugin considerations in mind for a real deployment;
+      # at minimum do not expose 9200 and put it behind the internal network.
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+
+  redis:
+    # Requires the redis overlay; enforce a password in prod.
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    ports: !reset []
+
+  backend:
+    restart: unless-stopped
+    environment:
+      AUTH_ENABLED: "1"
+      RATE_LIMIT_ENABLED: "1"
+      HSTS_ENABLED: "1"
+      API_KEYS: ${API_KEYS:?set API_KEYS}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379/0
+
+  frontend:
+    restart: unless-stopped
+
+  telegram-bot:
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      BACKEND_API_KEY: ${BACKEND_API_KEY:-}
+      TELEGRAM__BOT_TOKEN: ${TELEGRAM__BOT_TOKEN:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}

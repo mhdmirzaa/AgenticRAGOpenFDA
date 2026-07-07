@@ -68,10 +68,17 @@ async def answer_question(text: str, *, session_id: str | None = None,
     """
     payload = {"question": text, "session_id": session_id}
     url = f"{_backend_url()}/ask-agentic"
+    # Present the backend API key when auth is enabled (security items 1/7). The
+    # bot is a trusted server-side client, so it may hold the key from env; a
+    # shipped mobile client must NOT — it would proxy through a token exchange.
+    headers = {}
+    api_key = os.environ.get("BACKEND_API_KEY", "")
+    if api_key:
+        headers["X-API-Key"] = api_key
     own = client is None
     client = client or httpx.AsyncClient(timeout=120.0)
     try:
-        resp = await client.post(url, json=payload)
+        resp = await client.post(url, json=payload, headers=headers)
         resp.raise_for_status()
         return _format_answer(resp.json())
     except Exception as e:  # noqa: BLE001 - degrade gracefully, never crash

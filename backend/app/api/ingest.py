@@ -6,8 +6,12 @@ POST /ingest/fda   -- [production item 1]. Fetch openFDA drug labels and
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 from app.ingestion.loader import load_corpus
 from app.ingestion.chunker import chunk_documents
@@ -47,10 +51,11 @@ async def ingest_corpus():
             "chunks_created": len(chunks),
             "chunks_indexed": count,
         }
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Corpus not found.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
+        logger.exception("ingest failed: %s", e)
+        raise HTTPException(status_code=500, detail="Ingestion failed.")
 
 
 @router.post("/ingest/fda")
@@ -69,7 +74,8 @@ async def ingest_fda(request: FdaIngestRequest | None = None):
         )
         return {"status": "success", **stats}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"openFDA ingestion failed: {str(e)}")
+        logger.exception("openFDA ingestion failed: %s", e)
+        raise HTTPException(status_code=502, detail="openFDA ingestion failed.")
 
 
 class GrowRequest(BaseModel):
@@ -89,7 +95,8 @@ async def ingest_fda_grow(request: GrowRequest | None = None):
         stats = await run_fda_growth(batch_size=req.batch_size)
         return {"status": "success", **stats}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"openFDA growth failed: {str(e)}")
+        logger.exception("openFDA growth failed: %s", e)
+        raise HTTPException(status_code=502, detail="openFDA growth failed.")
 
 
 def _known_label_ids() -> set[str]:

@@ -40,8 +40,9 @@ async def health_check():
                 "documents": doc_count,
                 "reachable": True,
             }
-    except Exception as e:
-        status["store"] = {"backend": "opensearch", "reachable": False, "error": str(e)}
+    except Exception:
+        # Never surface the raw error to an unauthenticated /health caller.
+        status["store"] = {"backend": "opensearch", "reachable": False}
 
     if store_backend == "chroma":
         try:
@@ -49,8 +50,8 @@ async def health_check():
             doc_count = vs.count()
             status["store"] = {"backend": "chroma", "documents": doc_count,
                                "reachable": True}
-        except Exception as e:
-            status["store"] = {"backend": "chroma", "reachable": False, "error": str(e)}
+        except Exception:
+            status["store"] = {"backend": "chroma", "reachable": False}
             status["status"] = "degraded"
 
     # Back-compat: the frontend + tests read `chroma.documents`.

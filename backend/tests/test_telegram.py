@@ -35,8 +35,9 @@ class _FakeClient:
         self.boom = boom
         self.posted = None
 
-    async def post(self, url, json=None):
+    async def post(self, url, json=None, headers=None):
         self.posted = (url, json)
+        self.posted_headers = headers
         if self.boom:
             raise RuntimeError("backend down")
         return _FakeResp(self.payload)
