@@ -84,7 +84,7 @@ hygiene, each with a test that proves the attack is blocked (§1e/§24, `docs/SE
 wiring, a CI pipeline, structured logging + a `/metrics` endpoint, and a full deployment story
 (§1f/§25, `docs/DEPLOYMENT.md` + `docs/OPERATIONS.md`).
 **Five real defects were found and fixed** during the original verification (see §15). Final
-state: **250 backend tests pass** (30 of them new security/observability tests), **Playwright e2e
+state: **255 backend tests pass** (35 of them new security/observability/scoping tests), **Playwright e2e
 is 6/6** against the running UI, the golden-set eval is reproduced live on the grown index, and
 every production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
 hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
@@ -502,7 +502,7 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**250 backend tests pass** offline
+**255 backend tests pass** offline
 (`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 220
 (scoped-retrieval), 186 (v3.2), 168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The
 scoped-retrieval pass added `test_scoping` (20) + `test_scoped_retrieval` (13) + a scope-stage
@@ -528,7 +528,7 @@ inert-`<script>` XSS test; §1d/§24).
 | **Retrieval robustness (v3.1)** | dense-favored weighted RRF, agreement still wins, dense-anchor keeps the strongest dense hit | `test_retrieval_robustness.py` |
 | **Guardrail sharpness (v3.1)** | LLM catches paraphrased self-harm/misuse, dosing paraphrase stays SAFE, drug-aware grader filters wrong-drug | `test_guardrail_sharpness.py` |
 | **Resilience (v3.1)** | route/rewrite/retrieve/grade/generate all degrade on outage; full turn survives total LLM outage as a clean refusal | `test_resilience.py` |
-| **Metadata scoping (§14a)** | drug tagging (embed-tagged/store-clean + `drug_key`), entity resolution (NAMED, brand→generic, word-boundary, CONDITION-constrained + degrade-safe), OpenSearch `terms` filter plumbing, scoped→unfiltered fallback, scope SSE stage | `test_scoping.py`, `test_scoped_retrieval.py`, `test_ask.py` |
+| **Metadata scoping (§14a)** | drug tagging (embed-tagged/store-clean + `drug_key`), entity resolution (NAMED, brand→generic, word-boundary, CONDITION-constrained + degrade-safe), OpenSearch `terms` filter plumbing, scoped→unfiltered fallback, scope SSE stage, **growth-safe dynamic catalog** (TTL + bust-on-ingest) | `test_scoping.py`, `test_scoped_retrieval.py`, `test_ask.py`, `test_dynamic_catalog.py` |
 | **Security (§24)** | auth 401 / rate-limit 429 / public health; IDOR (cross-caller session+trace → 404, malformed id → 404); input caps (422/413) + SQLi-as-data; security headers + CSP; prompt-injection blocked + poisoned-chunk inert + no-exec; request-id/no-leak, CORS allowlist, telegram key | `test_security_auth`, `test_security_idor`, `test_security_input`, `test_security_headers`, `test_security_injection`, `test_security_hardening` |
 | **Observability (§25)** | public Prometheus `/metrics`, request counters increment, refusal recorded, JSON log formatter emits valid JSON | `test_metrics.py` |
 
@@ -694,6 +694,16 @@ metadata pre-filtering; the pattern recurs across RAG literature — e.g. Anthro
    step, no new provider: **NAMED** (explicit drug, brand→generic, word-boundary match against
    the indexed catalog), **CONDITION** (symptom→candidate generics, *constrained to the indexed
    catalog so it can't invent a drug*), or **NONE**. Any failure → NONE.
+
+   **Growth-safe catalog (dynamic-catalog, 2026-07-07).** The CONDITION path constrains the LLM
+   to drugs that exist *right now*, so the catalog is read from the **live `drug_labels` store**,
+   not a hardcoded or startup-frozen list: it auto-refreshes on a short TTL
+   (`drug_catalog_ttl_seconds`, default 600s) and is **busted immediately when `/ingest/fda[/grow]`
+   records new labels** (a version counter also keys the scope-result cache, so growth orphans
+   stale scopes). Net: a drug added by the daily Airflow growth job becomes scopable within
+   minutes with **no restart** — scoping stays correct as the corpus grows. Still degrade-safe (a
+   catalog-fetch failure → NONE). Covered by `test_dynamic_catalog.py` (5 tests: growth-safety,
+   TTL refresh, NAMED unchanged, fetch-failure→NONE, version bump).
 3. **Scoped retrieval + safety fallback** — NAMED/CONDITION restrict BM25 + kNN with a
    `terms` filter on `drug_key`, then rerank *within* the scoped set. If a scoped search
    returns fewer than `scope_min_results` (or the drug isn't indexed) it **auto-retries
@@ -1037,7 +1047,7 @@ course repo. These are decisions about *how the system is put together*:
   our approach keeps the model a configuration detail.
 - **Offline-deterministic test approach.** The suite runs with **no API key**: a `FakeProvider`
   (real local MiniLM embeddings + rule-based LLM replies keyed on prompt phrases) drives the
-  real graph against a temp store, so all 250 tests are deterministic and CI-friendly,
+  real graph against a temp store, so all 255 tests are deterministic and CI-friendly,
   complemented by live e2e (Playwright) against the running stack.
 - **Config approach: one Pydantic-settings source, bare `.env`.** A single `Settings` object
   loads config regardless of CWD; values are kept comment-free after we learned docker's
@@ -1075,7 +1085,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 250 backend tests + 6 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 255 backend tests + 6 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
