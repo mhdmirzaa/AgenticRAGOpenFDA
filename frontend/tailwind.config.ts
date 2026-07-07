@@ -1,9 +1,9 @@
 import type { Config } from 'tailwindcss'
 
 /**
- * "Monograph" design system — an FDA drug reference rendered as a live clinical
- * instrument. See docs/DESIGN.md. Every color/type/motion decision derives from
- * these tokens; components must not hardcode one-off values.
+ * "Leaflet" — warm medical-hub design system (emerald + white, editorial type).
+ * See docs/DESIGN.md. Every color/type/motion decision derives from these tokens;
+ * components must not hardcode one-off values.
  */
 const config: Config = {
   darkMode: 'media',
@@ -15,140 +15,124 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Cool slate-navy neutral — reference paper + printed ink.
+        // Fresh, confident hero green — actions, accents, hero moments.
+        emerald: {
+          50: '#e8f8f0',
+          100: '#cbeedd',
+          200: '#9fe0c2',
+          300: '#66cda2',
+          400: '#2eb582',
+          500: '#12a877',
+          600: '#0b8e63',
+          700: '#0b7250',
+          800: '#0c5b42',
+          900: '#0c4b37',
+          950: '#053023',
+        },
+        // Warm green-neutral ink — text, borders, quiet neutrals.
         ink: {
-          50: '#edf1f6',
-          100: '#e1e7ef',
-          200: '#cdd6e1',
-          300: '#aab7c6',
-          400: '#7e8c9c',
-          500: '#5b6b7d',
-          600: '#465565',
-          700: '#374453',
-          800: '#222e3c',
-          900: '#14212e',
-          950: '#0b131e',
+          50: '#f4f7f5',
+          100: '#e7ede9',
+          200: '#d5ded9',
+          300: '#b4c1b9',
+          400: '#8b9a91',
+          500: '#657069',
+          600: '#4c554f',
+          700: '#3a423d',
+          800: '#262c29',
+          900: '#161b18',
+          950: '#0d100e',
         },
-        // The page/card surfaces (cool clinical off-white, NOT cream).
+        // Clean white / mint-white surfaces.
         paper: {
-          DEFAULT: '#e8edf3',
+          DEFAULT: '#f4faf6',
           raised: '#ffffff',
-          sunken: '#f4f7fa',
-          dark: '#0b131e',
-          'dark-raised': '#121d2b',
-          'dark-sunken': '#0f1927',
+          sunken: '#eef6f1',
+          dark: '#0d1512',
+          'dark-raised': '#141d19',
+          'dark-sunken': '#101815',
         },
-        // The one confident accent — official-document ink (interactive + brand).
-        cobalt: {
-          50: '#edeffb',
-          100: '#dce0f7',
-          200: '#bac2ef',
-          300: '#8e9be6',
-          400: '#5d6fd8',
-          500: '#3a50cc',
-          600: '#2743c0',
-          700: '#1e349b',
-          800: '#1a2c7e',
-          900: '#182769',
-          950: '#0f1740',
-        },
-        // Instrument-live signal — analytical readout cyan (panel-only, live-only).
-        cyan: {
-          50: '#e2f8fb',
-          100: '#c3f0f6',
-          200: '#8fe3ee',
-          300: '#4fd1e1',
-          400: '#1fbfd3',
-          500: '#0fb5c9',
-          600: '#0c93a4',
-          700: '#0c7684',
-          800: '#0f5f6b',
-          900: '#114e58',
-          950: '#052f37',
-        },
-        // Serious amber — refusal / insufficient evidence (caution, not alarm).
+        // Serious warm amber — refusal / insufficient evidence.
         caution: {
-          50: '#fbf2df',
-          100: '#f6e6c0',
-          200: '#eccd86',
-          300: '#dfb157',
-          400: '#ce9430',
-          500: '#b77c1a',
-          600: '#9a5b00',
-          700: '#7e4a06',
-          800: '#663d0c',
-          900: '#56340f',
+          50: '#fdf3e3',
+          100: '#f8e2bd',
+          200: '#efc985',
+          300: '#e6b45c',
+          400: '#db9a30',
+          500: '#d08a1e',
+          600: '#a86a10',
+          700: '#84520e',
+          800: '#6a420d',
+          900: '#5a380c',
         },
-        // Clinical red — blocked / rejected evidence (serious, non-neon).
+        // Clear serious red — blocked / rejected evidence.
         danger: {
-          50: '#fbe9e8',
-          100: '#f6d3d1',
-          200: '#ecaca9',
-          300: '#e08480',
-          400: '#d4574f',
-          500: '#c6302b',
-          600: '#b3241f',
-          700: '#951c18',
-          800: '#7a1b18',
-          900: '#661a18',
+          50: '#fdecec',
+          100: '#f8d3d3',
+          200: '#f0acac',
+          300: '#e88d8d',
+          400: '#e05a5a',
+          500: '#dc2626',
+          600: '#c01f1f',
+          700: '#9c1a1a',
+          800: '#7f1919',
+          900: '#6d1616',
         },
+        // A tiny warm secondary spark (streaming, small highlights).
+        honey: { DEFAULT: '#f4b740', soft: '#fbe6bd' },
       },
       fontFamily: {
+        display: ['var(--font-display)', 'ui-serif', 'Georgia', 'serif'],
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-serif)', 'ui-serif', 'Georgia', 'serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       borderRadius: {
-        sm: '4px',
-        DEFAULT: '6px',
-        md: '6px',
         lg: '10px',
-        xl: '12px',
+        xl: '14px',
+        '2xl': '18px',
+        '3xl': '24px',
       },
       boxShadow: {
-        // Faint, cool-tinted — the instrument reads through rules, not shadows.
-        card: '0 1px 2px rgba(20, 33, 46, 0.05), 0 1px 1px rgba(20, 33, 46, 0.04)',
-        raised: '0 4px 16px -6px rgba(20, 33, 46, 0.16)',
-        glow: '0 0 0 1px rgba(15, 181, 201, 0.5), 0 0 12px -2px rgba(15, 181, 201, 0.45)',
+        // Soft, green-tinted, layered — cards feel liftable.
+        card: '0 1px 2px rgba(16,40,32,0.05), 0 6px 16px -6px rgba(16,40,32,0.10)',
+        soft: '0 10px 34px -10px rgba(16,40,32,0.16)',
+        lift: '0 16px 44px -12px rgba(16,40,32,0.22)',
+        glow: '0 0 0 3px rgba(18,168,119,0.18)',
       },
       letterSpacing: {
-        label: '0.06em', // uppercase mono instrument labels
+        label: '0.05em',
       },
       transitionDuration: {
-        fast: '120ms',
-        DEFAULT: '200ms',
-        slow: '380ms',
+        fast: '140ms',
+        DEFAULT: '220ms',
+        slow: '420ms',
       },
       keyframes: {
-        caret: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0' },
+        caret: { '0%,100%': { opacity: '1' }, '50%': { opacity: '0' } },
+        // Gentle emerald pulse on the live/active step.
+        'pulse-dot': {
+          '0%,100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.55', transform: 'scale(0.82)' },
         },
-        // The live instrument "reading" pulse — a cyan LED.
-        'led-pulse': {
-          '0%, 100%': { opacity: '1', boxShadow: '0 0 0 0 rgba(15,181,201,0.55)' },
-          '50%': { opacity: '0.55', boxShadow: '0 0 0 4px rgba(15,181,201,0)' },
-        },
-        // A single instrument scan sweep behind the active stage row.
-        scan: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
-        },
-        'row-in': {
-          '0%': { opacity: '0', transform: 'translateY(4px)' },
+        'rise-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         'flash-cite': {
-          '0%': { backgroundColor: 'rgba(15, 181, 201, 0.28)' },
+          '0%': { backgroundColor: 'rgba(18,168,119,0.22)' },
           '100%': { backgroundColor: 'transparent' },
+        },
+        sheen: {
+          '0%': { transform: 'translateX(-120%)' },
+          '100%': { transform: 'translateX(120%)' },
         },
       },
       animation: {
         caret: 'caret 1.1s step-end infinite',
-        'led-pulse': 'led-pulse 1.4s ease-in-out infinite',
-        scan: 'scan 1.6s ease-in-out infinite',
-        'row-in': 'row-in 0.28s ease-out both',
+        'pulse-dot': 'pulse-dot 1.5s ease-in-out infinite',
+        'rise-in': 'rise-in 0.4s cubic-bezier(0.2,0.7,0.2,1) both',
         'flash-cite': 'flash-cite 1.4s ease-out',
+        sheen: 'sheen 1.8s ease-in-out infinite',
       },
     },
   },

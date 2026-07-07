@@ -21,25 +21,24 @@ export default function Citations({ citations, onCitationClick }: CitationsProps
       return next;
     });
   };
-
   const allOpen = expanded.size > 0;
 
   return (
     <div className="ml-1 mt-2">
       <button
         onClick={() => setExpanded(allOpen ? new Set() : new Set(citations.map((c) => c.marker)))}
-        className="label-mono text-cobalt-600 hover:underline dark:text-cobalt-300"
+        className="text-xs font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
       >
         {allOpen ? "Hide" : "Show"} sources · {citations.length}
       </button>
-      <div className="mt-1.5 space-y-1">
+      <div className="mt-1.5 space-y-1.5">
         {citations.map((cit) => {
           const section = cit.section_title || cit.section;
           const open = expanded.has(cit.marker);
           return (
             <div
               key={cit.marker}
-              className="rounded-md border border-ink-100 bg-paper-sunken px-2 py-1.5 dark:border-ink-800 dark:bg-paper-dark-sunken"
+              className="rounded-2xl border border-ink-100 bg-paper-sunken px-3 py-2 dark:border-ink-800 dark:bg-paper-dark-sunken"
             >
               <div className="flex items-center gap-2 text-sm">
                 <button
@@ -47,25 +46,23 @@ export default function Citations({ citations, onCitationClick }: CitationsProps
                     toggle(cit.marker);
                     onCitationClick?.(cit.chunk_id);
                   }}
-                  className="flex min-w-0 flex-1 items-center gap-2 text-left font-mono text-[0.72rem]"
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
-                  <span className="font-semibold text-cobalt-600 dark:text-cobalt-300">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-[0.7rem] font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                     {cit.marker.replace(/[[\]]/g, "")}
                   </span>
-                  <span className="truncate font-semibold uppercase tracking-label text-ink-800 dark:text-ink-100">
+                  <span className="truncate font-semibold capitalize text-ink-900 dark:text-ink-100">
                     {cit.source}
                   </span>
                   <span className="text-ink-300 dark:text-ink-600">·</span>
-                  <span className="truncate uppercase tracking-label text-ink-500 dark:text-ink-400">
-                    {section}
-                  </span>
+                  <span className="truncate text-ink-500 dark:text-ink-400">{section}</span>
                 </button>
                 {cit.source_url && (
                   <a
                     href={cit.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="whitespace-nowrap font-mono text-[0.7rem] text-cobalt-600 hover:underline dark:text-cobalt-300"
+                    className="whitespace-nowrap text-xs font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
                     title="View the official FDA label on DailyMed"
                   >
                     FDA label ↗
@@ -73,7 +70,7 @@ export default function Citations({ citations, onCitationClick }: CitationsProps
                 )}
               </div>
               {open && (
-                <div className="mt-1.5 rounded-sm border border-ink-100 bg-paper-raised p-2 font-serif text-sm text-ink-700 dark:border-ink-800 dark:bg-paper-dark-raised dark:text-ink-300">
+                <div className="mt-2 rounded-xl border border-ink-100 bg-paper-raised p-2.5 text-sm leading-relaxed text-ink-700 dark:border-ink-800 dark:bg-paper-dark-raised dark:text-ink-300">
                   {cit.text}
                 </div>
               )}

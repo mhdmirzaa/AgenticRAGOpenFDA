@@ -1,129 +1,116 @@
-# Design system — "Monograph"
+# Design system — "Leaflet" (warm medical hub)
 
 The visual identity for the FDA drug-information assistant. It replaces the earlier
-soft-green "Verdant" health-assistant look with a deliberate, subject-grounded identity:
-**an official drug monograph rendered as a live clinical instrument.** Trustworthy, exact,
-a little scientific — never cutesy.
+clinical cobalt "Monograph" look with a warm, human **medical hub / health
+companion**: fresh emerald green on clean white, editorial-yet-friendly type, soft
+generous shapes. Trustworthy but approachable — the feeling of a polished consumer
+health app, not a sterile clinical tool and not corporate SaaS.
 
-The product is renamed **Formulary** — a real pharmacy term for the curated, authoritative
-drug reference a clinician actually consults. The name states the point of view.
+**Name — Leaflet.** A *patient information leaflet* is the exact real-world artifact
+this product is built on (the printed drug information in every medicine box), and
+"leaf" carries the fresh-green, growing, natural warmth of the identity. It's short,
+human, and on-domain. (Rename in one place: the `BRAND` constant in `page.tsx` —
+the developer can swap it freely.)
 
 ---
 
 ## The subject (what we designed from)
 
-Not "a friendly health chatbot." The real subject is the **pharmacopoeia / drug monograph**:
-official FDA labels, section-by-section reference prose, clinical precision, analytical
-instruments, dosage tables, the ℞ mark. Every choice below is derived from that world.
+Not a clinical instrument this time — a **health companion**. The world is a friendly
+pharmacy/health app: the medicine leaflet, the reassuring green of wellbeing, generous
+white space that lets information breathe, soft rounded cards you want to touch. Warm
+but still exact: every answer is grounded and cited.
 
-**Signature (the one memorable thing):** the right-hand evidence panel is presented as a
-**live clinical-reference instrument** — the agent's reasoning shown as an exact, ordered
-*assay log* (safety → route → scope → search → grade → decide → answer), and the graded
-chunks styled as **monograph citations** (drug + section rendered as a `[DOXYCYCLINE ·
-CONTRAINDICATIONS]` reference tag, with a serious assay verdict). A single cyan "instrument
-live" signal animates only while the agent is reading. Everything else stays quiet.
+**Signature moment (kept, restyled):** the right-hand **live evidence panel** — the
+agent's reasoning shown as a friendly, animated "how we found this" trail (Safety →
+Scope → Search → Grade → Decide), with graded chunks as soft PASS/FILTERED cards and
+the preserved **Scope: <drug>** stage. Paired with a new **hub landing** (a warm
+dashboard home) as the first hero moment.
 
 ---
 
 ## Tokens
 
-### Palette (6 named roles — not soft-green, not the three AI defaults)
+### Palette (6 named roles — emerald + white, NOT blue, NOT the old soft-green)
 
 | Role | Light | Dark | Why this, for THIS subject |
 |---|---|---|---|
-| **paper** (page/surface) | `#E8EDF3` page · `#FFFFFF` card | `#0B131E` page · `#121D2B` card | A cool, clean off-white — reference paper under clinical light. Explicitly **not cream** (cream + serif is AI-default #1). |
-| **ink** (text/structure) | `#14212E` → muted `#48586B` → border `#D3DBE4` | `#E7ECF3` → muted `#93A2B4` → border `#243447` | A deep **navy-slate**, not pure black — the printed ink of an official reference. Authority without harshness. |
-| **cobalt** (accent / interactive) | `#2743C0` · hover `#1E349B` | `#7C93F5` text · `#3A55D6` fill | One confident accent, used with restraint (primary action, links, citation chips, PASS). Reads as **fountain-pen / official-document ink**, deliberately deeper and more ultramarine than generic SaaS blue. |
-| **cyan** (instrument-live signal) | `#0FB5C9` | `#2CD0E4` | The **analytical-instrument readout** color (spectrometer / oscilloscope trace). Appears **only** in the evidence panel and **only while live** — the single bold spark. |
-| **caution** (refusal / insufficient evidence) | text `#9A5B00` · bg `#FBF2DF` | text `#E0B064` · bg `rgba(224,176,100,.12)` | A **serious amber** — the drug-caution triangle / amber prescription bottle. Signals "declined for lack of evidence," never alarm. |
-| **danger** (blocked / FAIL) | `#C6302B` · text `#B3241F` · bg `#FBE9E8` | text `#F0908B` · bg `rgba(198,48,43,.14)` | A **clinical red**, not neon — safety-blocked states and rejected evidence. Serious, legible, non-panic. |
+| **emerald** (hero / actions) | `#12a877` (500) · `#0b8e63` hover · `#e8f8f0` tint | `#2eb582` text · `#12a877` fill | The confident, **fresh saturated emerald** — used with intention on hero moments, primary actions, and accents. Vibrant wellbeing green, deliberately more saturated and self-assured than the old timid mint, and pointedly **not** the overused SaaS cobalt. |
+| **paper** (bg / surface) | `#f4faf6` page · `#ffffff` card · `#eef6f1` sunken | `#0d1512` page · `#141d19` card | Clean **white / mint-white** with lots of breathing room — the calm, airy ground the green pops against. |
+| **ink** (text) | `#161b18` → muted `#657069` → border `#d5ded9` | `#eef3f0` → muted `#94a49b` → border `#26302b` | A **warm green-neutral charcoal**, not cold slate and not pure black — readable and human. |
+| **caution** (refusal / declined) | text `#a86a10` · bg `#fdf3e3` | text `#e6b45c` · bg `rgba(230,180,92,.12)` | A **serious warm amber** — the "not enough evidence" decline. Warm, never alarmist. |
+| **danger** (blocked / FAIL) | `#dc2626` · text `#c01f1f` · bg `#fdecec` | text `#f08d8d` · bg `rgba(220,38,38,.14)` | A **clear, serious red** for safety-blocked states and filtered-out evidence. |
+| **honey** (accent detail) | `#f4b740` | `#f4b740` | A tiny warm secondary used sparingly (streaming spark, small highlights) so the palette feels human, not mono-green. |
 
-Two accents, strictly separated by role: **cobalt = brand/interactive everywhere**;
-**cyan = the live instrument only**. That separation is what makes the panel feel like an
-instrument rather than a themed page.
+### Typography — editorial display + friendly body (not AI-safe geometric)
 
-### Typography — the IBM Plex superfamily (engineered, clinical, not default-system)
+- **Fraunces** — display / headings / the wordmark. A soft, warm **editorial serif** with
+  real "old-style" personality (opsz + soft terminals). It gives the hub a human,
+  characterful voice — the opposite of a safe geometric default.
+- **Plus Jakarta Sans** — body / UI. A friendly, modern, softly-rounded sans that reads as
+  a polished consumer health app; highly legible for dense label text.
+- **DM Mono** — the technical layer (chunk ids, drug/section tags, corpus/metrics). Warm,
+  rounded mono — reads as intentional data, not decoration.
 
-Chosen because Plex is *purpose-built and mechanical* — it reads as scientific reference,
-and pointedly avoids both the generic system-font look and the AI-default high-contrast serif.
+Set with intent: Fraunces at display sizes for warmth, Jakarta for calm reading, mono
+labels in small caps with light tracking.
 
-- **IBM Plex Sans** — UI, headings, wordmark. Precise humanist grotesk with real personality.
-- **IBM Plex Serif** — the **answer prose only**. Long cited clinical text reads like a printed
-  monograph, not a chat bubble. (This is a *body* serif on cool paper — not the cream-background
-  high-contrast display serif of AI-default #1.)
-- **IBM Plex Mono** — the **reference-data layer**: chunk ids, drug/section tags, the stage/assay
-  log, metrics, corpus count. Monospace *is* the texture of reference data; it reads as
-  intentional, not decorative.
+### Shape, radius, motion
 
-Type scale is deliberate: mono labels are **uppercase with +0.06em tracking** (instrument
-labels); the wordmark is Plex Sans 600 with tight tracking; answer prose is Plex Serif at a
-comfortable reading measure.
-
-### Structure, radius, motion
-
-- **Radius:** small and precise — `4 / 6 / 10px` (`--radius-*`). Off the friendly `rounded-2xl`
-  soft look, but not zero-radius (that's AI-default #3, the broadsheet). Precise, not harsh.
-- **Rules over shadows:** the instrument reads through **hairline ink rules and tick marks**,
-  with only faint cool shadows on raised cards.
-- **Motion:** tokenized (`--motion-fast 120ms / --motion 200ms / --motion-slow 380ms`). One
-  orchestrated moment — the cyan "reading" scan on the live panel; a precise per-stage step.
-  Fully disabled under `prefers-reduced-motion` (states stay legible without it).
+- **Radius:** soft and generous — `10 / 14 / 18 / 24px` (`rounded-lg … rounded-3xl`).
+  Friendly, approachable, consumer-app — a clear break from the precise 4–10px clinical
+  radii of the old look.
+- **Shadows:** soft, green-tinted, layered — cards feel liftable, not flat.
+- **Motion:** gentle tokenized transitions; the evidence trail animates step-by-step (a
+  soft emerald pulse while live). Fully disabled under `prefers-reduced-motion`.
 
 ### Layout
 
-Keep the split view (it's genuinely good): **conversation left, instrument right.** The left is
-quiet ink-on-paper reading; the right is the signature instrument. On mobile the panel stacks
-below the conversation and keeps the same instrument identity.
+Two states, one smooth transition:
+1. **Hub landing** (no conversation yet) — a warm dashboard: branded header, a one-line
+   invitation, a hero **ask** bar, soft **stat tiles** (drugs indexed · growing daily ·
+   chunks), friendly **quick-action tiles** (New session / Sync labels / Grow corpus),
+   inviting **example-question cards**, and the warmly-styled disclaimer.
+2. **Split-view workspace** (once asked) — conversation left (streaming, citation chips,
+   history, input), the live **evidence panel** right. The hub folds away into the
+   workspace on the first question.
 
 ```
-┌───────────────────────────────────────────────┬────────────────────────────┐
-│  ℞ FORMULARY            corpus · 2,935 chunks  │  ASSAY ▸ live ●            │  ← instrument header
-│  ───────────────────────────────────────────  │  ────────────────────────  │
-│  ⚕ Informational only — not medical advice     │  01 SAFETY      ✓ clear    │
-│                                                │  02 ROUTE       ✓          │
-│  ┌─ you ────────────────────────────────────┐ │  03 SCOPE  ▸ doxycycline   │  ← Scope stage (preserved)
-│  │ warnings for ibuprofen?                   │ │  04 SEARCH      ✓ 8 found  │
-│  └───────────────────────────────────────────┘ │  05 GRADE       4 / 8      │
-│  ┌─ answer (Plex Serif monograph) ──────────┐  │  ────────────────────────  │
-│  │ Ibuprofen may increase risk of … [1][2]  │  │  MONOGRAPH CITATIONS       │
-│  └───────────────────────────────────────────┘ │  ┌ IBUPROFEN ───── ✓ PASS ┐│
-│                                                │  │ [·WARNINGS]  …text…  ↗  ││
-│  [ Ask about a drug's warnings, dosage … ] Ask │  └────────────────────────┘│
-└───────────────────────────────────────────────┴────────────────────────────┘
+HUB LANDING                                   WORKSPACE (after first question)
+┌───────────────────────────────────┐        ┌──────────────────┬───────────────┐
+│  🌿 Leaflet      health companion  │        │ conversation      │ ● live trail  │
+│  Ask about any FDA-labeled drug —  │        │ ┌ you ──────────┐ │ 01 Safety  ✓  │
+│  see exactly how the answer's found│        │ └───────────────┘ │ 02 Scope ▸ dox│
+│  ┌ ask… ───────────────── [Ask] ┐  │        │ ┌ answer (Frau) ┐ │ 03 Search  ✓  │
+│  └──────────────────────────────┘  │        │ │ …[1][2]       │ │ 04 Grade 4/8  │
+│  ┌ 312 ┐ ┌ daily ┐ ┌ 2,935 ┐      │        │ └───────────────┘ │ ─────────────  │
+│  │drugs│ │ grows │ │chunks │      │        │ [ ask a follow-up]│ ┌ PASS card ┐  │
+│  └─────┘ └───────┘ └───────┘      │        └──────────────────┴───────────────┘
+│  Try: warnings · dosage · interact │
+│  ⚕ Informational only — not advice │
+└───────────────────────────────────┘
 ```
 
 ---
 
 ## Critique vs. the AI-generic defaults (done before building)
 
-Worked through "what would the generic answer be?" and moved off each axis:
+- **Default #1 — cream + high-contrast serif + terracotta:** avoided. Ground is
+  **white/mint** (not cream), accent is **emerald** (not terracotta); the serif is a soft
+  *editorial* Fraunces used warmly, not a high-contrast Didone.
+- **Default #2 — near-black + acid accent:** avoided (light, airy, green-not-acid).
+- **Default #3 — corporate cobalt-blue SaaS:** explicitly rejected — the old Monograph
+  cobalt is fully replaced; **no blue** as the identity color.
+- **The old timid soft-green (`#6dad8b`):** replaced by a **more saturated, confident**
+  emerald (`#12a877`) used deliberately against generous white space.
 
-- **Default #1 — cream + high-contrast serif + terracotta (~#D97757):** avoided. Base is a
-  **cool** clinical off-white (`#E8EDF3`), not cream; the accent is **cobalt ink**, not
-  terracotta; the serif is a **body** face for monograph prose on cool paper, not a warm
-  display serif. No `#D9xxxx` warm-clay anywhere.
-- **Default #2 — near-black + one acid accent:** avoided. Light-first, ink-navy (not black);
-  the accents are a disciplined cobalt + a role-restricted cyan, neither an acid-green/vermilion
-  "hero" color.
-- **Default #3 — broadsheet hairlines + zero radius + dense columns:** partially borrowed the
-  *honesty* of rules (fitting for an instrument) but kept **precise 4–10px radii** (not zero)
-  and generous reading measure (not dense newspaper columns).
-- **The old soft-green health tell (`#6dad8b` sage):** fully removed from tokens, components,
-  and copy. The leaf 🌿 mark and "Verdant" name are gone; the mark is now a precise **℞**
-  logotype.
+**One bold place:** the emerald hero (hub + primary actions + the live trail's pulse).
+Everything else stays calm and white-spaced. **Accessory cut:** dropped the heavy
+per-node trace colors and the mono "instrument" chrome — the warmth comes from type,
+green, and soft cards, not decoration.
 
-**One risk taken (justified):** the evidence panel as a *live instrument* with a cyan assay
-signal and a monospace log — more opinionated than a neutral "sources" list, but it's the
-truest expression of the subject and the thing the product will be remembered by.
+## Roadmap note (out of scope)
 
-**Self-critique accessory cut:** the decorative streaming "pill" cursor and per-node rainbow
-trace colors are dropped in favor of a single precise mono caret and one ink/cobalt trace scale —
-less color noise, more instrument.
-
----
-
-## Roadmap note (out of scope here)
-
-This is the web app (Next.js + TypeScript / React — the primary stack). If a mobile client is
-added later it would be **React Native / Flutter** (the mobile stack); the token values above
-(hex, type roles, radii, motion) are framework-agnostic and would port directly.
+Web app (Next.js + TypeScript). A future mobile client would be React Native / Flutter
+(the developer's mobile stack); these framework-agnostic tokens (hex, type roles, radii)
+port directly.

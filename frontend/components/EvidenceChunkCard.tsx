@@ -6,9 +6,7 @@ import type { EvidenceChunk } from "@/lib/stream";
 interface EvidenceChunkCardProps {
   chunk: EvidenceChunk;
   index: number;
-  /** True when this chunk is the current citation-jump target. */
   highlighted: boolean;
-  /** Increments on each jump request so a repeat click replays the flash/scroll. */
   nonce: number;
 }
 
@@ -31,12 +29,11 @@ export default function EvidenceChunkCard({
     return () => clearTimeout(t);
   }, [highlighted, nonce]);
 
-  // A monograph citation: authoritative reference tag, verdict, source line.
   const edge = highlighted
-    ? "border-cyan-400 ring-1 ring-cyan-400/70"
+    ? "border-emerald-400 ring-2 ring-emerald-300/70"
     : pass
-    ? "border-ink-200 dark:border-ink-700"
-    : "border-ink-100 opacity-60 dark:border-ink-800";
+    ? "border-emerald-100 dark:border-emerald-500/20"
+    : "border-ink-100 opacity-70 dark:border-ink-800";
 
   return (
     <div
@@ -45,34 +42,32 @@ export default function EvidenceChunkCard({
       data-chunk-id={chunk.chunk_id}
       data-grade={chunk.grade}
       data-highlighted={highlighted ? "true" : "false"}
-      style={{ animationDelay: `${Math.min(index, 6) * 45}ms` }}
-      className={`animate-row-in rounded-md border bg-paper-raised p-2.5 transition-colors dark:bg-paper-dark-raised ${
+      style={{ animationDelay: `${Math.min(index, 6) * 55}ms` }}
+      className={`animate-rise-in rounded-2xl border bg-paper-raised p-3 shadow-card transition-colors dark:bg-paper-dark-raised ${
         flash ? "animate-flash-cite" : ""
       } ${edge}`}
     >
-      {/* Reference tag: [DRUG · SECTION] in the mono reference voice. */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 font-mono text-[0.7rem] leading-tight">
-          <span className="font-semibold uppercase tracking-label text-ink-800 dark:text-ink-100">
+        <div className="min-w-0">
+          <div className="truncate text-sm font-semibold capitalize text-ink-900 dark:text-ink-100">
             {chunk.source}
-          </span>
-          <span className="mx-1 text-ink-300 dark:text-ink-600">·</span>
-          <span className="uppercase tracking-label text-ink-500 dark:text-ink-400">
+          </div>
+          <div className="truncate font-mono text-[0.7rem] uppercase tracking-label text-ink-500 dark:text-ink-400">
             {section}
-          </span>
+          </div>
         </div>
         <span
           data-testid="grade-badge"
-          className={`label-mono shrink-0 rounded-sm px-1.5 py-0.5 ${
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-bold ${
             pass
-              ? "bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-200"
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
               : "bg-ink-100 text-ink-500 dark:bg-ink-800 dark:text-ink-400"
           }`}
         >
-          {pass ? "✓ pass" : "✗ filtered"}
+          {pass ? "✓ Kept" : "Filtered"}
         </span>
       </div>
-      <p className="mt-2 line-clamp-4 font-serif text-xs leading-relaxed text-ink-700 dark:text-ink-300">
+      <p className="mt-2 line-clamp-4 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
         {chunk.text}
       </p>
       {chunk.source_url && (
@@ -80,9 +75,9 @@ export default function EvidenceChunkCard({
           href={chunk.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-2 inline-block font-mono text-[0.7rem] text-cobalt-600 hover:underline dark:text-cobalt-300"
+          className="mt-2 inline-block text-xs font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
         >
-          FDA label ↗
+          Open FDA label ↗
         </a>
       )}
     </div>
