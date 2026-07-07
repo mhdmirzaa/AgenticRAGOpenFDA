@@ -17,6 +17,7 @@
 1. [Executive summary](#1-executive-summary)
 1a. [Enhancement pass (v3.1)](#1a-enhancement-pass-v31-2026-07-05)
 1b. [Performance pass (v3.2)](#1b-performance-pass-v32-2026-07-06)
+1c. [Metadata-scoped retrieval pass (2026-07-07)](#1c-metadata-scoped-retrieval-pass-scoped-retrieval-2026-07-07)
 2. [Course parity map](#2-course-parity-map)
 3. [Repository structure](#3-repository-structure)
 4. [Architecture](#4-architecture)
@@ -31,6 +32,7 @@
 13. [Live full-stack verification (2026-07-04)](#13-live-full-stack-verification-2026-07-04)
 13a. [Grow + re-measure verification (2026-07-06)](#13a-grow--re-measure-verification-2026-07-06)
 14. [Metrics (real, reproducible)](#14-metrics-real-reproducible)
+14a. [Metadata-scoped retrieval results (2026-07-07)](#14a-metadata-scoped-retrieval-scoped-retrieval-branch)
 15. [Defects found & fixed during verification](#15-defects-found--fixed-during-verification)
 16. [Assessment Q1 alignment audit](#16-assessment-q1-alignment-audit)
 17. [PRD coverage & the approach settled on](#17-prd-coverage--the-approach-settled-on)
@@ -63,17 +65,20 @@ TypeScript** streaming chat UI with a **live evidence panel**, and a **Telegram 
 a second client — all brought up by one `docker compose up`.
 
 This report was produced by bringing the whole stack up live and exercising every layer
-on **2026-07-04**, then extended on **2026-07-06** in two passes: a **grow + re-measure**
-(corpus grown **~14× to 332 FDA labels / 3,054 chunks**, honest baseline-vs-optimized
-re-measure on an expanded **50-question** golden set — §13a/§14) and a **v3.2 performance
-pass** (batched grading, answer cache, image-baked reranker — §1b). **Five real defects were
-found and fixed** during the original verification (see §15). Final state: **186 backend
-tests pass**, **Playwright e2e is 4/4** against the running UI, the golden-set eval is
-reproduced live on the grown index, and every production layer works. Two honest headlines:
-the grown-corpus re-measure showed the optimized hybrid+rerank path **underperforming**
-dense-only retrieval (reported and root-caused, not tuned away — §14); and the v3.2 pass
-delivered the real wins on **latency** — **5.98× faster grading** and an answer cache that
-makes exact repeats **instant** (§1b, §14).
+on **2026-07-04**, then extended in three passes: a **grow + re-measure** (corpus grown
+**~14× to 332 FDA labels / 3,054 chunks**, honest baseline-vs-optimized re-measure on an
+expanded **50-question** golden set — §13a/§14), a **v3.2 performance pass** (batched grading,
+answer cache, image-baked reranker — §1b), and a **metadata-scoped retrieval pass** (2026-07-07)
+that went back at the retrieval problem §14 root-caused — drug-scoping the candidate set before
+similarity search (§1c/§14a). **Five real defects were found and fixed** during the original
+verification (see §15). Final state: **220 backend tests pass**, **Playwright e2e is 4/4**
+against the running UI, the golden-set eval is reproduced live on the grown index, and every
+production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
+hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
+away — §14); the v3.2 pass delivered the real wins on **latency** — **5.98× faster grading** and
+an answer cache that makes exact repeats **instant** (§1b, §14); and metadata scoping **recovers
+most of the hybrid path's dilution loss** (optimized Hit@1 **0.80 → 0.86**, MRR **0.837 → 0.885**),
+while dense-only still leads raw Hit@1 (0.90) — all measured live, nothing overfit (§1c/§14a).
 
 ---
 
@@ -119,8 +124,8 @@ fabricated.** All latency figures are real, measured live against the grown inde
 | 3 | **Final-answer cache** | Cache the whole answer for an exact-repeat, stateless `(question, mode)`; streaming replays the full SSE event sequence so the UI trace renders identically on a warm hit. History-bearing follow-ups never cached. Redis/memory, short TTL, degrade-safe. | **cold ~14,079 ms → warm <1 ms** | `test_answer_cache.py` (6 tests) incl. a live `/ask-agentic` repeat served from cache |
 | 4 | **Reranker baked into image** | Pre-download `BAAI/bge-reranker-base` at Docker build; `HF_HUB_OFFLINE=1` forces offline loads at runtime. | no cold HF download at demo | verified: reranker loads offline in-container and scores a pair |
 
-**Backend suite: 219 tests pass offline** (168 v3.1/grow baseline + 12 batched-grading + 6
-answer-cache + 33 metadata-scoping — §14a). **Live re-verified (2026-07-06):** Playwright **4/4** against the rebuilt stack,
+**Backend suite: 220 tests pass offline** (168 v3.1/grow baseline + 12 batched-grading + 6
+answer-cache + 34 metadata-scoping — §14a). **Live re-verified (2026-07-06):** Playwright **4/4** against the rebuilt stack,
 and the golden-set eval re-run on the grown index (§14) — the dense-wins finding is unchanged,
 confirming batched grading preserves grading behavior. Frontend `tsc --noEmit` / `next build`
 clean.
@@ -136,6 +141,32 @@ rule explicit. Live rate went **3/6 → 5/5** refusing the fake drug; the old pe
 passed the wrong chunk **6/6**, so batched grading is strictly safer here. Real-drug grading
 is unaffected (the correct chunk's drug *is* the asked drug). Covered by a structural
 regression test; Playwright refusal test is green again.
+
+---
+
+## 1c. Metadata-scoped retrieval pass (scoped-retrieval, 2026-07-07)
+
+The one pass that went **back at the retrieval problem** §14 root-caused, instead of routing
+around it. §14 proved the grow-pass regression was **cross-drug vector-search dilution** — on a
+corpus where every FDA label shares identical section names, the *same section of the wrong
+drug* crowds out the right one. The published fix is **metadata scoping**: restrict the candidate
+set to the relevant drug(s) *before* similarity search. Implemented plan → TDD → verify on the
+`scoped-retrieval` branch; **no prior functionality regressed, no number fabricated.**
+
+| # | Area | What changed | Evidence |
+|---|---|---|---|
+| 1 | **Drug-tagged embeddings (SRAG)** | Each label chunk is embedded from a drug/section-**tagged** copy (`[DRUG: … \| SECTION: …]`) so the vector encodes drug identity even more explicitly, while the **stored/displayed text stays clean**. A normalized `drug_key` keyword field is added (OpenSearch + Chroma) for exact filtering. Non-label chunks embed unchanged (legacy-safe). | `test_scoped_retrieval.py` (tagged-embed/clean-store + `drug_key`) |
+| 2 | **Entity resolution** | One cached `gpt-4.1-mini` step (no new provider): **NAMED** (explicit drug, brand→generic, word-boundary), **CONDITION** (symptom→candidate generics, *constrained to the indexed catalog so it can't invent*), or **NONE**. Any failure → NONE. | `test_scoping.py` (20 tests) |
+| 3 | **Scoped retrieval + safe fallback** | NAMED/CONDITION restrict BM25 + kNN to `drug_key`; scoped kNN is an **exact `script_score` search** (the default OpenSearch engine rejects a filter inside the ANN clause). Rerank within scope. A scoped search returning `< scope_min_results` **auto-retries UNFILTERED** — recall provably ≥ today. Path recorded in the trace. | `test_scoped_retrieval.py` (13 tests): filter plumbing, exact scoped kNN, scoped→unfiltered fallback |
+| 4 | **Surfaced scope** | A `Scope: <drug>` (or `Scope: all`) stage in the evidence-panel timeline + trace (the single frontend change). | scope-stage SSE test (`test_ask.py`) |
+
+**Backend suite: 220 tests pass offline** (+34 vs the v3.2 186). **Live re-measured 2026-07-07**
+on a freshly rebuilt drug-tagged index (four configs, §14a). **The predicted win landed on the
+optimized/hybrid path:** scoping lifts optimized **Hit@1 0.80 → 0.86**, **MRR 0.837 → 0.885**,
+recovering most of the hybrid path's dilution gap and making optimized-scoped the best config on
+citation/refusal/answer/faithfulness. Dense Hit@k is unchanged (already strong; small faithfulness
++ refusal gains), and dense-only still leads raw Hit@1 (0.90) — all reported honestly, no
+overfitting. Full four-config table + interpretation in **§14a**.
 
 ---
 
@@ -290,10 +321,19 @@ validation (`_extract_citations`) drops any `[n]` marker not backed by a graded 
   offline test suite green with zero external services and preserves a revert path.
 - **Rerank:** cross-encoder `BAAI/bge-reranker-base`, degrades to passthrough if the model
   can't load.
+- **Metadata scoping** (`scoping.py`, `ENABLE_SCOPING`): before retrieval, a cached
+  `gpt-4.1-mini` entity resolver maps the question to the drug(s) it's about (NAMED /
+  CONDITION / NONE); NAMED/CONDITION restrict BM25 + kNN to those drugs via a `drug_key`
+  filter (scoped kNN is an exact `script_score` search), removing the same-section wrong-drug
+  hard negatives that dilute a homogeneous corpus. A scoped search returning too few hits
+  **auto-retries unfiltered**, so recall is never worse than unscoped. Chunks are embedded
+  from a drug/section-**tagged** copy so the vector encodes drug identity. Measured live to
+  lift the optimized path (Hit@1 0.80 → 0.86) — see §1c/§14a.
 - **Which mode is actually better?** Both are selectable and measured honestly. On the grown
-  332-label FDA corpus, **dense-only (baseline) beats hybrid+rerank** because every label
-  shares identical section names — see the §14 measurement + root-cause. The hybrid path is
-  kept for heterogeneous corpora where lexical + dense are complementary.
+  FDA corpus, **dense-only (baseline) beats hybrid+rerank** because every label shares
+  identical section names — see the §14 measurement + root-cause. Metadata scoping (§14a)
+  recovers most of the hybrid path's loss but dense-only still leads raw Hit@1; the hybrid
+  path is kept for heterogeneous corpora where lexical + dense are complementary.
 - **Cache** (`cache.py`): **Redis** when `REDIS_URL` is set (shared, survives restarts),
   else in-memory LRU; a Redis outage degrades to memory. Caches query embeddings +
   retrieval results (TTL `cache_ttl_seconds=3600`); stats + active backend on `/health`.
@@ -386,13 +426,13 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**219 backend tests pass** offline
+**220 backend tests pass** offline
 (`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 186 (v3.2),
 168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The grow pass added corpus/eval-guard tests
 (`test_growth`, `test_reconcile`, `test_seed_corpus`, `test_golden_set`,
 `test_openai_embed_guard`); the v3.2 perf pass (§1b) added `test_grade_batch` (11) and
 `test_answer_cache` (6); the scoped-retrieval pass (§14a) added `test_scoping` (20),
-`test_scoped_retrieval` (12), and one scope-stage SSE test. **Playwright e2e: 4/4** against the
+`test_scoped_retrieval` (13), and one scope-stage SSE test. **Playwright e2e: 4/4** against the
 live UI (re-confirmed on the running stack 2026-07-06, §13a/§1b).
 
 | Level | Coverage | Files |
@@ -602,27 +642,56 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -
 OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large python -m eval.run --mode optimized --scoped       # optimized-scoped
 ```
 
-| Config | Hit@1 | Hit@3 | Hit@5 | MRR | Citation | Refusal | Faithfulness |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| dense · unscoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| dense · scoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| optimized · unscoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| optimized · scoped | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+**Real results — live re-measure, 2026-07-07.** Four configs on the 50-Q golden set against a
+freshly-rebuilt drug-tagged index (**312 labels / 2,935 chunks**, seed-only so all four configs
+share the exact same corpus; real `gpt-4.1-mini` + `text-embedding-3-large` + OpenSearch). In
+both scoped runs, **31 of 50** questions actually took the scoped path (25 NAMED + 6 CONDITION),
+16 resolved to NONE (unfiltered, unchanged), 3 were refusals.
 
-> **Status — numbers pending a live re-measure (NOT fabricated).** The four-config eval
-> requires the grown **332-label OpenSearch index rebuilt** with the new drug tags + `drug_key`
-> (the tag and key are written at index time, so the pre-scoping Chroma/OpenSearch index cannot
-> be reused). That rebuild (openFDA fetch + re-embedding 3,054 chunks via `text-embedding-3-large`)
-> plus a live OpenSearch cluster were not available in the implementation environment, so per the
-> project's own honesty rule **no numbers are entered above** — the cells are filled only by an
-> actual run of the four commands, which decides success. Expected shape:
-> **optimized-scoped ≥ dense** (the real win) and **dense-scoped ≥ dense-unscoped** (modest);
-> if a slice doesn't improve, report and diagnose it — no golden-set overfitting.
+> **Compare rows within this table, not against §14.** This index is seed-only (312 labels), so
+> it carries **less growth-noise dilution** than §14's 332-label grown corpus — which is why
+> dense-unscoped here reads Hit@1 0.90 vs §14's 0.80. The four configs are all measured on this
+> one index, so their *relative* deltas (the scoping effect) are valid; the absolute numbers are
+> not directly comparable to §14. A future run can rebuild the full 332-label grown index (seed +
+> growth batches) and re-measure all four for cross-comparability.
 
-The implementation is fully covered by **32 new offline tests** (entity resolution incl.
+| Config | Hit@1 | Hit@3 | Hit@5 | MRR | Citation | Refusal | Answer | Faithfulness |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| dense · unscoped | **0.90** | 0.92 | 0.92 | **0.910** | 0.90 | 0.98 | 0.90 | 0.955 |
+| dense · scoped | **0.90** | 0.92 | 0.92 | 0.907 | 0.90 | **1.00** | 0.92 | **0.978** |
+| optimized · unscoped | 0.80 | 0.88 | 0.88 | 0.837 | 0.85 | 0.94 | 0.92 | 0.976 |
+| optimized · scoped | 0.86 | 0.90 | **0.92** | 0.885 | **0.91** | **1.00** | **0.96** | **0.978** |
+
+**The predicted win landed where predicted — on the optimized/hybrid path.** Scoping lifts
+optimized **Hit@1 0.80 → 0.86 (+0.06)**, **Hit@3 0.88 → 0.90**, **Hit@5 0.88 → 0.92**,
+**MRR 0.837 → 0.885 (+0.048)**, citation 0.85 → 0.91, refusal 0.94 → 1.00, answer-match
+0.92 → 0.96 — recovering ~60% of the hybrid path's dilution gap to dense and making
+optimized-scoped **the best config on citation, refusal, answer-match, and faithfulness**, tied
+with dense on Hit@5. This is exactly the mechanism §14 root-caused: the scoped `drug_key` filter
+removes the same-section wrong-drug hard negatives that BM25 fusion was pulling into the pool
+(live proof: a scoped *"warnings for ibuprofen"* returns only IBUPROFEN's 4 chunks; unscoped
+returns a 6-drug NSAID mix — ASPIRIN, INDOMETHACIN, NABUMETONE, NAPROXEN, SULINDAC).
+
+**Honest limits — reported, not tuned away.** (1) **Optimized-scoped (Hit@1 0.86) still trails
+dense-only (0.90)** — scoping closes most of the gap (−0.10 → −0.04) but the general-domain
+cross-encoder still mis-ranks top-1 within a few scoped sets, so it does not fully overtake
+dense on Hit@1. It *does* pass dense on Hit@5/citation/refusal/answer/faithfulness. (2)
+**Scoping does not raise the dense baseline's Hit@k** (0.90 → 0.90) — precisely the pre-stated
+expectation: 3-large already encodes drug identity, so dense had little cross-drug confusion to
+remove. Its measurable dense gains are **faithfulness 0.955 → 0.978** and **refusal 0.98 → 1.00**
+(scoping keeps a wrong-drug chunk out of the graded set on the hardest cases). **Net:** dense-only
+remains the single best retriever for raw Hit@1 on this corpus, and metadata scoping is a real,
+defensible fix for the *optimization-underperforms* story — it makes the hybrid path competitive
+and gives dense a small grounding lift — without any golden-set-overfitting tuning.
+
+Raw results: `eval/scoped_eval_2026-07-07/{dense_unscoped,dense_scoped,optimized_unscoped,optimized_scoped}.json`
+(kept separate from §14's `last_run_*.json` so the 332-corpus record stays intact).
+
+The implementation is covered by **34 new offline tests** (entity resolution incl.
 brand→generic and word-boundary; CONDITION constrained to the catalog + degrade-safe; the
-OpenSearch `terms` filter plumbing; the scoped→unfiltered fallback; tagged-embed/clean-store
-indexing) — see §12. Toggle the whole feature with `ENABLE_SCOPING=0`.
+OpenSearch drug filter incl. the exact-`script_score` scoped kNN; the scoped→unfiltered
+fallback; tagged-embed/clean-store indexing; the scope SSE stage) — see §12. Toggle the whole
+feature with `ENABLE_SCOPING=0`.
 
 ---
 
@@ -888,7 +957,7 @@ course repo. These are decisions about *how the system is put together*:
   our approach keeps the model a configuration detail.
 - **Offline-deterministic test approach.** The suite runs with **no API key**: a `FakeProvider`
   (real local MiniLM embeddings + rule-based LLM replies keyed on prompt phrases) drives the
-  real graph against a temp store, so all 219 tests are deterministic and CI-friendly,
+  real graph against a temp store, so all 220 tests are deterministic and CI-friendly,
   complemented by live e2e (Playwright) against the running stack.
 - **Config approach: one Pydantic-settings source, bare `.env`.** A single `Settings` object
   loads config regardless of CWD; values are kept comment-free after we learned docker's
@@ -926,7 +995,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 219 backend tests + 4 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 220 backend tests + 4 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -966,7 +1035,7 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large \
   python -m eval.run --mode optimized
 
 # 5. tests
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 219 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q          # 220 passed
 cd frontend && npx tsc --noEmit && npm run build                               # clean
 PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test                  # 4/4 (stack must be up)
 ```

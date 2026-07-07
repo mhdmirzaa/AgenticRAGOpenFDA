@@ -146,6 +146,12 @@ BM25 fusion and a general-domain cross-encoder both pull the *wrong drug's* same
 section into the top ranks, which strong dense embeddings avoid. Root-caused with a
 retrieval-only diagnostic and reported honestly — not tuned away (see `docs/metrics.md`).
 
+**Metadata-scoped retrieval (2026-07-07):** the follow-up fix for that dilution — resolve the
+drug(s) a question is about (cached `gpt-4.1-mini`) and restrict retrieval to them before the
+similarity search. Live four-config re-measure lifts the **optimized/hybrid** path Hit@1
+**0.80 → 0.86**, MRR **0.837 → 0.885** (dense already resolves drug identity, so its Hit@k is
+unchanged). Toggle with `ENABLE_SCOPING`; four configs via `--scoped/--no-scoping` (see §14a).
+
 ## Performance (v3.2)
 
 The real wins are on latency, all measured live: **batched grading** (one LLM call grades all
@@ -157,7 +163,7 @@ into the Docker image** (loaded offline) so optimized mode never cold-starts a d
 ## Tests
 
 ```bash
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 219 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 220 passed
 ```
 
 ## Adapted from the production course / what was skipped
