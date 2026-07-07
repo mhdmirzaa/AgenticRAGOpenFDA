@@ -1,36 +1,49 @@
-# Production hardening overlay (security-hardening item 7/9).
+# Production hardening overlay (production/security-hardening).
 #
 #   docker compose -f docker-compose.yml -f docker-compose.redis.yml \
 #                  -f docker-compose.prod.yml up --build -d
 #
-# Turns on auth + rate limiting + HSTS, keeps the datastores OFF the network
-# (no published ports — reachable only over the internal compose network), sets
-# a Redis password, and adds restart policies. Terminate TLS at a reverse proxy
-# in front of `frontend`/`backend` (see docs/SECURITY.md).
+# Turns on auth + rate limiting + HSTS + JSON logs, keeps datastores OFF the
+# network (no published ports), sets a Redis password, and adds a healthcheck +
+# resource limits + restart policy to every service. Terminate TLS at a reverse
+# proxy in front of `frontend`/`backend` (see docs/DEPLOYMENT.md).
 #
 # Required env (from a secrets manager, NEVER committed):
 #   API_KEYS, BACKEND_API_KEY, OPENAI_API_KEY, REDIS_PASSWORD, CORS_ORIGINS
 
 services:
   postgres:
-    # Drop the host port binding entirely: internal network only.
-    ports: !reset []
+    ports: !reset []            # internal network only
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits: { memory: 1g, cpus: "1.0" }
 
   opensearch:
     ports: !reset []
+    restart: unless-stopped
     environment:
-      # Keep the security plugin considerations in mind for a real deployment;
-      # at minimum do not expose 9200 and put it behind the internal network.
       - discovery.type=single-node
       - plugins.security.disabled=true
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - DISABLE_INSTALL_DEMO_CONFIG=true
+    deploy:
+      resources:
+        limits: { memory: 2g, cpus: "1.5" }
 
   redis:
-    # Requires the redis overlay; enforce a password in prod.
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
     ports: !reset []
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits: { memory: 256m, cpus: "0.5" }
 
   backend:
     restart: unless-stopped
@@ -38,12 +51,36 @@ services:
       AUTH_ENABLED: "1"
       RATE_LIMIT_ENABLED: "1"
       HSTS_ENABLED: "1"
+      JSON_LOGS: "1"
       API_KEYS: ${API_KEYS:?set API_KEYS}
       CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
       REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379/0
+    # Liveness/readiness (also baked into the image); Compose waits on it.
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=4).status==200 else 1)\""]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    deploy:
+      resources:
+        limits: { memory: 2g, cpus: "2.0" }
 
   frontend:
     restart: unless-stopped
+    environment:
+      # For a private deploy, prefer a server-route proxy over a public key.
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_API_KEY: ${PUBLIC_API_KEY:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    deploy:
+      resources:
+        limits: { memory: 512m, cpus: "0.5" }
 
   telegram-bot:
     restart: unless-stopped
@@ -52,3 +89,6 @@ services:
       BACKEND_API_KEY: ${BACKEND_API_KEY:-}
       TELEGRAM__BOT_TOKEN: ${TELEGRAM__BOT_TOKEN:-}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+    deploy:
+      resources:
+        limits: { memory: 512m, cpus: "0.5" }

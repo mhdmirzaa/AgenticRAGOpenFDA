@@ -31,6 +31,9 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Emit a self-contained server bundle for a slim multi-stage production image
+  // (only the traced runtime deps ship — see frontend/Dockerfile + DEPLOYMENT.md).
+  output: "standalone",
   poweredByHeader: false, // don't advertise the framework/version
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
