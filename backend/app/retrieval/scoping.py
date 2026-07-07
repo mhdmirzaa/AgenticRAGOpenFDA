@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -235,12 +236,17 @@ async def resolve_scope(
 async def resolve_scope_cached(question: str, catalog: DrugCatalog) -> Scope:
     """resolve_scope memoized by normalized question (shares the cache backend).
 
-    A repeated question skips the entity-resolution LLM call entirely. Any cache
+    A repeated question skips the entity-resolution LLM call entirely. The cache
+    key includes the current catalog VERSION, so a scope resolved against an older
+    catalog is never reused after the corpus grows (dynamic-catalog): an ingest
+    bumps the version and orphans the old entries. Entries also expire on the
+    catalog TTL, so growth is picked up even without an explicit bust. Any cache
     error just recomputes — the cache never breaks resolution.
     """
     from app.retrieval.cache import get_backend, _normalize
+    from app.config import get_settings
 
-    key = f"scope:{_normalize(question)}"
+    key = f"scope:v{_catalog_version}:{_normalize(question)}"
     backend = get_backend()
     try:
         raw = backend.get(key)
@@ -254,27 +260,45 @@ async def resolve_scope_cached(question: str, catalog: DrugCatalog) -> Scope:
 
     scope = await resolve_scope(question, catalog)
     try:
-        from app.config import get_settings
+        # Bound the scope cache to the catalog TTL so a stale scope can't outlive
+        # the catalog window (a resolved scope must not be fresher-lived than the
+        # catalog it was computed from).
         backend.set(key, json.dumps(scope.to_dict()),
-                    get_settings().cache_ttl_seconds)
+                    get_settings().drug_catalog_ttl_seconds)
     except Exception as e:
         logger.warning("scope cache store skipped: %s", e)
     return scope
 
 
 _catalog: DrugCatalog | None = None
+_catalog_fetched_at: float = 0.0
+_catalog_version: int = 0
+
+
+def catalog_version() -> int:
+    """Monotonic version, bumped whenever the catalog is invalidated (on ingest).
+    Used to key the scope cache so growth invalidates stale scope results."""
+    return _catalog_version
 
 
 def get_drug_catalog(*, refresh: bool = False) -> DrugCatalog:
-    """Load the indexed-drug catalog (best-effort, cached in-process).
+    """Load the indexed-drug catalog from the LIVE store, cached with a short TTL.
 
-    Sourced from the Postgres/SQLite `drug_labels` table (the DB is the record of
-    what has been indexed). Any failure yields an empty catalog -> scoping simply
-    no-ops (NONE for everything), never crashing retrieval.
+    Sourced from the Postgres/SQLite `drug_labels` table (the ingestion source of
+    truth for what is indexed) — never a hardcoded list, never frozen at startup.
+    The in-process copy auto-refreshes once older than `drug_catalog_ttl_seconds`,
+    so drugs added by the daily growth job become scopable within the TTL. Any
+    failure yields an empty catalog -> scoping no-ops (NONE), never crashing
+    retrieval (degrade-safe).
     """
-    global _catalog
-    if _catalog is not None and not refresh:
+    global _catalog, _catalog_fetched_at
+    from app.config import get_settings
+
+    ttl = get_settings().drug_catalog_ttl_seconds
+    age = time.monotonic() - _catalog_fetched_at
+    if _catalog is not None and not refresh and age < ttl:
         return _catalog
+
     catalog = DrugCatalog()
     try:
         from app.db import get_indexed_drug_names
@@ -291,10 +315,17 @@ def get_drug_catalog(*, refresh: bool = False) -> DrugCatalog:
     except Exception as e:
         logger.warning("drug catalog load skipped: %s", e)
     _catalog = catalog
+    _catalog_fetched_at = time.monotonic()
     return catalog
 
 
 def reset_drug_catalog() -> None:
-    """Drop the in-process catalog cache (tests / after re-ingest)."""
-    global _catalog
+    """Invalidate the in-process catalog (tests / after an ingest adds drugs).
+
+    Drops the cached copy AND bumps the version, so the next resolution refetches
+    the live catalog and any scope results cached against the old catalog are
+    orphaned — new drugs are scopable immediately, not just after the TTL.
+    """
+    global _catalog, _catalog_version
     _catalog = None
+    _catalog_version += 1

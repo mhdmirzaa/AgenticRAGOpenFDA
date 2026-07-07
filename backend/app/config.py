@@ -122,6 +122,10 @@ class Settings(BaseSettings):
     # If a scoped search returns fewer than this many candidates, retry UNFILTERED
     # (a drug barely represented in the index must never starve retrieval).
     scope_min_results: int = 3
+    # The entity resolver's drug catalog is read from the LIVE drug_labels store
+    # and cached in-process for this TTL, so drugs ingested by the daily growth
+    # job become scopable within the window without a restart (dynamic-catalog).
+    drug_catalog_ttl_seconds: int = 600
 
     # Retrieval params
     top_k: int = 8

@@ -28,6 +28,16 @@ logger = logging.getLogger(__name__)
 
 OPENFDA_ENDPOINT = "https://api.fda.gov/drug/label.json"
 
+
+def _bust_catalog_cache() -> None:
+    """Invalidate the entity-resolver's drug catalog after new drugs are indexed,
+    so CONDITION scoping sees them immediately (dynamic-catalog). Best-effort."""
+    try:
+        from app.retrieval.scoping import reset_drug_catalog
+        reset_drug_catalog()
+    except Exception:  # noqa: BLE001 - cache bust must never break ingestion
+        pass
+
 # Prose label sections worth retrieving, in a sensible citation display order.
 # These are the fields with real narrative text (not codes/tables).
 LABEL_SECTIONS: list[str] = [
@@ -448,6 +458,8 @@ async def run_fda_growth(*, batch_size: int | None = None) -> dict:
     except Exception as e:
         logger.warning("growth state persist skipped: %s", e)
 
+    if fresh:
+        _bust_catalog_cache()  # new drugs -> scopable immediately
     stats["skip_next"] = skip_next
     stats["watermark"] = max_effective
     return stats
@@ -509,4 +521,6 @@ async def run_fda_ingestion(
         except Exception as e:  # persistence optional
             logger.warning("DB label record skipped: %s", e)
 
+    if fresh:
+        _bust_catalog_cache()  # new drugs -> scopable immediately
     return stats
