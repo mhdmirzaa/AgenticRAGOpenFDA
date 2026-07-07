@@ -102,6 +102,29 @@ app = FastAPI(
 
 
 @app.middleware("http")
+async def security_headers(request, call_next):
+    """Attach hardening headers to every API response (security item 4).
+
+    The API returns JSON/SSE only, so a locked-down CSP (`default-src 'none'`) is
+    safe here and blunts any content-sniffing / clickjacking / referrer leakage.
+    HSTS is added only in the prod (TLS) profile via HSTS_ENABLED.
+    """
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+    )
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    if get_settings().hsts_enabled:
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+    return response
+
+
+@app.middleware("http")
 async def limit_request_body(request, call_next):
     """Reject oversized request bodies early (security item 3 — DoS/abuse).
 

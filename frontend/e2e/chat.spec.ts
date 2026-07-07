@@ -96,3 +96,28 @@ test("an unindexed drug surfaces the unanswerable refusal state", async ({ page 
     timeout: 60_000,
   });
 });
+
+test("untrusted content renders inert — no XSS execution (security item 4)", async ({ page }) => {
+  // Fail the test if any script actually executes.
+  let dialogFired = false;
+  page.on("dialog", async (d) => {
+    dialogFired = true;
+    await d.dismiss();
+  });
+
+  const payload =
+    '<img src=x onerror="window.__xss=1"><script>window.__xss=1</script> ok';
+  await ask(page, payload);
+
+  const userMsg = page.getByTestId("user-message").last();
+  await expect(userMsg).toBeVisible();
+  // The payload is shown as literal TEXT, not parsed into elements.
+  await expect(userMsg).toContainText("<img src=x");
+  const parsedIntoElements = await userMsg.evaluate(
+    (el) => el.querySelector("img, script") !== null
+  );
+  expect(parsedIntoElements).toBe(false);
+  // Nothing executed.
+  expect(dialogFired).toBe(false);
+  expect(await page.evaluate(() => (window as any).__xss)).toBeFalsy();
+});
