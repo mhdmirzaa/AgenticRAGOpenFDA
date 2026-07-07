@@ -88,7 +88,7 @@ behaviors** — a guardrail that over-blocked general "what treats X" questions 
 over-refusal when relevant chunks passed (§14a, re-measured: faithfulness ≥0.95, refusal
 unchanged).
 **Five real defects were found and fixed** during the original verification (see §15). Final
-state: **263 backend tests pass** (43 of them new security/observability/scoping/calibration tests), **Playwright e2e
+state: **271 backend tests pass** (51 of them new security/observability/scoping/calibration/telegram tests), **Playwright e2e
 is 6/6** against the running UI, the golden-set eval is reproduced live on the grown index, and
 every production layer works. Three honest headlines: the grown-corpus re-measure showed the optimized
 hybrid+rerank path **underperforming** dense-only retrieval (reported and root-caused, not tuned
@@ -473,6 +473,42 @@ disclaimer. Async + graceful failure on backend error. Configured via `TELEGRAM_
 (verified live: container exit code 0), leaving the rest of the stack unaffected. No RAG
 logic lives in the bot — proving the backend is client-agnostic.
 
+**Live-verified + hardened (telegram-verify, 2026-07-07).** With a real token in `.env`, the
+`telegram-bot` container **starts and connects** — the log shows continuous
+`getUpdates → 200 OK` long-polling (single instance, no double-poll). Because every message
+is relayed through `/ask-agentic`, the bot goes through the **full agentic pipeline including
+the guardrail and the recent calibration fixes**, and it **cannot bypass** the guardrail or
+rate limiting: a self-harm question returns the caring refusal, misuse a neutral decline, an
+unindexed drug the clean "not in the labels" refusal — exactly the web path. Hardening this
+pass:
+- **4096-char safety** — long label answers are split into multiple Telegram messages on line
+  boundaries (`split_message`), preserving inline `[n]` citations + the Sources block; a giant
+  single line is hard-split. No more "message too long" errors.
+- **Plain-text answers** — arbitrary FDA-label content + citation markers are sent as plain
+  text (not Markdown), so nothing can break Telegram's parser or inject formatting; `/start`
+  and `/help` keep intentional Markdown.
+- **Basic anti-hammer** — a per-chat in-flight guard serializes one question at a time and
+  replies "one moment" instead of piling requests on the backend; presents the backend
+  `X-API-Key` so it doesn't bypass auth/rate-limiting.
+- **No secret in logs** — silenced the httpx INFO logger that was printing the token inside
+  the `getUpdates` URL.
+
+Covered by **12 offline tests** (`test_telegram.py`): answer + sources + disclaimer, guardrail
+refusal relayed (not bypassed), backend-error fallback, message splitting (incl. hard-split),
+the in-flight guard, and `/start` / `/help` text.
+
+**Manual verification (needs the live bot — the human runs these):**
+1. Open Telegram, find your bot (its @username from BotFather), send `/start` → welcome +
+   disclaimer.
+2. Send *"what are the warnings for ibuprofen?"* → a cited answer + Sources + disclaimer.
+3. Send a self-harm question → the **caring** refusal (proves the guardrail applies over
+   Telegram).
+4. Send *"what is the dosage for pembrolizumab?"* → the clean unanswerable refusal.
+
+*(The running `telegram-bot`/`backend` containers are the pre-hardening images; rebuild with
+`docker compose up -d --build backend telegram-bot` to run this pass's code + the calibration
+fixes.)*
+
 ---
 
 ## 10. Persistence, memory & observability
@@ -506,7 +542,7 @@ off, no errors.
 
 ## 12. Test strategy & results
 
-**263 backend tests pass** offline
+**271 backend tests pass** offline
 (`cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q`) — up from 220
 (scoped-retrieval), 186 (v3.2), 168 (grow pass), 150 (v3.1), 124 (v3.0), 99 (v2.0). The
 scoped-retrieval pass added `test_scoping` (20) + `test_scoped_retrieval` (13) + a scope-stage
@@ -1127,7 +1163,7 @@ to the FDA drug-information domain.
   memory/DB fail-soft — a subsystem outage never breaks a chat.
 - **Correct data architecture:** single writer for the stores; read-only Airflow worker with
   lazy imports; idempotent, watermark-driven growth.
-- **Well-tested:** 263 backend tests + 6 Playwright e2e, run offline/deterministically and
+- **Well-tested:** 271 backend tests + 6 Playwright e2e, run offline/deterministically and
   against the live stack.
 
 ## 20. Cons / limitations & mitigations
@@ -1304,5 +1340,5 @@ Native / Flutter) must proxy auth through a token exchange — never embed the A
 *Report produced 2026-07-04 after a full live `docker compose` verification of the v3.0
 course-matched stack, including the five fixes in §15; extended through the v3.1/v3.2/
 scoped-retrieval/UI-redesign/security-hardening/production-hardening passes (§1a–§1f), plus a
-dynamic-catalog + refusal-calibration follow-ups (§14a). Current state: **263 backend tests
+dynamic-catalog + refusal-calibration follow-ups (§14a). Current state: **271 backend tests
 pass**, Playwright e2e 6/6, metrics reproduced live against OpenSearch + text-embedding-3-large.*

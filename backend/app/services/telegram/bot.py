@@ -29,6 +29,9 @@ def get_token() -> str:
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO)
+    # python-telegram-bot's httpx client logs the full getUpdates URL at INFO,
+    # which embeds the bot token — silence it so the secret never hits the logs.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     token = get_token()
     if not token:
         logger.warning(
