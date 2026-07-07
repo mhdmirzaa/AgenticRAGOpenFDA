@@ -97,6 +97,10 @@ def test_followup_accumulates_history(client):
 
 
 def test_messages_for_unknown_session_empty(client):
-    r = client.get("/sessions/nope-not-real/messages")
+    # A WELL-FORMED but unknown id returns an empty history (auth off = no owner
+    # enforcement). A MALFORMED id is rejected up front (security item 2/3).
+    import uuid
+    r = client.get(f"/sessions/{uuid.uuid4().hex}/messages")
     assert r.status_code == 200
     assert r.json()["messages"] == []
+    assert client.get("/sessions/nope-not-real/messages").status_code == 404

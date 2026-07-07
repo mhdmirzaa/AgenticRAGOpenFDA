@@ -140,11 +140,17 @@ def _initial_state(question: str, use_hybrid: bool,
 
 
 def _persist_trace(state: RagState) -> None:
-    """Store the trace so GET /api/trace/{id} can serve it."""
+    """Store the trace so GET /trace/{id} can serve it, bound to the caller.
+
+    The caller id comes from a contextvar set by the security gate for the
+    current request (default "anon" for eval / offline runs), so a trace is
+    readable only by the caller who produced it when AUTH_ENABLED.
+    """
     from app.api.trace import store_trace
+    from app.security import current_caller
     trace_id = state.get("trace_id", "")
     if trace_id:
-        store_trace(trace_id, state.get("trace", []))
+        store_trace(trace_id, state.get("trace", []), owner=current_caller.get())
 
 
 async def run_agent(question: str, use_hybrid: bool = False,

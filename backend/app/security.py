@@ -19,6 +19,7 @@ from __future__ import annotations
 import contextvars
 import hashlib
 import logging
+import re
 import time
 
 from fastapi import HTTPException, Request
@@ -26,6 +27,19 @@ from fastapi import HTTPException, Request
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+# Strict resource-id shape: a uuid4 hex (session_id) or a dashed UUID (trace_id).
+# Reject anything else BEFORE a store lookup — blocks enumeration/injection via
+# path params (security item 2/3).
+_ID_RE = re.compile(
+    r"\A[0-9a-fA-F]{32}\Z"
+    r"|\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\Z"
+)
+
+
+def is_valid_id(value: str) -> bool:
+    """True iff `value` is a uuid4 hex or a canonical UUID string."""
+    return bool(value) and bool(_ID_RE.match(value))
 
 # The authenticated caller for the current request ("anon" when auth is off).
 # ContextVars propagate into the request's async tasks, so the agent's trace

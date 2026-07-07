@@ -70,6 +70,9 @@ class ChatSession(Base):
     __tablename__ = "sessions"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # Owner = the api-key caller id that created the session (security item 2).
+    # "anon" when auth is off (no ownership enforced in dev).
+    owner: Mapped[str] = mapped_column(String(64), default="anon", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
     messages: Mapped[list["Message"]] = relationship(
@@ -120,8 +123,29 @@ def _session() -> Session:
 
 
 def init_db() -> None:
-    """Create tables if they don't exist."""
-    Base.metadata.create_all(get_engine())
+    """Create tables if they don't exist, and apply tiny additive migrations."""
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+    _ensure_owner_column(engine)
+
+
+def _ensure_owner_column(engine) -> None:
+    """Add sessions.owner to a pre-existing DB (best-effort, additive).
+
+    create_all never ALTERs an existing table, so a DB created before the
+    security pass would lack `owner`. Add it if missing; ignore if present or if
+    the backend doesn't support the introspection (degrade, never crash startup).
+    """
+    from sqlalchemy import inspect, text
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("sessions")}
+        if "owner" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text(
+                    "ALTER TABLE sessions ADD COLUMN owner VARCHAR(64) DEFAULT 'anon'"
+                ))
+    except Exception:  # noqa: BLE001 - migration is best-effort
+        pass
 
 
 def reset_engine() -> None:
@@ -202,14 +226,25 @@ def set_kv(key: str, value: str) -> None:
 
 
 # ---------------------------------------------------------------- chat helpers
-def create_session(session_id: str | None = None) -> str:
-    """Create a chat session and return its id."""
+def create_session(session_id: str | None = None, owner: str = "anon") -> str:
+    """Create a chat session (bound to `owner`) and return its id.
+
+    The id is a 128-bit random UUID (uuid4) — unguessable, never sequential
+    (security item 2, IDOR defense).
+    """
     sid = session_id or uuid.uuid4().hex
     with _session() as s:
         if s.get(ChatSession, sid) is None:
-            s.add(ChatSession(id=sid))
+            s.add(ChatSession(id=sid, owner=owner or "anon"))
             s.commit()
     return sid
+
+
+def get_session_owner(session_id: str) -> str | None:
+    """Owner id of a session, or None if the session doesn't exist."""
+    with _session() as s:
+        row = s.get(ChatSession, session_id)
+        return row.owner if row is not None else None
 
 
 def add_message(
