@@ -42,6 +42,25 @@ dashboard home) as the first hero moment.
 | **danger** (blocked / FAIL) | `#dc2626` · text `#c01f1f` · bg `#fdecec` | text `#f08d8d` · bg `rgba(220,38,38,.14)` | A **clear, serious red** for safety-blocked states and filtered-out evidence. |
 | **honey** (accent detail) | `#f4b740` | `#f4b740` | A tiny warm secondary used sparingly (streaming spark, small highlights) so the palette feels human, not mono-green. |
 
+### Theme — light is the DEFAULT, dark is a toggle (ui-theme-toggle)
+
+Both themes are the **same identity** (emerald, editorial type, soft shapes) — only the
+surface / background / text tokens flip. The table above IS the two token sets: the **Light**
+column is the base (default) set, the **Dark** column is applied under `class="dark"`.
+
+- **Light (default):** emerald on clean white / mint-white, deep ink text, soft shadows,
+  generous white space so the green breathes. **AA contrast:** body/label greys use `ink-500`
+  (~5:1) and `ink-600` (~7:1) on white — the earlier dark-tuned `ink-400` labels (which fail AA
+  on white) were bumped so light reads crisp.
+- **Dark (toggle):** the polished near-black + emerald look, unchanged.
+- **Mechanism:** Tailwind `darkMode: 'class'` + **`next-themes`** (`app/providers.tsx`),
+  `attribute="class"`, `defaultTheme="light"`, `enableSystem={false}` — so a **fresh load is
+  deterministically light** (system preference is not auto-applied). The header **ThemeToggle**
+  (sun/moon) flips `class="dark"` on `<html>`, the choice **persists** (localStorage), and
+  next-themes' blocking script + `suppressHydrationWarning` prevent any flash-of-wrong-theme.
+  Every color derives from tokens (no per-component hardcoding), so both themes stay consistent
+  across the hub, workspace, evidence panel, badges, and safety/refusal states.
+
 ### Typography — editorial display + friendly body (not AI-safe geometric)
 
 - **Fraunces** — display / headings / the wordmark. A soft, warm **editorial serif** with

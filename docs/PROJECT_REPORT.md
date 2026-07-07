@@ -1265,6 +1265,25 @@ mark — not a friendly chatbot. Full token system + rationale in **`docs/DESIGN
 - **Mobile roadmap:** none built here (web app). A future client would be React Native /
   Flutter and reuse these framework-agnostic tokens.
 
+### Superseded → "Leaflet" warm medical hub (ui-medical-hub) + light/dark theme (ui-theme-toggle)
+
+Per the developer's own taste, the clinical cobalt "Monograph" look was then redesigned into a
+warmer identity — **"Leaflet"**, a friendly **medical hub / health companion**: a confident
+**emerald/mint on clean white** palette (no blue), **editorial-yet-friendly type** (Fraunces
+display + Plus Jakarta Sans body + DM Mono), soft generous rounding, and a new **hub-landing
+dashboard** (branded header, stat tiles, quick-action tiles, example cards, hero ask bar) that
+folds into the split-view **workspace** on the first question. The signature evidence panel is
+kept as a friendly "How we found this" trail (emerald pulse, the preserved **Scope** stage,
+soft Kept/Filtered cards). Rationale + token set in **`docs/DESIGN.md`**.
+
+**Light theme is the default, with a dark toggle (ui-theme-toggle).** Both themes are one
+identity — only surface/background/text tokens flip. Driven entirely by tokens (Tailwind
+`darkMode: 'class'`) + **`next-themes`** (`defaultTheme="light"`, `enableSystem={false}`) so a
+fresh load is deterministically **light** (emerald-on-white, crisp **WCAG-AA** text — the
+dark-tuned grey labels were bumped to pass on white); a header **sun/moon toggle** flips to the
+polished near-black dark look and **persists** the choice, with next-themes' blocking script
+preventing any flash-of-wrong-theme. All `data-testid`s preserved; `tsc` + `next build` clean.
+
 ---
 
 ## 24. Security posture (security-hardening)

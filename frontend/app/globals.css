@@ -6,7 +6,7 @@
    scales; these vars are for raw CSS (gradients, utilities) Tailwind can't
    express cleanly. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --emerald: #12a877;
   --emerald-deep: #0b8e63;
   --rule: rgba(22, 27, 24, 0.08);
@@ -14,10 +14,11 @@
   --motion: 220ms;
   --motion-slow: 420ms;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --rule: rgba(238, 243, 240, 0.09);
-  }
+/* Dark theme is toggled by next-themes adding class="dark" on <html> (not by the
+   OS media query), so LIGHT is the deterministic default on first load. */
+.dark {
+  color-scheme: dark;
+  --rule: rgba(238, 243, 240, 0.09);
 }
 
 body {

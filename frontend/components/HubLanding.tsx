@@ -117,7 +117,7 @@ export default function HubLanding({
 
       {/* Quick actions */}
       <section>
-        <h3 className="label-mono mb-2 text-ink-400 dark:text-ink-500">Quick actions</h3>
+        <h3 className="label-mono mb-2 text-ink-600 dark:text-ink-400">Quick actions</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <ActionTile label="New session" hint="Start a fresh conversation"
             onClick={onNewSession} disabled={isStreaming} />
@@ -133,7 +133,7 @@ export default function HubLanding({
 
       {/* Example questions */}
       <section>
-        <h3 className="label-mono mb-2 text-ink-400 dark:text-ink-500">Try asking</h3>
+        <h3 className="label-mono mb-2 text-ink-600 dark:text-ink-400">Try asking</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {examples.map((q) => {
             const m = metaFor(q);

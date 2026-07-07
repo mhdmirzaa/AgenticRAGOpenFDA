@@ -40,9 +40,9 @@ export default function TracePanel({ traceId }: TracePanelProps) {
       {isOpen && (
         <div className="mt-2 rounded-2xl border border-ink-100 bg-paper-sunken p-3 dark:border-ink-800 dark:bg-paper-dark-sunken">
           {loading ? (
-            <div className="text-sm text-ink-400">Loading…</div>
+            <div className="text-sm text-ink-500">Loading…</div>
           ) : steps.length === 0 ? (
-            <div className="text-sm text-ink-400">No trace data</div>
+            <div className="text-sm text-ink-500">No trace data</div>
           ) : (
             <ol className="space-y-2">
               {steps.map((step, i) => (
@@ -55,7 +55,7 @@ export default function TracePanel({ traceId }: TracePanelProps) {
                     {step.node}
                   </span>
                   <div className="min-w-0 text-[0.78rem]">
-                    <div className="truncate text-ink-400 dark:text-ink-500" title={step.input}>
+                    <div className="truncate text-ink-600 dark:text-ink-400" title={step.input}>
                       in&nbsp; {step.input.substring(0, 120)}
                     </div>
                     <div className="truncate text-ink-600 dark:text-ink-300" title={step.output}>

@@ -2,6 +2,7 @@
 
 import Chat from "@/components/Chat";
 import LeafMark from "@/components/LeafMark";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // Rename the product in ONE place (see docs/DESIGN.md).
 const BRAND = "Leaflet";
@@ -13,7 +14,7 @@ export default function Page() {
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-card">
           <LeafMark className="h-6 w-6" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-ink-900 dark:text-ink-50">
             {BRAND}
           </h1>
@@ -21,6 +22,7 @@ export default function Page() {
             Your friendly guide to official FDA drug labels
           </p>
         </div>
+        <ThemeToggle />
       </header>
       <Chat />
     </main>

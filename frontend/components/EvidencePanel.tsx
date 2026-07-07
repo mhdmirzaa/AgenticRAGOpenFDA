@@ -73,7 +73,7 @@ export default function EvidencePanel({
           <>
             {hasActivity && (
               <div>
-                <h3 className="label-mono mb-3 text-ink-400 dark:text-ink-500">
+                <h3 className="label-mono mb-3 text-ink-600 dark:text-ink-400">
                   The trail
                 </h3>
                 <StageTimeline stages={stages} live={live} />
@@ -83,7 +83,7 @@ export default function EvidencePanel({
             {chunks.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="label-mono text-ink-400 dark:text-ink-500">
+                  <h3 className="label-mono text-ink-600 dark:text-ink-400">
                     Evidence
                   </h3>
                   <div className="flex items-center gap-1.5">

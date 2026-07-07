@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Fraunces, Plus_Jakarta_Sans, DM_Mono } from "next/font/google";
+import Providers from "./providers";
 
 // "Leaflet" type system (see docs/DESIGN.md). Self-hosted by next/font at build:
 // no runtime request to Google. Fraunces (editorial display) + Plus Jakarta Sans
@@ -31,9 +32,13 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
       <body className="min-h-screen bg-paper text-ink-900 antialiased dark:bg-paper-dark dark:text-ink-50">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
