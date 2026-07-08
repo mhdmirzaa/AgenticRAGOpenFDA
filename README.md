@@ -1,5 +1,8 @@
 # FDA Drug-Info RAG — Production Agentic RAG
 
+[![CI](https://github.com/mhdmirzaa/AgenticRAGOpenFDA/actions/workflows/ci.yml/badge.svg)](https://github.com/mhdmirzaa/AgenticRAGOpenFDA/actions/workflows/ci.yml)
+[![security](https://github.com/mhdmirzaa/AgenticRAGOpenFDA/actions/workflows/security.yml/badge.svg)](https://github.com/mhdmirzaa/AgenticRAGOpenFDA/actions/workflows/security.yml)
+
 An **Agentic Retrieval-Augmented Generation** system that answers questions
 about FDA-approved drugs — indications, warnings, dosage, adverse reactions,
 contraindications, interactions — grounded **only** in official FDA drug-label
