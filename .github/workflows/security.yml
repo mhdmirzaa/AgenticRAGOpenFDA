@@ -27,7 +27,11 @@ jobs:
           pip install . pip-audit
       - name: pip-audit (fail on known vulns)
         working-directory: backend
-        run: pip-audit --strict --progress-spinner=off
+        # PYSEC-2026-311 (chromadb RCE via the HTTP server /api/v2 collections
+        # endpoint + trust_remote_code) is waived: chromadb is used embedded
+        # (in-process PersistentClient) only — the server API is never exposed —
+        # and no upstream fix is published. Re-check upstream and drop this once fixed.
+        run: pip-audit --strict --progress-spinner=off --ignore-vuln PYSEC-2026-311
 
   node-audit:
     runs-on: ubuntu-latest

@@ -102,6 +102,19 @@ but **never embed the secret in the shipped app**: route through a
 token-exchange / backend-for-frontend proxy that holds the key server-side and
 issues short-lived per-device tokens.
 
+## Accepted dependency advisories
+
+CI runs `pip-audit --strict` + `npm audit --audit-level=high` and **fails the build
+on any known vulnerability**. Exactly one advisory is explicitly **waived**, with the
+rationale recorded here and inline in `.github/workflows/security.yml`:
+
+| Advisory | Package | Rationale for acceptance |
+|---|---|---|
+| **PYSEC-2026-311** (CVE-2026-45829 · GHSA-f4j7-r4q5-qw2c) | `chromadb` 1.5.9 | Pre-auth RCE in chromadb's **HTTP server** endpoint (`/api/v2/tenants/{tenant}/databases/{db}/collections`) via a malicious model repo + `trust_remote_code=true`. **Not reachable here:** chromadb is used **embedded / in-process** (`chromadb.PersistentClient`, `app/retrieval/vectorstore.py`) — the server API is never started or exposed, `trust_remote_code` is never set, and chromadb is only the offline **fallback** store (OpenSearch is primary). **No upstream fix is published**, so it cannot be resolved by upgrading. Waived via `--ignore-vuln PYSEC-2026-311`; re-checked periodically and removed once a fixed chromadb release ships. |
+
+Every other pip-audit / npm-audit finding remains build-failing — this is a single,
+documented exception, not a blanket suppression.
+
 ## Responsible disclosure & known limitations
 
 - **Disclosure:** report suspected vulnerabilities privately to the maintainer;
