@@ -42,7 +42,7 @@ OPENSEARCH_URL=http://localhost:9200 EMBED_MODEL=text-embedding-3-large \
 # 5. Verify nothing regressed.
 cd ../backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q
 cd ../frontend && npx tsc --noEmit && npx next build
-PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test   # stack must be up
+PLAYWRIGHT_BASE_URL=http://localhost:3005 npx playwright test   # stack must be up
 ```
 
 **Honesty rule:** the only permitted tuning if optimized still underperforms is a

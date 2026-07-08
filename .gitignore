@@ -11,7 +11,6 @@ backend/chroma_db/
 .env.local
 frontend/.next/
 frontend/node_modules/
-docs/metrics.md
 
 # local sqlite persistence
 *.db
@@ -27,3 +26,32 @@ eval/_*.log
 eval/*.bak.json
 eval/*.prev.json
 eval/last_run_*_scoped.json
+
+# --- local-only build scaffolding & AI-dev tooling (kept on disk, excluded from
+# the public repo via `git rm --cached`; not product code) ---
+/START_HERE.md
+/commands/
+/.claude/
+docs/SKILLS_SETUP.md
+docs/ECC_SKILLS_MANIFEST.md
+docs/TOKEN_MONITORING.md
+
+# root task-instruction prompts used to drive the build (defensive — not present
+# in this tree, but never commit them if copied in)
+/CALIBRATE_REFUSALS.md
+/PRODUCTION_HARDENING.md
+/SECURITY_HARDENING.md
+/METADATA_SCOPED_RETRIEVAL.md
+/MAXIMISE.md
+/ENHANCE.md
+/COURSE_MATCH_REBUILD.md
+/Telegram bot.md
+/Redesign ui medical hub.md
+/ui light dark toggle.md
+/Productionize_UI.md
+/DYNAMIC_DRUG_CATALOG.md
+/grow_and_remeasure.md
+/Fix_Streaming.md
+/production_full.md
+/TASK.md
+/maistorage-kit.zip

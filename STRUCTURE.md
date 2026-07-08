@@ -18,6 +18,8 @@ maistorage/
 │   │   ├── db.py                     SQLAlchemy: sessions, messages, drug labels, kv_store (growth watermark)
 │   │   ├── observability.py          Langfuse Observer (lazy; no-op when keys absent)
 │   │   ├── scheduler.py              APScheduler fallback: ingestion + growth jobs (off by default)
+│   │   ├── security.py               Production hardening: API-key auth, rate limiting, security headers, input caps
+│   │   ├── metrics.py / logging_config.py   Prometheus-style metrics + structured JSON logging
 │   │   ├── agent/
 │   │   │   ├── graph.py              Graph assembly + event-emitting runner (stage/evidence) + non-streaming answer
 │   │   │   ├── nodes.py              guardrail / route / rewrite / retrieve / rerank / grade / decide / generate / refuse
@@ -34,16 +36,18 @@ maistorage/
 │   │   │   ├── opensearch_store.py   PRIMARY: BM25 + knn_vector, hybrid via RRF
 │   │   │   ├── vectorstore.py        FALLBACK: Chroma (used when OPENSEARCH_URL is empty)  [lazy __init__]
 │   │   │   ├── hybrid.py             Chroma + rank-bm25 RRF (fallback hybrid)
+│   │   │   ├── scoping.py            Metadata-scoped retrieval: resolve target drug(s) + dynamic drug catalog, restrict search before similarity
 │   │   │   ├── reranker.py           Cross-encoder (BAAI/bge-reranker-base; passthrough if unavailable)
-│   │   │   └── cache.py              Redis (or in-memory LRU) query/retrieval cache
+│   │   │   └── cache.py              Redis (or in-memory LRU) query/retrieval/answer cache
 │   │   └── services/telegram/        Telegram bot: handlers.py (start/help/message) + bot.py (PTB Application)
-│   ├── tests/                        19 test modules (unit, agent, guardrail(+sharpness), ask, growth, telegram, persistence, prompts, retrieval-robustness, resilience, e2e)
+│   ├── tests/                        38 test modules · 271 tests (unit, agent, guardrail(+sharpness), ask, growth, telegram, persistence, prompts, scoping/dynamic-catalog, calibration, retrieval-robustness, resilience, security(auth/idor/injection/headers/input/hardening), e2e)
 │   └── Dockerfile / pyproject.toml
 │
-├── frontend/                         Next.js + TypeScript UI (warm soft-green split view)
-│   ├── components/                   Chat, EvidencePanel, StageTimeline, EvidenceChunkCard, Message, Citations, TracePanel, Disclaimer
+├── frontend/                         Next.js + TypeScript UI — "Leaflet" emerald medical hub (light default + dark toggle)
+│   ├── app/                          page.tsx (BRAND="Leaflet", hub↔workspace), layout.tsx, providers.tsx (next-themes), globals.css
+│   ├── components/                   HubLanding, Chat, EvidencePanel, StageTimeline, EvidenceChunkCard, Message, Citations, TracePanel, ThemeToggle, LeafMark, Disclaimer
 │   ├── lib/stream.ts                 SSE client: token/stage/evidence/done; /ask, /grow, /health, /sessions
-│   ├── e2e/chat.spec.ts              Playwright e2e (disclaimer, streaming+citations, blocked, refusal)
+│   ├── e2e/chat.spec.ts              Playwright e2e — 5/5 (disclaimer, streaming+citations, citation→chunk, blocked, refusal)
 │   └── playwright.config.ts / Dockerfile
 │
 ├── airflow/dags/fda_ingestion_dag.py @daily: fetch → extract → dedupe → index_and_record → grow_corpus (delegates writes to backend)

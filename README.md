@@ -19,10 +19,10 @@ assistant over the **openFDA API**.
 
 ```
                          ┌──────────────── Apache Airflow (or APScheduler) ───────────────┐
-                         │  every 15 min:  fetch → extract → dedupe → index → record       │
+                         │  @daily:  fetch → extract → dedupe → index → grow → record      │
                          └───────────────┬────────────────────────────────────────────────┘
                                          ▼
-   openFDA /drug/label.json ──▶ parse prose sections ──▶ chunk (1/section) ──▶ embed ──▶ Chroma
+   openFDA /drug/label.json ──▶ parse prose sections ──▶ chunk (1/section) ──▶ embed ──▶ OpenSearch
                                          │                                                  ▲
                                          └── dedupe by label_id ──▶ Postgres (DrugLabel)    │
                                                                                             │
@@ -35,30 +35,34 @@ User question ─▶ Route ─▶ Rewrite ─▶ Retrieve ─▶ Rerank ─▶ G
 ```
 
 ### Stack
-- **Backend**: FastAPI + LangGraph agent + embedded ChromaDB
-- **Frontend**: Next.js + TypeScript (streaming, citations, trace panel, history)
+- **Backend**: FastAPI + LangGraph agent (guardrail-first, self-grading, calibrated refusal)
+- **Clients**: Next.js + TypeScript web UI — **"Leaflet"** emerald medical hub (light default + dark
+  toggle; streaming, inline citations, live evidence panel) — **and a Telegram bot** (second client)
 - **Data**: openFDA API (`/drug/label.json`, keyless)
-- **LLM**: OpenAI `gpt-4.1-mini`; embeddings `text-embedding-3-small`
+- **LLM**: OpenAI `gpt-4.1-mini`; embeddings `text-embedding-3-large` (3072-d)
   (provider-agnostic layer also supports Gemini/Groq/Ollama/local)
-- **Retrieval**: Chroma dense + BM25 hybrid (RRF) + optional cross-encoder rerank
+- **Retrieval**: **OpenSearch** BM25 + kNN hybrid (RRF) + cross-encoder rerank + **metadata-scoped
+  retrieval** (embedded Chroma + rank-bm25 fallback when `OPENSEARCH_URL` is empty)
 - **Persistence**: PostgreSQL (drug labels + chat sessions/messages/memory)
-- **Orchestration**: Apache Airflow DAG (in-process APScheduler fallback)
-- **Caching**: Redis (query-embedding + retrieval cache), in-memory fallback
+- **Orchestration**: Apache Airflow DAG, `@daily` + continuous growth (in-process APScheduler fallback)
+- **Caching**: Redis (query-embedding + retrieval + final-answer cache), in-memory fallback
 - **Observability**: self-hosted Langfuse (per-request tracing)
+- **Security**: API-key auth, rate limiting, security headers, input caps (see `docs/SECURITY.md`)
 
 ## Quick start (Docker — full stack)
 
 ```bash
 cp .env.example .env          # set OPENAI_API_KEY
-docker compose up             # backend :8000, frontend :3000, Postgres, Airflow :8080
+docker compose up             # backend :8000, frontend :3005, Postgres, OpenSearch, Airflow :8080, telegram-bot
 
 # add Redis and/or Langfuse (optional enhancements):
 docker compose -f docker-compose.yml -f docker-compose.redis.yml \
                -f docker-compose.langfuse.yml up
 ```
 
-Then open the UI at http://localhost:3000, click **Fetch FDA Labels** to build
-the index, and ask a question.
+Then open the UI at http://localhost:3005, use the **Sync labels** quick-action
+(or `curl -X POST http://localhost:8000/ingest/fda`) to build the index, and ask
+a question.
 
 ## Quick start (local, no Docker)
 
@@ -73,23 +77,24 @@ cd backend && uvicorn app.main:app --reload --port 8000
 curl -X POST http://localhost:8000/ingest/fda
 
 # frontend
-cd frontend && npm install && npm run dev     # http://localhost:3000
+cd frontend && npm install && npm run dev -- -p 3005   # http://localhost:3005 (matches e2e baseURL)
 ```
 
 ## How the ingestion DAG works
 
 `airflow/dags/fda_ingestion_dag.py` runs on a configurable schedule
-(`FDA_DAG_SCHEDULE`, default `*/15 * * * *`):
+(`FDA_DAG_SCHEDULE`, default `@daily` — course parity):
 
-`fetch_labels → extract_sections → dedupe → index → record`
+`fetch_labels → extract_sections → dedupe → index → record → grow_corpus`
 
 - **fetch_labels** — pull the seed drugs from openFDA (throttled, keyless)
 - **extract_sections** — parse prose sections into per-section records
 - **dedupe** — drop any `label_id` already in Postgres
-- **index** — chunk (one per section) → embed → upsert into Chroma
+- **index** — chunk (one per section) → embed → upsert into OpenSearch (Chroma fallback)
 - **record** — write `DrugLabel` rows (UNIQUE `label_id` enforces DB-level dedupe)
+- **grow_corpus** — one growth batch: fetch the next page of newest labels, dedupe, index, advance watermark
 
-Idempotent: deterministic chunk ids + Chroma upsert + `label_id` dedupe mean
+Idempotent: deterministic chunk ids + OpenSearch upsert + `label_id` dedupe mean
 re-runs never double-index. If Airflow can't run in an environment, the same job
 runs in-process via APScheduler (`ENABLE_SCHEDULER=1`, `SCHEDULE_MINUTES`).
 
@@ -109,10 +114,12 @@ runs in-process via APScheduler (`ENABLE_SCHEDULER=1`, `SCHEDULE_MINUTES`).
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/health` | GET | health, Chroma count, cache backend + stats |
+| `/health` | GET | health, OpenSearch/Chroma doc count, cache backend + stats |
 | `/ingest/fda` | POST | fetch openFDA labels, index (deduped by label_id) |
+| `/ingest/fda/grow` | POST | one continuous-growth batch (fetch newest, dedupe, index) |
 | `/ingest` | POST | (legacy) rebuild index from `corpus/` |
 | `/chat` | POST | agentic RAG over SSE (optional `session_id` for memory) |
+| `/ask-agentic` | POST | non-streaming agentic answer (course-parity; used by the Telegram bot) |
 | `/trace/{id}` | GET | agent decision trace |
 | `/sessions` | POST | create a chat session |
 | `/sessions/{id}/messages` | GET | conversation history |
@@ -167,8 +174,8 @@ cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 271 pa
 ```
 
 **Continuous integration** (`.github/workflows/`): `ci.yml` runs the full backend
-suite + frontend `tsc --noEmit` + `next build` on every push/PR (Playwright e2e is
-an on-demand job); `security.yml` runs `pip-audit` + `npm audit` + the security
+suite + frontend `tsc --noEmit` + `next build` on every push/PR (Playwright e2e —
+**5/5** — is an on-demand job); `security.yml` runs `pip-audit` + `npm audit` + the security
 suite. A failure in any blocking job fails the build. See `docs/DEPLOYMENT.md` and
 `docs/OPERATIONS.md` for the production story.
 
@@ -178,18 +185,22 @@ suite. A failure in any blocking job fails the build. See `docs/DEPLOYMENT.md` a
 scheduled DAG → vector store → agent → UI, plus caching and observability),
 retargeted from arXiv papers to openFDA drug labels.
 
-**Deliberately out of scope** (course had these; not needed here): OpenSearch
-(kept Chroma+BM25), Docling/PDF pipeline (label text is already prose), arXiv,
-Telegram bot, Jina embeddings.
+**Now included (v3.0 course-match):** **OpenSearch** as the primary store (BM25 + kNN,
+RRF; embedded Chroma retained as the offline fallback) and a **Telegram bot** as a
+second client.
+
+**Deliberately out of scope** (course had these; not needed here): Docling/PDF
+pipeline (label text is already prose), arXiv (openFDA instead), Jina embeddings
+(OpenAI instead).
 
 **Redis and Langfuse** are enhancements — the app runs and demos without them,
 and each degrades gracefully if absent.
 
 ## Production upgrade path
 
-- Chroma → a managed vector DB (pgvector / Qdrant / Weaviate) for horizontal scale
+- OpenSearch single-node → managed/sharded cluster for horizontal scale (Chroma stays the offline fallback)
 - Airflow on Celery/Kubernetes executor; expand the seed list / add openFDA paging
-- Real cross-encoder rerank (BAAI/bge-reranker-base) once the corpus de-saturates
+- Tune hybrid+rerank weighting as the corpus de-saturates (metadata-scoping already recovers the optimized path — see `docs/metrics.md`)
 - Redis cluster + answer-level cache; per-tenant rate limiting
 - Langfuse dashboards + alerting on faithfulness / refusal regressions
 - Auth, PII scrubbing, and an audit trail on the medical disclaimer acceptance
@@ -198,7 +209,7 @@ and each degrades gracefully if absent.
 
 A single-process, no-Node demo fallback that imports the same backend agent
 in-process. Use only if Node isn't available or the browser can't reach
-`localhost:3000`. The committed primary UI is Next.js.
+`localhost:3005`. The committed primary UI is the Next.js "Leaflet" app.
 
 ```bash
 pip install streamlit && streamlit run demo_app.py
@@ -215,12 +226,14 @@ maistorage/
 │   │   ├── api/             # health, ingest, chat, trace, sessions
 │   │   ├── ingestion/       # openFDA fetch/parse + chunk + index
 │   │   ├── providers/       # LLM providers (OpenAI, Gemini, Groq, Ollama, local)
-│   │   ├── retrieval/       # vectorstore, hybrid search, reranker, cache (Redis)
+│   │   ├── retrieval/       # opensearch (primary) + vectorstore/hybrid (fallback), reranker, scoping, cache
+│   │   ├── services/telegram/ # Telegram bot (second client)
+│   │   ├── security.py      # API-key auth, rate limiting, security headers, input caps
 │   │   ├── db.py            # SQLAlchemy models + persistence helpers
-│   │   ├── scheduler.py     # APScheduler ingestion fallback
+│   │   ├── scheduler.py     # APScheduler ingestion + growth fallback
 │   │   └── observability.py # Langfuse tracing (graceful no-op)
-│   └── tests/               # 96 tests
-├── frontend/                # Next.js chat UI (streaming, citations, trace, history)
+│   └── tests/               # 271 tests (38 modules)
+├── frontend/                # Next.js "Leaflet" UI (emerald hub, light/dark, streaming, citations, evidence panel)
 ├── eval/                    # golden-set harness (Hit@k, MRR, faithfulness, refusal)
 ├── docker-compose*.yml      # full stack + redis/langfuse overlays
 └── docs/                    # PRD, metrics, demo script

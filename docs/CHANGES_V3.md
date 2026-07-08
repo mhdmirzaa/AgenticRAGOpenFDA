@@ -95,6 +95,11 @@ disclaimer, light/dark. **Playwright** e2e (`frontend/e2e/chat.spec.ts`,
 `playwright.config.ts`) covers disclaimer, streaming, citation→chunk highlight,
 stage animation, guardrail block, and unanswerable refusal.
 
+> **Since superseded:** the split-view was later restyled into the **"Leaflet"**
+> emerald medical-hub identity (light default + dark toggle, hub landing). The old
+> "soft-green" descriptor above is the v3-snapshot look — see `docs/DESIGN.md` for
+> the current UI.
+
 ---
 
 ## How to run (v3.0)
@@ -114,7 +119,7 @@ curl -X POST http://localhost:8000/ingest/fda/grow   # one growth batch (or let 
 ## Tests
 
 ```bash
-cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 122 passed
+cd backend && DISABLE_RERANKER=1 HF_HUB_OFFLINE=1 python -m pytest -q   # 122 passed (at v3 cut; 271 on main today)
 cd frontend && npx tsc --noEmit && npm run build                        # clean
 ```
 

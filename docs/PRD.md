@@ -124,7 +124,7 @@ openFDA API (/drug/label.json, keyless)          [Embeddings: OpenAI text-embedd
         │            (Redis cache on embeddings/retrieval)
    API Layer: FastAPI — REST + async — POST /ask-agentic · POST /chat (stream)
         │
-   Clients:  Next.js + TypeScript UI (warm split-view: chat + live evidence panel)   +   Telegram (bot)
+   Clients:  Next.js + TypeScript UI ("Leaflet" emerald hub; light/dark; chat + live evidence panel)  +  Telegram (bot)
         │
    Observability Layer: Langfuse — traces + prompt versioning
 ```
@@ -204,8 +204,14 @@ openFDA API (/drug/label.json, keyless)          [Embeddings: OpenAI text-embedd
 A distinctive, non-generic **warm health-assistant** interface that makes the agent's reasoning
 visible. This is the developer's primary stack (Next.js/TypeScript/React) and the main demo surface.
 
-- **Identity:** warm, approachable, **soft-green** palette (health/calm), rounded corners, friendly
-  type, generous spacing; trustworthy, with the medical disclaimer always visible.
+- **Identity — "Leaflet" (medical hub):** a fresh, saturated **emerald** on clean white/mint-white,
+  editorial serif (Fraunces) + friendly sans (Plus Jakarta), soft generous shapes; trustworthy but
+  approachable, with the medical disclaimer always visible. **Light is the default; dark is a header
+  toggle** (`next-themes`, deterministic light on first load). Full token/type spec in `docs/DESIGN.md`.
+  (This replaces the earlier cobalt "Monograph" and the timid soft-green — see DESIGN.md.)
+- **Two states:** a **hub landing** (warm dashboard: hero ask bar, corpus stat tiles, quick actions —
+  New session / Sync labels / Grow corpus — example-question cards) that folds into the split-view
+  workspace on the first question.
 - **Layout — split view:**
   - **Left (conversation):** streaming answers, tappable inline citation chips, chat history, input.
   - **Right (live evidence panel) — the signature feature:** as the agent runs, an **animated stage
