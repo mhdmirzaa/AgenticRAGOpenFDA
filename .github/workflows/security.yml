@@ -31,7 +31,13 @@ jobs:
         # endpoint + trust_remote_code) is waived: chromadb is used embedded
         # (in-process PersistentClient) only — the server API is never exposed —
         # and no upstream fix is published. Re-check upstream and drop this once fixed.
-        run: pip-audit --strict --progress-spinner=off --ignore-vuln PYSEC-2026-311
+        #
+        # Uninstall the local project first: maistorage-backend isn't on PyPI, so
+        # pip-audit --strict can't audit it and errors out. Its third-party deps
+        # stay installed and ARE audited — they're the real dependency attack surface.
+        run: |
+          pip uninstall -y maistorage-backend
+          pip-audit --strict --progress-spinner=off --ignore-vuln PYSEC-2026-311
 
   node-audit:
     runs-on: ubuntu-latest
